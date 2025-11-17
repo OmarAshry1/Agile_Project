@@ -27,4 +27,9 @@ public  abstract class User {
     public String getPassword() {
         return password;
     }
+    public boolean checkPassword(String rawPassword) {
+        return password != null && password.equals(rawPassword);
+    }
+
+
 }
