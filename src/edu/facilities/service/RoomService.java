@@ -8,10 +8,10 @@ import java.util.List;
 
 public class RoomService {
 
-    // Local in-memory list until database is added
+
     private final List<Room> rooms = new ArrayList<>();
 
-    // --- CRUD Operations (Admin only for US 1.3) ---
+
 
     public void createRoom(String id, String name, RoomType type, int capacity, String location) {
         Room room = new Room(id, name, type, capacity, location);
@@ -45,7 +45,7 @@ public class RoomService {
         return rooms.remove(room);
     }
 
-    // --- Editing rooms (US 1.3) ---
+
     public boolean updateRoomType(String roomId, RoomType newType) {
         Room room = getRoomById(roomId);
         if (room == null) return false;
@@ -62,7 +62,7 @@ public class RoomService {
         return true;
     }
 
-    // Optionally allow editing name/location
+
     public boolean updateRoomName(String roomId, String newName) {
         Room room = getRoomById(roomId);
         if (room == null) return false;
@@ -79,7 +79,7 @@ public class RoomService {
         return true;
     }
 
-    // --- US 1.1: Viewing Available Rooms ---
+
     public List<Room> getAvailableRooms() {
         List<Room> availableRooms = new ArrayList<>();
         for (Room room : rooms) {
@@ -90,7 +90,7 @@ public class RoomService {
         return availableRooms;
     }
 
-    // Change availability (used later for booking)
+
     public void setAvailability(String roomId, boolean available) {
         Room room = getRoomById(roomId);
         if (room != null) {

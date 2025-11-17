@@ -4,13 +4,13 @@ import java.util.Objects;
 
 public class Room {
 
-    private final String id;        // Unique ID (never changes)
-    private String name;            // Editable? Optional if needed later
-    private RoomType type;          // Editable according to US 1.3
-    private int capacity;           // Editable according to US 1.3
-    private String location;        // Usually fixed, but can be editable if needed
+    private final String id;
+    private String name;
+    private RoomType type;
+    private int capacity;
+    private String location;
 
-    private boolean available;      // Used for US 1.1 – real-time availability
+    private boolean available;
 
     public Room(String id, String name, RoomType type, int capacity, String location) {
         this.id = id;
@@ -18,7 +18,7 @@ public class Room {
         this.type = type;
         this.capacity = capacity;
         this.location = location;
-        this.available = true; // default
+        this.available = true;
     }
 
     // --- Getters ---
@@ -29,7 +29,7 @@ public class Room {
     public String getLocation() { return location; }
     public boolean isAvailable() { return available; }
 
-    // --- Setters for US 1.3 (Admin edits) ---
+    // --- Setters ---
     public void setType(RoomType type) { this.type = type; }
     public void setCapacity(int capacity) { this.capacity = capacity; }
     public void setName(String name) { this.name = name; }
@@ -39,14 +39,14 @@ public class Room {
         this.available = available;
     }
 
-    // For debugging and UI
+
     @Override
     public String toString() {
         return name + " [" + id + "] (" + type + ", cap=" + capacity +
                 ", loc=" + location + ", available=" + available + ")";
     }
 
-    // Rooms are uniquely identified by their ID
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
