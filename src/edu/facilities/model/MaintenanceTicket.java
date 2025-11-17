@@ -14,6 +14,7 @@ public class MaintenanceTicket {
     private final LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
 
+
     public MaintenanceTicket(String id,
                              Room room,
                              User reporter,
@@ -30,6 +31,20 @@ public class MaintenanceTicket {
         this.status = status;
         this.createdAt = createdAt;
         this.resolvedAt = resolvedAt;
+    }
+
+
+    public MaintenanceTicket(Room room,
+                             User reporter,
+                             String description) {
+        this.id = null;
+        this.room = room;
+        this.reporter = reporter;
+        this.assignedStaff = null;
+        this.description = description;
+        this.status = TicketStatus.NEW;
+        this.createdAt = LocalDateTime.now();
+        this.resolvedAt = null;
     }
 
     public String getId() {
