@@ -2,19 +2,19 @@ package edu.facilities.service;
 
 import edu.facilities.model.Room;
 import edu.facilities.model.RoomType;
+import edu.facilities.model.RoomStatus;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoomService {
 
-
     private final List<Room> rooms = new ArrayList<>();
 
+    public void createRoom(String id, String name, RoomType type, int capacity,
+                           String location, RoomStatus status) {
 
-
-    public void createRoom(String id, String name, RoomType type, int capacity, String location) {
-        Room room = new Room(id, name, type, capacity, location);
+        Room room = new Room(id, name, type, capacity, location, status);
         rooms.add(room);
     }
 
@@ -28,23 +28,15 @@ public class RoomService {
     }
 
     public List<Room> getAllRooms() {
-        return new ArrayList<>(rooms);   // safe copy
+        return new ArrayList<>(rooms);
     }
 
     public boolean deleteRoom(String roomId) {
         Room room = getRoomById(roomId);
         if (room == null) return false;
 
-
-        boolean hasFutureBookings = false;
-
-        if (hasFutureBookings) {
-            return false; // cannot delete
-        }
-
         return rooms.remove(room);
     }
-
 
     public boolean updateRoomType(String roomId, RoomType newType) {
         Room room = getRoomById(roomId);
@@ -62,39 +54,21 @@ public class RoomService {
         return true;
     }
 
-
-    public boolean updateRoomName(String roomId, String newName) {
+    public boolean updateRoomStatus(String roomId, RoomStatus newStatus) {
         Room room = getRoomById(roomId);
         if (room == null) return false;
 
-        room.setName(newName);
+        room.setStatus(newStatus);
         return true;
     }
-
-    public boolean updateRoomLocation(String roomId, String newLocation) {
-        Room room = getRoomById(roomId);
-        if (room == null) return false;
-
-        room.setLocation(newLocation);
-        return true;
-    }
-
 
     public List<Room> getAvailableRooms() {
         List<Room> availableRooms = new ArrayList<>();
         for (Room room : rooms) {
-            if (room.isAvailable()) {
+            if (room.getStatus() == RoomStatus.AVAILABLE) {
                 availableRooms.add(room);
             }
         }
         return availableRooms;
-    }
-
-
-    public void setAvailability(String roomId, boolean available) {
-        Room room = getRoomById(roomId);
-        if (room != null) {
-            room.setAvailable(available);
-        }
     }
 }

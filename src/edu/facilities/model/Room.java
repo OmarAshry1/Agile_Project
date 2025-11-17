@@ -4,21 +4,20 @@ import java.util.Objects;
 
 public class Room {
 
-    private final String id;
+    private final String id;          // Maps to RoomID or Code depending on your design
     private String name;
     private RoomType type;
     private int capacity;
     private String location;
+    private RoomStatus status;        // NEW: Matches DB enum
 
-    private boolean available;
-
-    public Room(String id, String name, RoomType type, int capacity, String location) {
+    public Room(String id, String name, RoomType type, int capacity, String location, RoomStatus status) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.capacity = capacity;
         this.location = location;
-        this.available = true;
+        this.status = status;
     }
 
     // --- Getters ---
@@ -27,25 +26,22 @@ public class Room {
     public RoomType getType() { return type; }
     public int getCapacity() { return capacity; }
     public String getLocation() { return location; }
-    public boolean isAvailable() { return available; }
+    public RoomStatus getStatus() { return status; }
 
     // --- Setters ---
     public void setType(RoomType type) { this.type = type; }
     public void setCapacity(int capacity) { this.capacity = capacity; }
     public void setName(String name) { this.name = name; }
     public void setLocation(String location) { this.location = location; }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
+    public void setStatus(RoomStatus status) { this.status = status; }
 
     @Override
     public String toString() {
-        return name + " [" + id + "] (" + type + ", cap=" + capacity +
-                ", loc=" + location + ", available=" + available + ")";
+        return name + " [" + id + "] (" + type +
+                ", cap=" + capacity +
+                ", loc=" + location +
+                ", status=" + status + ")";
     }
-
 
     @Override
     public boolean equals(Object o) {
