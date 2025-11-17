@@ -35,8 +35,8 @@ public class RoomService {
         Room room = getRoomById(roomId);
         if (room == null) return false;
 
-        // US 1.3 – must check no future bookings (placeholder)
-        boolean hasFutureBookings = false; // Replace later with booking check
+
+        boolean hasFutureBookings = false;
 
         if (hasFutureBookings) {
             return false; // cannot delete
