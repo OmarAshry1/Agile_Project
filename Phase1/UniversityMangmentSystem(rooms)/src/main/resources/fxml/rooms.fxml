@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.universitymangmentsystem.controllers.RoomsController"
+            prefHeight="700.0" prefWidth="1200.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="20" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Room Management" styleClass="page-title"/>
+                <Label text="View and manage all classroom and laboratory spaces" styleClass="form-label"/>
+            </VBox>
+
+            <!-- Action Buttons (Right Side) -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button fx:id="addButton" text="➕ Add Room" styleClass="btn-primary"
+                        onAction="#handleAddRoom" prefWidth="140"/>
+                <Button fx:id="editButton" text="✏️ Edit" styleClass="btn-primary"
+                        onAction="#handleEditRoom" prefWidth="120"/>
+                <Button fx:id="deleteButton" text="🗑️ Delete" styleClass="btn-danger"
+                        onAction="#handleDeleteRoom" prefWidth="120"/>
+            </HBox>
+        </HBox>
+
+        <!-- Search and Filter Section -->
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="card">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Search Rooms" styleClass="form-label"/>
+                <TextField fx:id="searchField" promptText="Search by room number, type, or building..."
+                           styleClass="search-field" prefWidth="400" onKeyReleased="#handleSearch"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <Label text="Filter by Type" styleClass="form-label"/>
+                <ComboBox fx:id="typeFilter" promptText="All Types" prefWidth="180"
+                          onAction="#handleFilterType"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <Label text="Filter by Status" styleClass="form-label"/>
+                <ComboBox fx:id="statusFilter" promptText="All Status" prefWidth="180"
+                          onAction="#handleFilterStatus"/>
+            </VBox>
+        </HBox>
+
+        <!-- Table Section -->
+        <VBox VBox.vgrow="ALWAYS" spacing="10">
+            <Label text="All Rooms" styleClass="section-header"/>
+
+            <TableView fx:id="roomsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <columns>
+                    <!-- Room Number Column -->
+                    <TableColumn fx:id="roomNumberColumn" text="Room Number" prefWidth="150"
+                                 sortable="true"/>
+
+                    <!-- Type Column -->
+                    <TableColumn fx:id="typeColumn" text="Type" prefWidth="180"
+                                 sortable="true"/>
+
+                    <!-- Capacity Column -->
+                    <TableColumn fx:id="capacityColumn" text="Capacity" prefWidth="120"
+                                 sortable="true"/>
+
+                    <!-- Building Column -->
+                    <TableColumn fx:id="buildingColumn" text="Building" prefWidth="200"
+                                 sortable="true"/>
+
+                    <!-- Floor Column -->
+                    <TableColumn fx:id="floorColumn" text="Floor" prefWidth="100"
+                                 sortable="true"/>
+
+                    <!-- Equipment Column -->
+                    <TableColumn fx:id="equipmentColumn" text="Equipment" prefWidth="250"
+                                 sortable="false"/>
+
+                    <!-- Status Column -->
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="150"
+                                 sortable="true"/>
+                </columns>
+
+                <!-- Empty Table Placeholder -->
+                <placeholder>
+                    <VBox alignment="CENTER" spacing="10" styleClass="padding-large">
+                        <Label text="No Rooms Available" styleClass="section-header"/>
+                        <Label text="Click 'Add Room' to create your first room" styleClass="form-label"/>
+                    </VBox>
+                </placeholder>
+            </TableView>
+        </VBox>
+
+        <!-- Footer Stats -->
+        <HBox spacing="30" alignment="CENTER_LEFT" styleClass="card">
+            <VBox spacing="5">
+                <Label text="Total Rooms" styleClass="form-label"/>
+                <Label fx:id="totalRoomsLabel" text="0" styleClass="section-header"/>
+            </VBox>
+
+            <Separator orientation="VERTICAL" prefHeight="40"/>
+
+            <VBox spacing="5">
+                <Label text="Available" styleClass="form-label"/>
+                <Label fx:id="availableRoomsLabel" text="0" styleClass="section-header"
+                       style="-fx-text-fill: #43A047;"/>
+            </VBox>
+
+            <Separator orientation="VERTICAL" prefHeight="40"/>
+
+            <VBox spacing="5">
+                <Label text="Booked" styleClass="form-label"/>
+                <Label fx:id="bookedRoomsLabel" text="0" styleClass="section-header"
+                       style="-fx-text-fill: #FB8C00;"/>
+            </VBox>
+
+            <Separator orientation="VERTICAL" prefHeight="40"/>
+
+            <VBox spacing="5">
+                <Label text="Under Maintenance" styleClass="form-label"/>
+                <Label fx:id="maintenanceRoomsLabel" text="0" styleClass="section-header"
+                       style="-fx-text-fill: #E53935;"/>
+            </VBox>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
