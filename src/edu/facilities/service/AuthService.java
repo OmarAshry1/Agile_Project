@@ -31,13 +31,13 @@ public class AuthService {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (!rs.next()) {
-                    return false; // username not found
+                    return false;
                 }
 
                 int userId       = rs.getInt("UserID");
                 String dbUsername = rs.getString("USERNAME");
-                String dbPassword = rs.getString("Password");   // [Password] alias
-                String userType   = rs.getString("UserType");   // 'STUDENT', 'ADMIN', ...
+                String dbPassword = rs.getString("Password");
+                String userType   = rs.getString("UserType");
 
                 if (!dbPassword.equals(password)) {
                     return false; // wrong password
