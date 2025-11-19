@@ -1,4 +1,4 @@
-package org.example.universitymangmentsystem.controllers;
+package edu.facilities.ui;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -61,7 +61,7 @@ public class RoomsController {
     // Data List
     private ObservableList<Room> roomsList = FXCollections.observableArrayList();
     private FilteredList<Room> filteredData;
-    
+
     // Backend Services
     private RoomService roomService = new RoomService();
     private BookingService bookingService = new BookingService();
@@ -83,7 +83,7 @@ public class RoomsController {
             disableAllControls();
             return;
         }
-        
+
         // Set up table columns
         setupTableColumns();
         // Populate filter dropdowns
@@ -185,15 +185,15 @@ public class RoomsController {
 
             // Type filter
             String selectedType = typeFilter.getValue();
-            if (selectedType != null && !selectedType.equals("All Types") && 
-                !selectedType.equals(roomTypeToString(room.getType()))) {
+            if (selectedType != null && !selectedType.equals("All Types") &&
+                    !selectedType.equals(roomTypeToString(room.getType()))) {
                 return false;
             }
 
             // Status filter
             String selectedStatus = statusFilter.getValue();
-            if (selectedStatus != null && !selectedStatus.equals("All Status") && 
-                !selectedStatus.equals(roomStatusToString(room.getStatus()))) {
+            if (selectedStatus != null && !selectedStatus.equals("All Status") &&
+                    !selectedStatus.equals(roomStatusToString(room.getStatus()))) {
                 return false;
             }
 
@@ -328,18 +328,18 @@ public class RoomsController {
             if (response == ButtonType.OK) {
                 // REQUIREMENT: Verify room has no future bookings before deletion
                 String roomId = selectedRoom.getId();
-                
+
                 if (bookingService.hasFutureBookings(roomId)) {
                     int bookingCount = bookingService.getFutureBookingCount(roomId);
-                    showError("Cannot Delete Room", 
-                        "This room has " + bookingCount + " future booking(s). " +
-                        "Please cancel or reschedule all future bookings before deleting the room.");
+                    showError("Cannot Delete Room",
+                            "This room has " + bookingCount + " future booking(s). " +
+                                    "Please cancel or reschedule all future bookings before deleting the room.");
                     return;
                 }
-                
+
                 // Delete from backend service
                 boolean deleted = roomService.deleteRoom(roomId);
-                
+
                 if (deleted) {
                     // Refresh data from service
                     loadRoomData();
@@ -440,7 +440,7 @@ public class RoomsController {
     // ============================================
     //  HELPER METHODS FOR MAPPING
     // ============================================
-    
+
     /**
      * Convert RoomType enum to display string
      */
@@ -454,7 +454,7 @@ public class RoomsController {
             default: return type.toString();
         }
     }
-    
+
     /**
      * Convert display string to RoomType enum
      */
@@ -468,7 +468,7 @@ public class RoomsController {
             default: return RoomType.CLASSROOM;
         }
     }
-    
+
     /**
      * Convert RoomStatus enum to display string
      */
@@ -481,7 +481,7 @@ public class RoomsController {
             default: return status.toString();
         }
     }
-    
+
     /**
      * Convert display string to RoomStatus enum
      */
@@ -494,17 +494,17 @@ public class RoomsController {
             default: return RoomStatus.AVAILABLE;
         }
     }
-    
+
     /**
      * Combine building, floor, and equipment into location string
      * Format: "Building|Floor|Equipment"
      */
     private String combineLocation(String building, String floor, String equipment) {
-        return (building != null ? building : "") + "|" + 
-               (floor != null ? floor : "") + "|" + 
-               (equipment != null ? equipment : "");
+        return (building != null ? building : "") + "|" +
+                (floor != null ? floor : "") + "|" +
+                (equipment != null ? equipment : "");
     }
-    
+
     /**
      * Parse location string back to building, floor, equipment
      * Format: "Building|Floor|Equipment"
@@ -516,9 +516,9 @@ public class RoomsController {
         }
         String[] parts = location.split("\\|", 3);
         return new String[]{
-            parts.length > 0 ? parts[0] : "",
-            parts.length > 1 ? parts[1] : "",
-            parts.length > 2 ? parts[2] : ""
+                parts.length > 0 ? parts[0] : "",
+                parts.length > 1 ? parts[1] : "",
+                parts.length > 2 ? parts[2] : ""
         };
     }
 
@@ -554,11 +554,11 @@ public class RoomsController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-    
+
     // ============================================
     //  ADMIN ACCESS CONTROL
     // ============================================
-    
+
     /**
      * Check if current user is an admin
      * REQUIREMENT: Admin-only access to room management
@@ -569,22 +569,22 @@ public class RoomsController {
             System.err.println("AuthService is not initialized");
             return false;
         }
-        
+
         if (!authService.isLoggedIn()) {
             System.out.println("User is not logged in");
             return false;
         }
-        
+
         String userType = authService.getCurrentUserType();
         boolean isAdmin = "ADMIN".equals(userType);
-        
+
         if (!isAdmin) {
             System.out.println("Access denied: User type is " + userType + ", ADMIN required");
         }
-        
+
         return isAdmin;
     }
-    
+
     /**
      * Disable all controls for non-admin users
      */
