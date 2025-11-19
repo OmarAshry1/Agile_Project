@@ -3,7 +3,10 @@ package org.example.universitymangmentsystem.controllers;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.collections.ObservableList;
+
+import edu.facilities.model.RoomType;
+import edu.facilities.model.RoomStatus;
+import edu.facilities.service.RoomService;
 
 /**
  * Controller for Add Room Form (add_room.fxml)
@@ -29,8 +32,8 @@ public class AddRoomController {
     @FXML private Label capacityError;
     @FXML private Label buildingError;
 
-    // Reference to the rooms list from RoomsController
-    private ObservableList<Object> roomsList;
+    // Reference to the room service
+    private RoomService roomService;
 
     // ============================================
     //  INITIALIZATION
@@ -65,10 +68,10 @@ public class AddRoomController {
     }
 
     /**
-     * Set the rooms list reference from RoomsController
+     * Set the room service reference from RoomsController
      */
-    public void setRoomsList(ObservableList<Object> roomsList) {
-        this.roomsList = roomsList;
+    public void setRoomService(RoomService roomService) {
+        this.roomService = roomService;
     }
 
     // ============================================
@@ -90,40 +93,34 @@ public class AddRoomController {
         }
 
         // Get values from form
-        String roomNumber = roomNumberField.getText().trim();
-        String type = typeComboBox.getValue();
+        String roomId = roomNumberField.getText().trim();
+        String typeStr = typeComboBox.getValue();
         int capacity = Integer.parseInt(capacityField.getText().trim());
         String building = buildingField.getText().trim();
         String floor = floorField.getText().trim();
         String equipment = equipmentArea.getText().trim();
-        String status = statusComboBox.getValue();
+        String statusStr = statusComboBox.getValue();
 
-        // Create new Room object using reflection (to work with the Room class in RoomsController)
-        try {
-            // Get the Room class from RoomsController
-            Class<?> roomClass = Class.forName("org.example.universitymangmentsystem.controllers.Room");
+        // Convert to backend enums
+        RoomType type = stringToRoomType(typeStr);
+        RoomStatus status = stringToRoomStatus(statusStr);
+        
+        // Combine building, floor, and equipment into location
+        String location = combineLocation(building, floor, equipment);
+        
+        // Use room ID as name (or you can use a separate name field if needed)
+        String roomName = roomId;
 
-            // Create new Room instance
-            Object newRoom = roomClass.getConstructor(
-                    String.class, String.class, int.class, String.class,
-                    String.class, String.class, String.class
-            ).newInstance(roomNumber, type, capacity, building, floor, equipment, status);
-
-            // Add to the list if we have a reference
-            if (roomsList != null) {
-                roomsList.add(newRoom);
-                System.out.println("Room added to list successfully!");
-            } else {
-                System.err.println("WARNING: roomsList is null, room not added to table");
-            }
-
+        // Create room using RoomService
+        if (roomService != null) {
+            roomService.createRoom(roomId, roomName, type, capacity, location, status);
+            
             System.out.println("Room Added:");
-            System.out.println("  Number: " + roomNumber);
+            System.out.println("  ID: " + roomId);
+            System.out.println("  Name: " + roomName);
             System.out.println("  Type: " + type);
             System.out.println("  Capacity: " + capacity);
-            System.out.println("  Building: " + building);
-            System.out.println("  Floor: " + floor);
-            System.out.println("  Equipment: " + equipment);
+            System.out.println("  Location: " + location);
             System.out.println("  Status: " + status);
 
             // Show success message
@@ -131,11 +128,8 @@ public class AddRoomController {
 
             // Close the window
             closeWindow();
-
-        } catch (Exception e) {
-            System.err.println("Error creating Room object: " + e.getMessage());
-            e.printStackTrace();
-            showError("Could not add room. Please contact support.");
+        } else {
+            showError("Room service not available. Please contact support.");
         }
     }
 
@@ -265,5 +259,46 @@ public class AddRoomController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    
+    // ============================================
+    //  HELPER METHODS FOR MAPPING
+    // ============================================
+    
+    /**
+     * Convert display string to RoomType enum
+     */
+    private RoomType stringToRoomType(String typeStr) {
+        if (typeStr == null) return RoomType.CLASSROOM;
+        switch (typeStr.toLowerCase()) {
+            case "classroom": return RoomType.CLASSROOM;
+            case "laboratory": case "lab": return RoomType.LAB;
+            case "office": return RoomType.OFFICE;
+            case "conference": case "seminar room": case "lecture hall": case "computer lab": return RoomType.CONFERENCE;
+            default: return RoomType.CLASSROOM;
+        }
+    }
+    
+    /**
+     * Convert display string to RoomStatus enum
+     */
+    private RoomStatus stringToRoomStatus(String statusStr) {
+        if (statusStr == null) return RoomStatus.AVAILABLE;
+        switch (statusStr.toLowerCase()) {
+            case "available": return RoomStatus.AVAILABLE;
+            case "booked": case "occupied": case "unavailable": return RoomStatus.OCCUPIED;
+            case "maintenance": return RoomStatus.MAINTENANCE;
+            default: return RoomStatus.AVAILABLE;
+        }
+    }
+    
+    /**
+     * Combine building, floor, and equipment into location string
+     * Format: "Building|Floor|Equipment"
+     */
+    private String combineLocation(String building, String floor, String equipment) {
+        return (building != null ? building : "") + "|" + 
+               (floor != null ? floor : "") + "|" + 
+               (equipment != null ? equipment : "");
     }
 }

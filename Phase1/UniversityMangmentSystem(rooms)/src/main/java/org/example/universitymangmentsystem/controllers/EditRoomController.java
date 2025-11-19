@@ -4,6 +4,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
+import edu.facilities.model.Room;
+import edu.facilities.model.RoomType;
+import edu.facilities.model.RoomStatus;
+import edu.facilities.service.RoomService;
+
 /**
  * Controller for Edit Room Form (edit_room.fxml)
  * Handles editing existing room records
@@ -29,7 +34,10 @@ public class EditRoomController {
     @FXML private Label buildingError;
 
     // Store the original room object to update it directly
-    private Object roomObject;
+    private Room roomObject;
+    
+    // Reference to the room service
+    private RoomService roomService;
 
     // ============================================
     //  INITIALIZATION
@@ -64,7 +72,7 @@ public class EditRoomController {
      * Set room data to edit (with Room object reference)
      * This method will be called from RoomsController
      */
-    public void setRoomData(Object room, String roomNumber, String type, int capacity,
+    public void setRoomData(Room room, String roomNumber, String type, int capacity,
                             String building, String floor, String equipment, String status) {
         this.roomObject = room;
 
@@ -82,21 +90,10 @@ public class EditRoomController {
     }
 
     /**
-     * Set room data to edit (backward compatible)
+     * Set room service reference
      */
-    public void setRoomData(String roomNumber, String type, int capacity,
-                            String building, String floor, String equipment, String status) {
-        // Populate fields with existing data
-        roomNumberField.setText(roomNumber);
-        typeComboBox.setValue(type);
-        capacityField.setText(String.valueOf(capacity));
-        buildingField.setText(building);
-        floorField.setText(floor);
-        equipmentArea.setText(equipment);
-        statusComboBox.setValue(status);
-
-        // Update header label
-        roomInfoLabel.setText("Editing room: " + roomNumber);
+    public void setRoomService(RoomService roomService) {
+        this.roomService = roomService;
     }
 
     // ============================================
@@ -118,42 +115,55 @@ public class EditRoomController {
         }
 
         // Get updated values from form
-        String roomNumber = roomNumberField.getText().trim();
-        String type = typeComboBox.getValue();
+        String roomId = roomNumberField.getText().trim();
+        String typeStr = typeComboBox.getValue();
         int capacity = Integer.parseInt(capacityField.getText().trim());
         String building = buildingField.getText().trim();
         String floor = floorField.getText().trim();
         String equipment = equipmentArea.getText().trim();
-        String status = statusComboBox.getValue();
+        String statusStr = statusComboBox.getValue();
 
-        // Update the room object directly if we have a reference
-        if (roomObject != null) {
-            try {
-                // Use reflection to update the Room object
-                Class<?> roomClass = roomObject.getClass();
-                roomClass.getMethod("setType", String.class).invoke(roomObject, type);
-                roomClass.getMethod("setCapacity", int.class).invoke(roomObject, capacity);
-                roomClass.getMethod("setBuilding", String.class).invoke(roomObject, building);
-                roomClass.getMethod("setFloor", String.class).invoke(roomObject, floor);
-                roomClass.getMethod("setEquipment", String.class).invoke(roomObject, equipment);
-                roomClass.getMethod("setStatus", String.class).invoke(roomObject, status);
+        // Convert to backend enums
+        RoomType type = stringToRoomType(typeStr);
+        RoomStatus status = stringToRoomStatus(statusStr);
+        
+        // Combine building, floor, and equipment into location
+        String location = combineLocation(building, floor, equipment);
 
-                System.out.println("Room Updated Successfully:");
-                System.out.println("  Number: " + roomNumber);
-                System.out.println("  Type: " + type);
-                System.out.println("  Capacity: " + capacity);
-                System.out.println("  Building: " + building);
-                System.out.println("  Floor: " + floor);
-                System.out.println("  Equipment: " + equipment);
-                System.out.println("  Status: " + status);
-            } catch (Exception e) {
-                System.err.println("Error updating room object: " + e.getMessage());
-                e.printStackTrace();
+        // Update the room using RoomService
+        if (roomObject != null && roomService != null) {
+            // Update name if changed
+            if (!roomObject.getName().equals(roomId)) {
+                roomObject.setName(roomId);
             }
-        }
+            
+            // Update location if changed
+            if (!roomObject.getLocation().equals(location)) {
+                roomObject.setLocation(location);
+            }
+            
+            // Update type using service
+            roomService.updateRoomType(roomId, type);
+            
+            // Update capacity using service
+            roomService.updateRoomCapacity(roomId, capacity);
+            
+            // Update status using service
+            roomService.updateRoomStatus(roomId, status);
 
-        // Show success message
-        showSuccess("Room updated successfully!");
+            System.out.println("Room Updated Successfully:");
+            System.out.println("  ID: " + roomId);
+            System.out.println("  Type: " + type);
+            System.out.println("  Capacity: " + capacity);
+            System.out.println("  Location: " + location);
+            System.out.println("  Status: " + status);
+            
+            // Show success message
+            showSuccess("Room updated successfully!");
+        } else {
+            showError("Room service not available. Please contact support.");
+            return;
+        }
 
         // Close the window
         closeWindow();
@@ -272,5 +282,46 @@ public class EditRoomController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    
+    // ============================================
+    //  HELPER METHODS FOR MAPPING
+    // ============================================
+    
+    /**
+     * Convert display string to RoomType enum
+     */
+    private RoomType stringToRoomType(String typeStr) {
+        if (typeStr == null) return RoomType.CLASSROOM;
+        switch (typeStr.toLowerCase()) {
+            case "classroom": return RoomType.CLASSROOM;
+            case "laboratory": case "lab": return RoomType.LAB;
+            case "office": return RoomType.OFFICE;
+            case "conference": case "seminar room": case "lecture hall": case "computer lab": return RoomType.CONFERENCE;
+            default: return RoomType.CLASSROOM;
+        }
+    }
+    
+    /**
+     * Convert display string to RoomStatus enum
+     */
+    private RoomStatus stringToRoomStatus(String statusStr) {
+        if (statusStr == null) return RoomStatus.AVAILABLE;
+        switch (statusStr.toLowerCase()) {
+            case "available": return RoomStatus.AVAILABLE;
+            case "booked": case "occupied": case "unavailable": return RoomStatus.OCCUPIED;
+            case "maintenance": return RoomStatus.MAINTENANCE;
+            default: return RoomStatus.AVAILABLE;
+        }
+    }
+    
+    /**
+     * Combine building, floor, and equipment into location string
+     * Format: "Building|Floor|Equipment"
+     */
+    private String combineLocation(String building, String floor, String equipment) {
+        return (building != null ? building : "") + "|" + 
+               (floor != null ? floor : "") + "|" + 
+               (equipment != null ? equipment : "");
     }
 }

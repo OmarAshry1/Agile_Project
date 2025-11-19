@@ -12,8 +12,13 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 
+import edu.facilities.model.Room;
+import edu.facilities.model.RoomType;
+import edu.facilities.model.RoomStatus;
+import edu.facilities.service.RoomService;
+
 import java.io.IOException;
-import java.net.URL;
+import java.util.List;
 
 /**
  * Controller for Room Management Screen (rooms.fxml)
@@ -54,6 +59,9 @@ public class RoomsController {
     // Data List
     private ObservableList<Room> roomsList = FXCollections.observableArrayList();
     private FilteredList<Room> filteredData;
+    
+    // Backend Service
+    private RoomService roomService = new RoomService();
 
     // ============================================
     //  INITIALIZATION
@@ -69,8 +77,8 @@ public class RoomsController {
         // Populate filter dropdowns
         populateFilters();
 
-        // Load dummy data for testing (replace with database later)
-        loadDummyData();
+        // Load data from backend service
+        loadRoomData();
 
         // Setup search and filter functionality
         setupSearchAndFilter();
@@ -90,11 +98,11 @@ public class RoomsController {
      */
     private void setupTableColumns() {
         roomNumberColumn.setCellValueFactory(cellData ->
-                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getRoomNumber())
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getId())
         );
 
         typeColumn.setCellValueFactory(cellData ->
-                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getType())
+                new javafx.beans.property.SimpleStringProperty(roomTypeToString(cellData.getValue().getType()))
         );
 
         capacityColumn.setCellValueFactory(cellData ->
@@ -102,19 +110,19 @@ public class RoomsController {
         );
 
         buildingColumn.setCellValueFactory(cellData ->
-                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getBuilding())
+                new javafx.beans.property.SimpleStringProperty(parseLocation(cellData.getValue().getLocation())[0])
         );
 
         floorColumn.setCellValueFactory(cellData ->
-                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getFloor())
+                new javafx.beans.property.SimpleStringProperty(parseLocation(cellData.getValue().getLocation())[1])
         );
 
         equipmentColumn.setCellValueFactory(cellData ->
-                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getEquipment())
+                new javafx.beans.property.SimpleStringProperty(parseLocation(cellData.getValue().getLocation())[2])
         );
 
         statusColumn.setCellValueFactory(cellData ->
-                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getStatus())
+                new javafx.beans.property.SimpleStringProperty(roomStatusToString(cellData.getValue().getStatus()))
         );
     }
 
@@ -154,23 +162,26 @@ public class RoomsController {
             String searchText = searchField.getText();
             if (searchText != null && !searchText.isEmpty()) {
                 String lowerCaseFilter = searchText.toLowerCase();
-                if (!room.getRoomNumber().toLowerCase().contains(lowerCaseFilter) &&
-                        !room.getType().toLowerCase().contains(lowerCaseFilter) &&
-                        !room.getBuilding().toLowerCase().contains(lowerCaseFilter) &&
-                        !room.getEquipment().toLowerCase().contains(lowerCaseFilter)) {
+                String[] locationParts = parseLocation(room.getLocation());
+                if (!room.getId().toLowerCase().contains(lowerCaseFilter) &&
+                        !roomTypeToString(room.getType()).toLowerCase().contains(lowerCaseFilter) &&
+                        !locationParts[0].toLowerCase().contains(lowerCaseFilter) &&
+                        !locationParts[2].toLowerCase().contains(lowerCaseFilter)) {
                     return false;
                 }
             }
 
             // Type filter
             String selectedType = typeFilter.getValue();
-            if (selectedType != null && !selectedType.equals("All Types") && !selectedType.equals(room.getType())) {
+            if (selectedType != null && !selectedType.equals("All Types") && 
+                !selectedType.equals(roomTypeToString(room.getType()))) {
                 return false;
             }
 
             // Status filter
             String selectedStatus = statusFilter.getValue();
-            if (selectedStatus != null && !selectedStatus.equals("All Status") && !selectedStatus.equals(room.getStatus())) {
+            if (selectedStatus != null && !selectedStatus.equals("All Status") && 
+                !selectedStatus.equals(roomStatusToString(room.getStatus()))) {
                 return false;
             }
 
@@ -196,11 +207,9 @@ public class RoomsController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/add_room.fxml"));
             Parent root = loader.load();
 
-            // Get controller and pass the rooms list
+            // Get controller and pass the room service
             AddRoomController controller = loader.getController();
-            @SuppressWarnings("unchecked")
-            ObservableList rawList = (ObservableList) roomsList;
-            controller.setRoomsList(rawList);
+            controller.setRoomService(roomService);
 
             // Create new stage (window)
             Stage stage = new Stage();
@@ -211,7 +220,7 @@ public class RoomsController {
             // Set up callback for when window closes
             stage.setOnHidden(event -> {
                 // Refresh data after adding new room
-                roomsTable.refresh();
+                loadRoomData();
                 updateStatistics();
             });
 
@@ -238,7 +247,7 @@ public class RoomsController {
         }
 
         try {
-            System.out.println("Opening Edit Room window for: " + selectedRoom.getRoomNumber());
+            System.out.println("Opening Edit Room window for: " + selectedRoom.getId());
 
             // Load the edit room form
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/edit_room.fxml"));
@@ -246,27 +255,29 @@ public class RoomsController {
 
             // Get the controller and pass room data with object reference
             EditRoomController controller = loader.getController();
+            String[] locationParts = parseLocation(selectedRoom.getLocation());
             controller.setRoomData(
                     selectedRoom,  // Pass the actual Room object
-                    selectedRoom.getRoomNumber(),
-                    selectedRoom.getType(),
+                    selectedRoom.getId(),
+                    roomTypeToString(selectedRoom.getType()),
                     selectedRoom.getCapacity(),
-                    selectedRoom.getBuilding(),
-                    selectedRoom.getFloor(),
-                    selectedRoom.getEquipment(),
-                    selectedRoom.getStatus()
+                    locationParts[0],  // building
+                    locationParts[1],  // floor
+                    locationParts[2],  // equipment
+                    roomStatusToString(selectedRoom.getStatus())
             );
+            controller.setRoomService(roomService);
 
             // Create new stage
             Stage stage = new Stage();
-            stage.setTitle("Edit Room - " + selectedRoom.getRoomNumber());
+            stage.setTitle("Edit Room - " + selectedRoom.getId());
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(new Scene(root));
 
             // Set up callback for when window closes
             stage.setOnHidden(event -> {
                 // Refresh data after editing
-                roomsTable.refresh();
+                loadRoomData();
                 updateStatistics();
             });
 
@@ -299,18 +310,21 @@ public class RoomsController {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Delete Room");
         confirmDialog.setHeaderText("Are you sure you want to delete this room?");
-        confirmDialog.setContentText("Room: " + selectedRoom.getRoomNumber() + " - " + selectedRoom.getType());
+        confirmDialog.setContentText("Room: " + selectedRoom.getId() + " - " + roomTypeToString(selectedRoom.getType()));
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // TODO: Delete from database
-                // roomService.deleteRoom(selectedRoom.getId());
-
-                // Remove from table
-                roomsList.remove(selectedRoom);
-                updateStatistics();
-
-                showInfo("Success", "Room deleted successfully!");
+                // Delete from backend service
+                boolean deleted = roomService.deleteRoom(selectedRoom.getId());
+                
+                if (deleted) {
+                    // Refresh data from service
+                    loadRoomData();
+                    updateStatistics();
+                    showInfo("Success", "Room deleted successfully!");
+                } else {
+                    showError("Error", "Failed to delete room. Please try again.");
+                }
             }
         });
     }
@@ -349,11 +363,11 @@ public class RoomsController {
     // ============================================
 
     /**
-     * Refresh room data from database
+     * Load room data from backend service
      */
-    private void refreshRoomData() {
-        // TODO: Replace with actual database call
-        // roomsList.setAll(roomService.getAllRooms());
+    private void loadRoomData() {
+        List<Room> rooms = roomService.getAllRooms();
+        roomsList.setAll(rooms);
         updateStatistics();
         roomsTable.refresh();
     }
@@ -364,9 +378,9 @@ public class RoomsController {
     private void updateStatistics() {
         ObservableList<Room> currentList = roomsTable.getItems();
         int total = currentList.size();
-        int available = (int) currentList.stream().filter(r -> "Available".equals(r.getStatus())).count();
-        int booked = (int) currentList.stream().filter(r -> "Booked".equals(r.getStatus())).count();
-        int maintenance = (int) currentList.stream().filter(r -> "Maintenance".equals(r.getStatus())).count();
+        int available = (int) currentList.stream().filter(r -> r.getStatus() == RoomStatus.AVAILABLE).count();
+        int booked = (int) currentList.stream().filter(r -> r.getStatus() == RoomStatus.OCCUPIED).count();
+        int maintenance = (int) currentList.stream().filter(r -> r.getStatus() == RoomStatus.MAINTENANCE).count();
 
         totalRoomsLabel.setText(String.valueOf(total));
         availableRoomsLabel.setText(String.valueOf(available));
@@ -400,18 +414,89 @@ public class RoomsController {
         statusFilter.setValue("All Status");
     }
 
+    // ============================================
+    //  HELPER METHODS FOR MAPPING
+    // ============================================
+    
     /**
-     * Load dummy data for testing (REMOVE THIS LATER)
-     * Your backend team will replace this with database queries
+     * Convert RoomType enum to display string
      */
-    private void loadDummyData() {
-        roomsList.add(new Room("C101", "Classroom", 50, "Main Building", "1st Floor", "Projector, Whiteboard", "Available"));
-        roomsList.add(new Room("L201", "Laboratory", 30, "Science Building", "2nd Floor", "Computers, Lab Equipment", "Available"));
-        roomsList.add(new Room("C305", "Lecture Hall", 120, "Main Building", "3rd Floor", "Projector, Sound System", "Booked"));
-        roomsList.add(new Room("L102", "Laboratory", 25, "Engineering Building", "1st Floor", "3D Printers, Tools", "Maintenance"));
-        roomsList.add(new Room("C202", "Classroom", 40, "Main Building", "2nd Floor", "Smart Board", "Available"));
-        roomsList.add(new Room("S101", "Seminar Room", 20, "Library Building", "1st Floor", "Projector, Conference Table", "Available"));
-        roomsList.add(new Room("CL201", "Computer Lab", 35, "Technology Building", "2nd Floor", "30 Computers, Printer", "Booked"));
+    private String roomTypeToString(RoomType type) {
+        if (type == null) return "";
+        switch (type) {
+            case CLASSROOM: return "Classroom";
+            case LAB: return "Laboratory";
+            case OFFICE: return "Office";
+            case CONFERENCE: return "Conference";
+            default: return type.toString();
+        }
+    }
+    
+    /**
+     * Convert display string to RoomType enum
+     */
+    private RoomType stringToRoomType(String typeStr) {
+        if (typeStr == null) return RoomType.CLASSROOM;
+        switch (typeStr.toLowerCase()) {
+            case "classroom": return RoomType.CLASSROOM;
+            case "laboratory": case "lab": return RoomType.LAB;
+            case "office": return RoomType.OFFICE;
+            case "conference": case "seminar room": case "lecture hall": return RoomType.CONFERENCE;
+            default: return RoomType.CLASSROOM;
+        }
+    }
+    
+    /**
+     * Convert RoomStatus enum to display string
+     */
+    private String roomStatusToString(RoomStatus status) {
+        if (status == null) return "";
+        switch (status) {
+            case AVAILABLE: return "Available";
+            case OCCUPIED: return "Booked";
+            case MAINTENANCE: return "Maintenance";
+            default: return status.toString();
+        }
+    }
+    
+    /**
+     * Convert display string to RoomStatus enum
+     */
+    private RoomStatus stringToRoomStatus(String statusStr) {
+        if (statusStr == null) return RoomStatus.AVAILABLE;
+        switch (statusStr.toLowerCase()) {
+            case "available": return RoomStatus.AVAILABLE;
+            case "booked": case "occupied": case "unavailable": return RoomStatus.OCCUPIED;
+            case "maintenance": return RoomStatus.MAINTENANCE;
+            default: return RoomStatus.AVAILABLE;
+        }
+    }
+    
+    /**
+     * Combine building, floor, and equipment into location string
+     * Format: "Building|Floor|Equipment"
+     */
+    private String combineLocation(String building, String floor, String equipment) {
+        return (building != null ? building : "") + "|" + 
+               (floor != null ? floor : "") + "|" + 
+               (equipment != null ? equipment : "");
+    }
+    
+    /**
+     * Parse location string back to building, floor, equipment
+     * Format: "Building|Floor|Equipment"
+     * Returns array: [building, floor, equipment]
+     */
+    private String[] parseLocation(String location) {
+        if (location == null || location.isEmpty()) {
+            return new String[]{"", "", ""};
+        }
+        String[] parts = location.split("\\|", 3);
+        return new String[]{
+            parts.length > 0 ? parts[0] : "",
+            parts.length > 1 ? parts[1] : "",
+            parts.length > 2 ? parts[2] : ""
+        };
     }
 
     /**
@@ -446,51 +531,4 @@ public class RoomsController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-}
-
-// ============================================
-//  ROOM MODEL (Temporary - Backend will create proper model)
-// ============================================
-
-/**
- * Simple Room model class
- * Your backend team will create a proper Room.java class
- */
-class Room {
-    private String roomNumber;
-    private String type;
-    private int capacity;
-    private String building;
-    private String floor;
-    private String equipment;
-    private String status;
-
-    public Room(String roomNumber, String type, int capacity, String building,
-                String floor, String equipment, String status) {
-        this.roomNumber = roomNumber;
-        this.type = type;
-        this.capacity = capacity;
-        this.building = building;
-        this.floor = floor;
-        this.equipment = equipment;
-        this.status = status;
-    }
-
-    // Getters
-    public String getRoomNumber() { return roomNumber; }
-    public String getType() { return type; }
-    public int getCapacity() { return capacity; }
-    public String getBuilding() { return building; }
-    public String getFloor() { return floor; }
-    public String getEquipment() { return equipment; }
-    public String getStatus() { return status; }
-
-    // Setters
-    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
-    public void setType(String type) { this.type = type; }
-    public void setCapacity(int capacity) { this.capacity = capacity; }
-    public void setBuilding(String building) { this.building = building; }
-    public void setFloor(String floor) { this.floor = floor; }
-    public void setEquipment(String equipment) { this.equipment = equipment; }
-    public void setStatus(String status) { this.status = status; }
 }

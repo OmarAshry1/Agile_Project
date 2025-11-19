@@ -14,4 +14,8 @@ module org.example.universitymangmentsystem {
 
     // Export controllers
     exports org.example.universitymangmentsystem.controllers;
+    
+    // Export backend packages
+    exports edu.facilities.model;
+    exports edu.facilities.service;
 }
