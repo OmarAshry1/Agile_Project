@@ -2,6 +2,9 @@ module edu.facilities {
     // JavaFX modules we need
     requires javafx.controls;
     requires javafx.fxml;
+    
+    // Java SQL module for database access
+    requires java.sql;
 
     // Export and open packages for JavaFX
     opens edu.facilities.ui to javafx.fxml, javafx.graphics;
