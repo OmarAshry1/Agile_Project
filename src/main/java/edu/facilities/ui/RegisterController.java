@@ -15,13 +15,12 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
 
-/**
- * Controller for the register.fxml view.
- * Provides lightweight validation and placeholder behaviour
- * until a full authentication backend is connected.
- */
+import edu.facilities.service.AuthService;
+
+
 public class RegisterController {
 
     @FXML private TextField emailField;
@@ -78,15 +77,43 @@ public class RegisterController {
             return;
         }
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Registration");
-        alert.setHeaderText("Registration placeholder");
-        alert.setContentText(String.format(
-                "Collected data for user '%s' with role '%s'.\nImplement backend integration to continue.",
-                usernameField.getText(),
-                roleComboBox.getValue()
-        ));
-        alert.showAndWait();
+
+        AuthService authService = AuthService.getInstance();
+        String username = usernameField.getText().trim();
+        String password = passwordField.getText();
+        String role = roleComboBox.getValue();
+        
+
+        String userType = mapRoleToUserType(role);
+
+        try {
+            boolean success = authService.register(username, password, userType);
+            
+            if (success) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Registration Successful");
+                alert.setHeaderText("Account Created");
+                alert.setContentText("Your account has been created successfully. Please login.");
+                alert.showAndWait();
+                
+
+                try {
+                    login(null);
+                } catch (IOException ioException) {
+                    // Should not happen, but handle it
+                    ioException.printStackTrace();
+                }
+            } else {
+                showFieldError(usernameError, "Username already exists");
+            }
+        } catch (SQLException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Database Error");
+            alert.setHeaderText("Failed to register user");
+            alert.setContentText("Please check your database connection: " + e.getMessage());
+            alert.showAndWait();
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -123,5 +150,17 @@ public class RegisterController {
                         label.setVisible(false);
                     }
                 });
+    }
+
+
+    private String mapRoleToUserType(String role) {
+        if (role == null) return "STUDENT";
+        switch (role.toLowerCase()) {
+            case "student": return "STUDENT";
+            case "professor": return "PROFESSOR";
+            case "staff": return "STAFF";
+            case "admin": return "ADMIN";
+            default: return "STUDENT";
+        }
     }
 }

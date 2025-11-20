@@ -8,10 +8,7 @@ import edu.facilities.model.RoomType;
 import edu.facilities.model.RoomStatus;
 import edu.facilities.service.RoomService;
 
-/**
- * Controller for Add Room Form (add_room.fxml)
- * Handles the creation of new room records
- */
+
 public class AddRoomController {
 
     // ============================================

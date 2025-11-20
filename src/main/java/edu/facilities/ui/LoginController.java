@@ -1,6 +1,6 @@
 package edu.facilities.ui;
 
-import edu.facilities.model.Admin;
+import edu.facilities.model.User;
 import edu.facilities.service.AuthService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class LoginController {
 
@@ -60,25 +61,40 @@ public class LoginController {
             return;
         }
 
-        // Stub "authentication": store the user information so other screens can read it
+
         AuthService authService = AuthService.getInstance();
-        authService.setCurrentUser(new Admin(
-                idField.getText().trim(),
-                idField.getText().trim(),
-                passwordField.getText()
-        ));
+        String username = idField.getText().trim();
+        String password = passwordField.getText();
 
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (IOException e) {
+            User authenticatedUser = authService.login(username, password);
+            
+            if (authenticatedUser != null) {
+
+                try {
+                    Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
+                    Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                    stage.setScene(new Scene(root));
+                    stage.show();
+                } catch (IOException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Navigation Error");
+                    alert.setHeaderText("Unable to load dashboard");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            } else {
+                // Login failed
+                passwordError.setText("Invalid username or password");
+                passwordError.setVisible(true);
+            }
+        } catch (SQLException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to load dashboard");
-            alert.setContentText(e.getMessage());
+            alert.setTitle("Database Error");
+            alert.setHeaderText("Failed to connect to database");
+            alert.setContentText("Please check your database connection: " + e.getMessage());
             alert.showAndWait();
+            e.printStackTrace();
         }
     }
 
