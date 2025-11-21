@@ -65,19 +65,23 @@ public class MaintenanceService {
             stmt.setInt(2, reporterId);
             stmt.setString(3, description);
 
-            stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
+            System.out.println("Ticket insert executed, rows affected: " + rowsAffected);
 
             int ticketId = -1;
             try (ResultSet keys = stmt.getGeneratedKeys()) {
                 if (keys.next()) {
                     ticketId = keys.getInt(1);
+                    System.out.println("Generated ticket ID: " + ticketId);
+                } else {
+                    System.err.println("Warning: No generated key returned for ticket");
                 }
             }
 
             String id = ticketId > 0 ? String.valueOf(ticketId) : null;
             LocalDateTime now = LocalDateTime.now();
 
-            return new MaintenanceTicket(
+            MaintenanceTicket ticket = new MaintenanceTicket(
                     id,
                     room,
                     reporter,
@@ -87,8 +91,13 @@ public class MaintenanceService {
                     now,
                     null
             );
+            
+            System.out.println("Ticket created successfully: ID=" + id + ", Room=" + room.getId() + ", Reporter=" + reporter.getUsername());
+            return ticket;
 
         } catch (SQLException e) {
+            System.err.println("SQL Error inserting maintenance ticket: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error inserting maintenance ticket", e);
         }
     }
@@ -222,6 +231,8 @@ public class MaintenanceService {
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             
+            System.out.println("Querying all tickets from database...");
+            int count = 0;
             while (rs.next()) {
                 TicketData data = new TicketData();
                 data.ticketId = rs.getInt("TicketID");
@@ -234,15 +245,21 @@ public class MaintenanceService {
                 data.resolvedDate = rs.getTimestamp("ResolvedDate");
                 data.roomCode = rs.getString("RoomCode");
                 ticketDataList.add(data);
+                count++;
             }
+            System.out.println("Found " + count + " tickets in database");
         }
         
         // Now process each ticket data to create MaintenanceTicket objects
+        System.out.println("Processing " + ticketDataList.size() + " tickets...");
         for (TicketData data : ticketDataList) {
             try {
                 MaintenanceTicket ticket = createTicketFromData(data, conn);
                 if (ticket != null) {
                     tickets.add(ticket);
+                    System.out.println("Successfully loaded ticket ID: " + data.ticketId);
+                } else {
+                    System.err.println("Failed to create ticket object for ticket ID " + data.ticketId + " (returned null)");
                 }
             } catch (Exception e) {
                 System.err.println("Error creating ticket from data for ticket ID " + data.ticketId + ": " + e.getMessage());
@@ -250,6 +267,7 @@ public class MaintenanceService {
             }
         }
         
+        System.out.println("Total tickets loaded: " + tickets.size() + " out of " + ticketDataList.size() + " found in database");
         return tickets;
     }
     

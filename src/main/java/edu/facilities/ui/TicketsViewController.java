@@ -19,6 +19,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Controller for viewing and managing maintenance tickets
@@ -129,11 +130,20 @@ public class TicketsViewController {
 
     private void loadAllTickets() {
         try {
-            ticketsList.setAll(maintenanceService.getAllTickets());
+            System.out.println("Loading all tickets for admin view...");
+            List<MaintenanceTicket> tickets = maintenanceService.getAllTickets();
+            System.out.println("Retrieved " + tickets.size() + " tickets from service");
+            ticketsList.setAll(tickets);
             ticketsTable.setItems(ticketsList);
+            System.out.println("Table updated with " + ticketsList.size() + " tickets");
         } catch (SQLException e) {
-            showError("Database Error", "Failed to load tickets: " + e.getMessage());
+            System.err.println("Error loading tickets: " + e.getMessage());
             e.printStackTrace();
+            showError("Database Error", "Failed to load tickets: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error loading tickets: " + e.getMessage());
+            e.printStackTrace();
+            showError("Error", "An unexpected error occurred while loading tickets: " + e.getMessage());
         }
     }
 
