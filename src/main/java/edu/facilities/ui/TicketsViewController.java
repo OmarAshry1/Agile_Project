@@ -1,6 +1,7 @@
 package edu.facilities.ui;
 
 import edu.facilities.model.MaintenanceTicket;
+import edu.facilities.model.TicketStatus;
 import edu.facilities.model.User;
 import edu.facilities.service.AuthService;
 import edu.facilities.service.MaintenanceService;
@@ -49,6 +50,7 @@ public class TicketsViewController {
     private AuthService authService = AuthService.getInstance();
     private ObservableList<MaintenanceTicket> ticketsList = FXCollections.observableArrayList();
     private boolean isAdmin = false;
+    private boolean isStaff = false;
 
     @FXML
     public void initialize() {
@@ -67,6 +69,7 @@ public class TicketsViewController {
                 loadAllTickets();
                 loadStaffUsers();
             } else if ("STAFF".equals(userType)) {
+                isStaff = true;
                 titleLabel.setText("My Assigned Tickets");
                 assignButton.setVisible(false);
                 staffComboBox.setVisible(false);
@@ -74,13 +77,13 @@ public class TicketsViewController {
                 assigneeLabel.setVisible(false);
                 loadAssignedTickets();
             } else {
-                // Non-admin, non-staff users shouldn't access this view
-                titleLabel.setText("Access Denied");
-                ticketsTable.setDisable(true);
+                // Students, Professors, and other users can view tickets they created
+                titleLabel.setText("My Created Tickets");
                 assignButton.setVisible(false);
                 staffComboBox.setVisible(false);
                 staffComboBoxLabel.setVisible(false);
                 assigneeLabel.setVisible(false);
+                loadMyCreatedTickets();
             }
         } else {
             titleLabel.setText("Please login to view tickets");
@@ -88,6 +91,65 @@ public class TicketsViewController {
         }
 
         setupTableColumns();
+    }
+    
+    /**
+     * Custom TableCell for status column with ComboBox for staff users
+     */
+    private class StatusComboBoxTableCell extends TableCell<MaintenanceTicket, String> {
+        private ComboBox<String> comboBox;
+
+        public StatusComboBoxTableCell() {
+            comboBox = new ComboBox<>();
+            comboBox.getItems().addAll("NEW", "IN_PROGRESS", "RESOLVED");
+            comboBox.setEditable(false);
+            
+            comboBox.setOnAction(e -> {
+                if (getTableRow() != null && getTableRow().getItem() != null) {
+                    MaintenanceTicket ticket = getTableRow().getItem();
+                    String newStatusStr = comboBox.getValue();
+                    if (newStatusStr != null && !newStatusStr.equals(ticket.getStatus().toString())) {
+                        try {
+                            TicketStatus newStatus = TicketStatus.valueOf(newStatusStr);
+                            boolean success = maintenanceService.updateTicketStatus(ticket.getId(), newStatus);
+                            if (success) {
+                                // Refresh the table to show updated status
+                                if (isStaff) {
+                                    loadAssignedTickets();
+                                } else {
+                                    loadAllTickets();
+                                }
+                            } else {
+                                showError("Error", "Failed to update ticket status");
+                            }
+                        } catch (Exception ex) {
+                            showError("Error", "Failed to update ticket status: " + ex.getMessage());
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override
+        protected void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+            
+            if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                setGraphic(null);
+                setText(null);
+            } else {
+                MaintenanceTicket ticket = getTableRow().getItem();
+                if (ticket != null && ticket.getStatus() != null) {
+                    comboBox.setValue(ticket.getStatus().toString());
+                    setGraphic(comboBox);
+                    setText(null);
+                } else {
+                    setGraphic(null);
+                    setText("N/A");
+                }
+            }
+        }
     }
 
     private void setupTableColumns() {
@@ -117,6 +179,11 @@ public class TicketsViewController {
             }
             return new javafx.beans.property.SimpleStringProperty("N/A");
         });
+        
+        // Make status column editable for staff users
+        if (isStaff) {
+            statusColumn.setCellFactory(column -> new StatusComboBoxTableCell());
+        }
         createdDateColumn.setCellValueFactory(cellData -> {
             if (cellData.getValue().getCreatedAt() != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -164,6 +231,33 @@ public class TicketsViewController {
         } catch (SQLException e) {
             showError("Database Error", "Failed to load assigned tickets: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    
+    private void loadMyCreatedTickets() {
+        if (!authService.isLoggedIn()) {
+            return;
+        }
+
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            showError("Authentication Error", "User session expired. Please login again.");
+            return;
+        }
+
+        try {
+            System.out.println("Loading tickets created by user: " + currentUser.getId());
+            ticketsList.setAll(maintenanceService.getTicketsByReporter(currentUser.getId()));
+            ticketsTable.setItems(ticketsList);
+            System.out.println("Loaded " + ticketsList.size() + " tickets created by user");
+        } catch (SQLException e) {
+            System.err.println("Error loading created tickets: " + e.getMessage());
+            e.printStackTrace();
+            showError("Database Error", "Failed to load your tickets: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error loading created tickets: " + e.getMessage());
+            e.printStackTrace();
+            showError("Error", "An unexpected error occurred while loading your tickets: " + e.getMessage());
         }
     }
 
@@ -257,8 +351,10 @@ public class TicketsViewController {
     private void handleRefresh() {
         if (isAdmin) {
             loadAllTickets();
-        } else {
+        } else if (isStaff) {
             loadAssignedTickets();
+        } else {
+            loadMyCreatedTickets();
         }
     }
 

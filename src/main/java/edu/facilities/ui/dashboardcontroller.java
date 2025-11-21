@@ -50,6 +50,33 @@ public class dashboardcontroller {
                 // Staff can also view their assigned tickets from the tickets view
                 if (reportButton != null) reportButton.setText("Report Maintenance Issue");
             }
+            
+            // Add "View My Tickets" button for non-admin users
+            if (!"ADMIN".equals(userType) && extraButtonsContainer != null) {
+                // Clear existing buttons first
+                extraButtonsContainer.getChildren().clear();
+                
+                javafx.scene.control.Button viewMyTicketsButton = new javafx.scene.control.Button("View My Tickets");
+                viewMyTicketsButton.setPrefHeight(40);
+                viewMyTicketsButton.setPrefWidth(200);
+                viewMyTicketsButton.getStyleClass().add("btn-primary");
+                viewMyTicketsButton.setOnAction(e -> {
+                    try {
+                        javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/fxml/tickets_view.fxml"));
+                        javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) e.getSource()).getScene().getWindow();
+                        stage.setScene(new javafx.scene.Scene(root));
+                        stage.setTitle("My Tickets");
+                        stage.show();
+                    } catch (java.io.IOException ex) {
+                        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                        alert.setTitle("Navigation Error");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Unable to open tickets view: " + ex.getMessage());
+                        alert.showAndWait();
+                    }
+                });
+                extraButtonsContainer.getChildren().add(viewMyTicketsButton);
+            }
         } else {
             userIdLabel.setText("Guest");
             

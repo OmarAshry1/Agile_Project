@@ -2,6 +2,8 @@ package edu.facilities.service;
 
 import edu.facilities.model.MaintenanceTicket;
 import edu.facilities.model.Room;
+import edu.facilities.model.RoomType;
+import edu.facilities.model.RoomStatus;
 import edu.facilities.model.TicketStatus;
 import edu.facilities.model.User;
 import edu.facilities.model.Student;
@@ -204,6 +206,62 @@ public class MaintenanceService {
     }
 
     /**
+     * Get a single ticket by ID
+     * @param ticketId The ticket ID
+     * @return MaintenanceTicket object or null if not found
+     * @throws SQLException if database error occurs
+     */
+    public MaintenanceTicket getTicketById(String ticketId) throws SQLException {
+        if (ticketId == null || ticketId.isBlank()) {
+            return null;
+        }
+        
+        int ticketIdInt;
+        try {
+            ticketIdInt = Integer.parseInt(ticketId);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+        
+        String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
+                "t.AssignedToUserID, " +
+                "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
+                "r.Code as RoomCode, r.Name as RoomName " +
+                "FROM MaintenanceTickets t " +
+                "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
+                "WHERE t.TicketID = ?";
+
+        Connection conn = DatabaseConnection.getConnection();
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Database connection is closed or invalid");
+        }
+        
+        TicketData data = null;
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ticketIdInt);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    data = new TicketData();
+                    data.ticketId = rs.getInt("TicketID");
+                    data.roomId = rs.getInt("RoomID");
+                    data.reporterId = rs.getInt("ReporterUserID");
+                    data.assignedToId = rs.getObject("AssignedToUserID", Integer.class);
+                    data.description = rs.getString("Description");
+                    data.statusStr = rs.getString("Status");
+                    data.createdDate = rs.getTimestamp("CreatedDate");
+                    data.resolvedDate = rs.getTimestamp("ResolvedDate");
+                    data.roomCode = rs.getString("RoomCode");
+                }
+            }
+        }
+        
+        if (data != null) {
+            return createTicketFromData(data, conn);
+        }
+        return null;
+    }
+    
+    /**
      * Get all maintenance tickets (for admins)
      * Note: Requires MaintenanceTickets table to have AssignedToUserID column (nullable)
      * If column doesn't exist, run: ALTER TABLE MaintenanceTickets ADD AssignedToUserID INT NULL;
@@ -220,16 +278,24 @@ public class MaintenanceService {
                 "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
                 "ORDER BY t.CreatedDate DESC";
 
-        // Get connection - ensure it's valid
+        // Get connection - ensure it's valid and stays open
         Connection conn = DatabaseConnection.getConnection();
         if (conn == null || conn.isClosed()) {
             throw new SQLException("Database connection is closed or invalid");
         }
         
+        // Ensure connection is still valid before processing
+        if (conn.isClosed()) {
+            conn = DatabaseConnection.getConnection(); // Get a fresh connection
+        }
+        
         // First, read all ticket data into a list to avoid ResultSet conflicts
         List<TicketData> ticketDataList = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
             
             System.out.println("Querying all tickets from database...");
             int count = 0;
@@ -248,12 +314,32 @@ public class MaintenanceService {
                 count++;
             }
             System.out.println("Found " + count + " tickets in database");
+        } finally {
+            // Close ResultSet and PreparedStatement but keep connection open
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { /* ignore */ }
+            }
+            if (stmt != null) {
+                try { stmt.close(); } catch (SQLException e) { /* ignore */ }
+            }
+        }
+        
+        // Verify connection is still valid before processing tickets
+        if (conn.isClosed()) {
+            System.err.println("Connection closed after query, getting new connection...");
+            conn = DatabaseConnection.getConnection();
         }
         
         // Now process each ticket data to create MaintenanceTicket objects
         System.out.println("Processing " + ticketDataList.size() + " tickets...");
         for (TicketData data : ticketDataList) {
             try {
+                // Verify connection before each ticket
+                if (conn.isClosed()) {
+                    System.err.println("Connection closed, getting new connection for ticket " + data.ticketId);
+                    conn = DatabaseConnection.getConnection();
+                }
+                
                 MaintenanceTicket ticket = createTicketFromData(data, conn);
                 if (ticket != null) {
                     tickets.add(ticket);
@@ -340,6 +426,95 @@ public class MaintenanceService {
     }
 
     /**
+     * Get tickets created by a specific user (reporter)
+     * @param reporterUserId The user ID of the reporter
+     * @return List of tickets created by the user
+     * @throws SQLException if database error occurs
+     */
+    public List<MaintenanceTicket> getTicketsByReporter(String reporterUserId) throws SQLException {
+        List<MaintenanceTicket> tickets = new ArrayList<>();
+        int reporterId;
+        try {
+            reporterId = Integer.parseInt(reporterUserId);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid reporter user ID: " + reporterUserId);
+        }
+
+        String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
+                "t.AssignedToUserID, " +
+                "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
+                "r.Code as RoomCode, r.Name as RoomName " +
+                "FROM MaintenanceTickets t " +
+                "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
+                "WHERE t.ReporterUserID = ? " +
+                "ORDER BY t.CreatedDate DESC";
+
+        // Get connection - ensure it's valid
+        Connection conn = DatabaseConnection.getConnection();
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Database connection is closed or invalid");
+        }
+        
+        // First, read all ticket data into a list to avoid ResultSet conflicts
+        List<TicketData> ticketDataList = new ArrayList<>();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, reporterId);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                TicketData data = new TicketData();
+                data.ticketId = rs.getInt("TicketID");
+                data.roomId = rs.getInt("RoomID");
+                data.reporterId = rs.getInt("ReporterUserID");
+                data.assignedToId = rs.getObject("AssignedToUserID", Integer.class);
+                data.description = rs.getString("Description");
+                data.statusStr = rs.getString("Status");
+                data.createdDate = rs.getTimestamp("CreatedDate");
+                data.resolvedDate = rs.getTimestamp("ResolvedDate");
+                data.roomCode = rs.getString("RoomCode");
+                ticketDataList.add(data);
+            }
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { /* ignore */ }
+            }
+            if (stmt != null) {
+                try { stmt.close(); } catch (SQLException e) { /* ignore */ }
+            }
+        }
+        
+        // Verify connection is still valid before processing tickets
+        if (conn.isClosed()) {
+            System.err.println("Connection closed after query, getting new connection...");
+            conn = DatabaseConnection.getConnection();
+        }
+        
+        // Now process each ticket data to create MaintenanceTicket objects
+        for (TicketData data : ticketDataList) {
+            try {
+                // Verify connection before each ticket
+                if (conn.isClosed()) {
+                    System.err.println("Connection closed, getting new connection for ticket " + data.ticketId);
+                    conn = DatabaseConnection.getConnection();
+                }
+                
+                MaintenanceTicket ticket = createTicketFromData(data, conn);
+                if (ticket != null) {
+                    tickets.add(ticket);
+                }
+            } catch (Exception e) {
+                System.err.println("Error creating ticket from data for ticket ID " + data.ticketId + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        return tickets;
+    }
+
+    /**
      * Get tickets assigned to a specific staff member
      * Note: Requires MaintenanceTickets table to have AssignedToUserID column
      * @param staffUserId The user ID of the staff member
@@ -405,6 +580,52 @@ public class MaintenanceService {
         }
         
         return tickets;
+    }
+
+    /**
+     * Update ticket status
+     * @param ticketId The ticket ID
+     * @param newStatus The new status to set
+     * @return true if update was successful
+     * @throws SQLException if database error occurs
+     */
+    public boolean updateTicketStatus(String ticketId, TicketStatus newStatus) throws SQLException {
+        if (ticketId == null || ticketId.isBlank()) {
+            throw new IllegalArgumentException("Ticket ID is required");
+        }
+        if (newStatus == null) {
+            throw new IllegalArgumentException("Status is required");
+        }
+
+        int ticketIdInt;
+        try {
+            ticketIdInt = Integer.parseInt(ticketId);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid ticket ID format");
+        }
+
+        String statusStr = newStatus.toString();
+        String sql = "UPDATE MaintenanceTickets SET Status = ?";
+        
+        // If status is RESOLVED, also set ResolvedDate
+        if (newStatus == TicketStatus.RESOLVED) {
+            sql += ", ResolvedDate = GETDATE()";
+        } else {
+            // If changing from RESOLVED to another status, clear ResolvedDate
+            sql += ", ResolvedDate = NULL";
+        }
+        
+        sql += " WHERE TicketID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, statusStr);
+            pstmt.setInt(2, ticketIdInt);
+
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        }
     }
 
     /**
@@ -476,24 +697,33 @@ public class MaintenanceService {
     }
 
     /**
-     * Get room by ID and code
+     * Get room by ID and code using the provided connection
      */
     private Room getRoomById(Connection conn, int roomId, String roomCode) throws SQLException {
-        RoomService roomService = new RoomService();
+        // Validate connection first
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Connection is closed or invalid in getRoomById");
+        }
+        
         try {
+            String sql;
+            PreparedStatement pstmt;
+            
             if (roomCode != null && !roomCode.isBlank()) {
-                return roomService.getRoomById(roomCode);
-            }
-
-            // Fallback: query by RoomID
-            String sql = "SELECT Code FROM Rooms WHERE RoomID = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                // Query by room code
+                sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Code = ?";
+                pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, roomCode);
+            } else {
+                // Query by RoomID
+                sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE RoomID = ?";
+                pstmt = conn.prepareStatement(sql);
                 pstmt.setInt(1, roomId);
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        String code = rs.getString("Code");
-                        return roomService.getRoomById(code);
-                    }
+            }
+            
+            try (pstmt; ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToRoom(rs);
                 }
             }
         } catch (SQLException e) {
@@ -502,11 +732,51 @@ public class MaintenanceService {
         }
         return null;
     }
+    
+    /**
+     * Map ResultSet to Room object
+     */
+    private Room mapResultSetToRoom(ResultSet rs) throws SQLException {
+        String code = rs.getString("Code");
+        String name = rs.getString("Name");
+        String typeStr = rs.getString("Type");
+        int capacity = rs.getInt("Capacity");
+        String location = rs.getString("Location");
+        String statusStr = rs.getString("Status");
+        
+        // Convert type string to enum
+        RoomType type = RoomType.CLASSROOM;
+        if (typeStr != null) {
+            switch (typeStr.toUpperCase()) {
+                case "CLASSROOM": type = RoomType.CLASSROOM; break;
+                case "LAB": case "LABORATORY": type = RoomType.LAB; break;
+                case "OFFICE": type = RoomType.OFFICE; break;
+                case "CONFERENCE": type = RoomType.CONFERENCE; break;
+            }
+        }
+        
+        // Convert status string to enum
+        RoomStatus status = RoomStatus.AVAILABLE;
+        if (statusStr != null) {
+            switch (statusStr.toUpperCase()) {
+                case "AVAILABLE": status = RoomStatus.AVAILABLE; break;
+                case "OCCUPIED": status = RoomStatus.OCCUPIED; break;
+                case "MAINTENANCE": status = RoomStatus.MAINTENANCE; break;
+            }
+        }
+        
+        return new Room(code, name, type, capacity, location, status);
+    }
 
     /**
      * Get user by ID
      */
     private User getUserById(Connection conn, int userId) throws SQLException {
+        // Validate connection first
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Connection is closed or invalid in getUserById");
+        }
+        
         String sql = "SELECT UserID, Username, Email, UserType FROM Users WHERE UserID = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
