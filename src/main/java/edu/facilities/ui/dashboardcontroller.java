@@ -26,7 +26,7 @@ public class dashboardcontroller {
 
         if (authService.isLoggedIn()) {
             User currentUser = authService.getCurrentUser();
-            userIdLabel.setText(currentUser.getId());
+            userIdLabel.setText(currentUser.getUsername() + " / " + currentUser.getId());
         } else {
             userIdLabel.setText("Guest");
         }

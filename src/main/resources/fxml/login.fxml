@@ -20,7 +20,7 @@
                 <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
             <Label styleClass="page-title" text="Login" />
-            <Label styleClass="form-label" text="Enter your ID and password to access your account" />
+            <Label styleClass="form-label" text="Enter your Username and password to access your account" />
         </VBox>
 
         <!-- Login Form Card -->
@@ -31,9 +31,9 @@
 
             <!-- ID -->
             <VBox spacing="5">
-                <Label styleClass="form-label" text="ID *" />
-                <TextField fx:id="idField" prefHeight="40" promptText="Enter your ID" />
-                <Label fx:id="idError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
+                <Label styleClass="form-label" text="Username *" />
+                <TextField fx:id="usernameField" prefHeight="40" promptText="Enter your Username" />
+                <Label fx:id="usernameError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
             </VBox>
 
             <!-- Password -->

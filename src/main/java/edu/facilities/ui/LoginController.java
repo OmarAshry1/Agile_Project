@@ -22,12 +22,6 @@ import java.sql.SQLException;
 public class LoginController {
 
     @FXML
-    private Label idError;
-
-    @FXML
-    private TextField idField;
-
-    @FXML
     private Button loginbutton;
 
     @FXML
@@ -40,14 +34,20 @@ public class LoginController {
     private Hyperlink registerLink;
 
     @FXML
+    private Label usernameError;
+
+    @FXML
+    private TextField usernameField;
+
+    @FXML
     void handleLogin(ActionEvent event) {
         clearErrors();
 
         boolean hasErrors = false;
 
-        if (idField == null || idField.getText().isBlank()) {
-            idError.setText("ID is required");
-            idError.setVisible(true);
+        if (usernameField == null || usernameField.getText().isBlank()) {
+            usernameField.setText("ID is required");
+            usernameField.setVisible(true);
             hasErrors = true;
         }
 
@@ -63,7 +63,7 @@ public class LoginController {
 
 
         AuthService authService = AuthService.getInstance();
-        String username = idField.getText().trim();
+        String username = usernameField.getText().trim();
         String password = passwordField.getText();
 
         try {
@@ -108,9 +108,9 @@ public class LoginController {
     }
 
     private void clearErrors() {
-        if (idError != null) {
-            idError.setText("");
-            idError.setVisible(false);
+        if (usernameError != null) {
+            usernameError.setText("");
+            usernameError.setVisible(false);
         }
         if (passwordError != null) {
             passwordError.setText("");
