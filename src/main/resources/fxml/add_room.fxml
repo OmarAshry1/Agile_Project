@@ -109,6 +109,8 @@
         <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
             <Label text="* Required fields" styleClass="form-label"
                    style="-fx-font-style: italic;" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35"/>
             <Button text="Cancel" styleClass="btn-secondary"
                     onAction="#handleCancel" prefWidth="110" prefHeight="35"/>
             <Button text="💾 Save Room" styleClass="btn-success"

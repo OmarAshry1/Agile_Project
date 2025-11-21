@@ -1,6 +1,10 @@
 package edu.facilities.service;
 
 import edu.facilities.model.User;
+import edu.facilities.model.Student;
+import edu.facilities.model.Staff;
+import edu.facilities.model.Professor;
+import edu.facilities.model.Admin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -60,11 +64,10 @@ public class AuthService {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     String userId = String.valueOf(rs.getInt("UserID"));
-                    String email = rs.getString("Email");
                     String userType = rs.getString("UserType");
                     
-                    // Create User object
-                    User user = new User(userId, username, email);
+                    // Create appropriate User object based on userType
+                    User user = createUser(userId, username, userType);
                     
                     // Store in session
                     this.currentUser = user;
@@ -180,6 +183,34 @@ public class AuthService {
         this.currentUser = null;
         this.currentUserType = null;
         System.out.println("User logged out");
+    }
+    
+    /**
+     * Create appropriate User instance based on userType
+     * @param id User ID
+     * @param username Username
+     * @param userType User type (STUDENT, PROFESSOR, STAFF, ADMIN)
+     * @return User instance of appropriate type
+     */
+    private User createUser(String id, String username, String userType) {
+        if (userType == null || userType.isBlank()) {
+            return new Student(id, username, null); // Default to Student
+        }
+        
+        // Create appropriate concrete User instance based on userType
+        switch (userType.toUpperCase()) {
+            case "STUDENT":
+                return new Student(id, username, null);
+            case "PROFESSOR":
+                return new Professor(id, username, null);
+            case "STAFF":
+                return new Staff(id, username, null);
+            case "ADMIN":
+                return new Admin(id, username, null);
+            default:
+                // Default to Student if userType is unknown
+                return new Student(id, username, null);
+        }
     }
     
     /**

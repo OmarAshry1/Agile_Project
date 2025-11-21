@@ -23,25 +23,46 @@ public class dashboardcontroller {
     @FXML
     public void initialize() {
         authService = AuthService.getInstance();
+        updateUI();
+    }
 
+    private void updateUI() {
         if (authService.isLoggedIn()) {
             User currentUser = authService.getCurrentUser();
             userIdLabel.setText(currentUser.getUsername() + " / " + currentUser.getId());
+            
+            // Show logout button, hide login/register
+            if (logoutButton != null) logoutButton.setVisible(true);
+            if (loginButton != null) loginButton.setVisible(false);
+            if (registerButton != null) registerButton.setVisible(false);
+            
+            // Enable buttons
+            if (roomsButton != null) roomsButton.setDisable(false);
+            if (reportButton != null) reportButton.setDisable(false);
             
             // Update button text and behavior based on user role
             String userType = authService.getCurrentUserType();
             if ("ADMIN".equals(userType)) {
                 // Admins can view all tickets and assign them
-                reportButton.setText("View All Tickets");
+                if (reportButton != null) reportButton.setText("View All Tickets");
             } else if ("STAFF".equals(userType)) {
                 // Staff can view their assigned tickets
-                reportButton.setText("My Assigned Tickets");
+                if (reportButton != null) reportButton.setText("My Assigned Tickets");
             } else {
                 // Students/Professors can create tickets
-                reportButton.setText("Report Maintenance Issue");
+                if (reportButton != null) reportButton.setText("Report Maintenance Issue");
             }
         } else {
             userIdLabel.setText("Guest");
+            
+            // Show login/register buttons, hide logout
+            if (logoutButton != null) logoutButton.setVisible(false);
+            if (loginButton != null) loginButton.setVisible(true);
+            if (registerButton != null) registerButton.setVisible(true);
+            
+            // Disable feature buttons
+            if (roomsButton != null) roomsButton.setDisable(true);
+            if (reportButton != null) reportButton.setDisable(true);
         }
     }
 
@@ -53,6 +74,15 @@ public class dashboardcontroller {
 
     @FXML
     private Button roomsButton;
+
+    @FXML
+    private Button logoutButton;
+
+    @FXML
+    private Button loginButton;
+
+    @FXML
+    private Button registerButton;
 
     @FXML
     private Label userIdLabel;
@@ -81,6 +111,27 @@ public class dashboardcontroller {
     @FXML
     void handleRooms(ActionEvent event) {
         navigateTo("/fxml/rooms.fxml", event, "Room Management");
+    }
+
+    @FXML
+    void handleLogout(ActionEvent event) {
+        authService.logout();
+        updateUI();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Logged Out");
+        alert.setHeaderText(null);
+        alert.setContentText("You have been logged out successfully.");
+        alert.showAndWait();
+    }
+
+    @FXML
+    void handleLogin(ActionEvent event) {
+        navigateTo("/fxml/login.fxml", event, "Login");
+    }
+
+    @FXML
+    void handleRegister(ActionEvent event) {
+        navigateTo("/fxml/register.fxml", event, "Register");
     }
 
     private void navigateTo(String fxmlPath, ActionEvent event, String title) {

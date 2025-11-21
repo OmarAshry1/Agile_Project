@@ -80,10 +80,9 @@ public class RoomsController {
      */
     @FXML
     public void initialize() throws SQLException {
-        // Check admin access - REQUIREMENT: Admin-only access
-        if (!checkAdminAccess()) {
-            showError("Access Denied", "Only administrators can access the room management page.");
-            // Disable all controls for non-admin users
+        // Check if user is logged in
+        if (!authService.isLoggedIn()) {
+            showError("Access Denied", "Please login to view rooms.");
             disableAllControls();
             return;
         }
@@ -101,6 +100,16 @@ public class RoomsController {
 
         // Update statistics
         updateStatistics();
+
+        // REQUIREMENT: Students can view rooms but not create/edit/delete
+        // Only admins can create/edit/delete
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            // Disable create/edit/delete buttons for non-admins
+            if (addButton != null) addButton.setDisable(true);
+            if (editButton != null) editButton.setDisable(true);
+            if (deleteButton != null) deleteButton.setDisable(true);
+        }
 
         System.out.println("RoomsController initialized successfully!");
     }

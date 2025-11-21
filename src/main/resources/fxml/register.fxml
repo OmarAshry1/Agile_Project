@@ -68,8 +68,11 @@
                     <Label fx:id="roleError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
                 </VBox>
    
-                <!-- Register Button -->
-                <Button fx:id="registerButton" maxWidth="Infinity" onAction="#handleRegister" prefHeight="40" styleClass="btn-success" text="Register" />
+                <!-- Action Buttons -->
+                <HBox spacing="10">
+                    <Button fx:id="backButton" onAction="#handleBack" prefHeight="40" prefWidth="120" styleClass="btn-secondary" text="Back" />
+                    <Button fx:id="registerButton" HBox.hgrow="ALWAYS" maxWidth="Infinity" onAction="#handleRegister" prefHeight="40" styleClass="btn-success" text="Register" />
+                </HBox>
    
             </VBox>
         </ScrollPane>

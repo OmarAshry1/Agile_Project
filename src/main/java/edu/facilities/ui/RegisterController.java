@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -35,6 +36,8 @@ public class RegisterController {
     @FXML private Label passwordError;
     @FXML private Label confirmPasswordError;
     @FXML private Label roleError;
+
+    @FXML private Button backButton;
 
     @FXML
     private void initialize() {
@@ -163,6 +166,23 @@ public class RegisterController {
             case "staff": return "STAFF";
             case "admin": return "ADMIN";
             default: return "STUDENT";
+        }
+    }
+
+    @FXML
+    private void handleBack(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Dashboard");
+            stage.show();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to return to dashboard");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         }
     }
 }

@@ -24,6 +24,9 @@
         <HBox alignment="CENTER_LEFT" spacing="15">
             <Button fx:id="roomsButton" onAction="#handleRooms" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Rooms" />
             <Button fx:id="reportButton" onAction="#handleReport" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Report" />
+            <Button fx:id="logoutButton" onAction="#handleLogout" prefHeight="50" prefWidth="150" styleClass="btn-secondary" text="Logout" />
+            <Button fx:id="loginButton" onAction="#handleLogin" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Login" />
+            <Button fx:id="registerButton" onAction="#handleRegister" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Register" />
         </HBox>
 
         <!-- Empty space for future buttons -->

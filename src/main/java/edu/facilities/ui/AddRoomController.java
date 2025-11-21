@@ -1,8 +1,15 @@
 package edu.facilities.ui;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+
+import java.io.IOException;
 
 import edu.facilities.model.RoomType;
 import edu.facilities.model.RoomStatus;
@@ -31,6 +38,8 @@ public class AddRoomController {
     @FXML private Label typeError;
     @FXML private Label capacityError;
     @FXML private Label buildingError;
+
+    @FXML private Button backButton;
 
     // Reference to the room service
     private RoomService roomService;
@@ -138,7 +147,7 @@ public class AddRoomController {
             // Close the window
             closeWindow();
         } else {
-            showError("Room service not available. Please contact support.");
+            showError("Error", "Room service not available. Please contact support.");
         }
     }
 
@@ -248,6 +257,20 @@ public class AddRoomController {
         stage.close();
     }
 
+    @FXML
+    private void handleBack(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/rooms.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Room Management");
+            stage.show();
+        } catch (IOException e) {
+            showError("Error", "Unable to return to rooms page: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Show success message
      */
@@ -262,9 +285,9 @@ public class AddRoomController {
     /**
      * Show error message
      */
-    private void showError(String message) {
+    private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
+        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

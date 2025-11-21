@@ -104,8 +104,8 @@ public class TicketsViewController {
             return new javafx.beans.property.SimpleStringProperty("N/A");
         });
         assigneeColumn.setCellValueFactory(cellData -> {
-            if (cellData.getValue().getAssignee() != null) {
-                return new javafx.beans.property.SimpleStringProperty(cellData.getValue().getAssignee().getUsername());
+            if (cellData.getValue().getAssignedStaff() != null) {
+                return new javafx.beans.property.SimpleStringProperty(cellData.getValue().getAssignedStaff().getUsername());
             }
             return new javafx.beans.property.SimpleStringProperty("Unassigned");
         });
@@ -117,10 +117,10 @@ public class TicketsViewController {
             return new javafx.beans.property.SimpleStringProperty("N/A");
         });
         createdDateColumn.setCellValueFactory(cellData -> {
-            if (cellData.getValue().getCreatedDate() != null) {
+            if (cellData.getValue().getCreatedAt() != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                 return new javafx.beans.property.SimpleStringProperty(
-                    cellData.getValue().getCreatedDate().format(formatter)
+                    cellData.getValue().getCreatedAt().format(formatter)
                 );
             }
             return new javafx.beans.property.SimpleStringProperty("N/A");

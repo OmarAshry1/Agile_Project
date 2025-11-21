@@ -40,6 +40,9 @@ public class LoginController {
     private TextField usernameField;
 
     @FXML
+    private Button backButton;
+
+    @FXML
     void handleLogin(ActionEvent event) {
         clearErrors();
 
@@ -115,6 +118,23 @@ public class LoginController {
         if (passwordError != null) {
             passwordError.setText("");
             passwordError.setVisible(false);
+        }
+    }
+
+    @FXML
+    void handleBack(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Dashboard");
+            stage.show();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to return to dashboard");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         }
     }
 

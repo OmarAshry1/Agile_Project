@@ -36,6 +36,28 @@ public class RoomService {
     }
 
     /**
+     * Get all available rooms from the database
+     * @return List of available rooms (Status = 'AVAILABLE')
+     * @throws SQLException if database error occurs
+     */
+    public List<Room> getAvailableRooms() throws SQLException {
+        List<Room> rooms = new ArrayList<>();
+        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Status = 'AVAILABLE' ORDER BY Code";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Room room = mapResultSetToRoom(rs);
+                rooms.add(room);
+            }
+        }
+        
+        return rooms;
+    }
+
+    /**
      * Create a new room in the database
      * @param roomCode The room code/identifier
      * @param roomName The room name
@@ -331,16 +353,50 @@ public class RoomService {
     }
 
     /**
+     * Update all room attributes in a single transaction
+     * @param originalRoomCode The original room code to identify the room
+     * @param newRoomCode The new room code (can be same as original)
+     * @param roomName The room name
+     * @param type The room type
+     * @param capacity The room capacity
+     * @param location The room location
+     * @param status The room status
+     * @throws SQLException if database error occurs
+     */
+    public void updateRoom(String originalRoomCode, String newRoomCode, String roomName,
+                          RoomType type, int capacity, String location, RoomStatus status) throws SQLException {
+        String sql = "UPDATE Rooms SET Code = ?, Name = ?, Type = ?, Capacity = ?, Location = ?, Status = ? WHERE Code = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, newRoomCode);
+            pstmt.setString(2, roomName);
+            pstmt.setString(3, typeToString(type));
+            pstmt.setInt(4, capacity);
+            pstmt.setString(5, location);
+            pstmt.setString(6, statusToString(status));
+            pstmt.setString(7, originalRoomCode);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Room with code '" + originalRoomCode + "' not found");
+            }
+        }
+    }
+
+    /**
      * Convert RoomType enum to database string
+     * Note: Database only accepts 'CLASSROOM' or 'LAB' per CHECK constraint
      */
     private String typeToString(RoomType type) {
         if (type == null) return "CLASSROOM";
         switch (type) {
             case CLASSROOM: return "CLASSROOM";
             case LAB: return "LAB";
-            case OFFICE: return "OFFICE";
-            case CONFERENCE: return "CONFERENCE";
-            default: return "CLASSROOM";
+            case OFFICE: 
+            case CONFERENCE: 
+            default: return "CLASSROOM"; // Map other types to CLASSROOM to satisfy CHECK constraint
         }
     }
 

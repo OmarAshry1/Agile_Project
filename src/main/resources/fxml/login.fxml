@@ -43,8 +43,11 @@
                 <Label fx:id="passwordError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
             </VBox>
 
-            <!-- Login Button Only -->
-            <Button fx:id="loginbutton" maxWidth="Infinity" onAction="#handleLogin" prefHeight="40" styleClass="btn-success" text="Login" />
+            <!-- Action Buttons -->
+            <HBox spacing="10">
+                <Button fx:id="backButton" onAction="#handleBack" prefHeight="40" prefWidth="120" styleClass="btn-secondary" text="Back" />
+                <Button fx:id="loginbutton" HBox.hgrow="ALWAYS" maxWidth="Infinity" onAction="#handleLogin" prefHeight="40" styleClass="btn-success" text="Login" />
+            </HBox>
 
         </VBox>
 

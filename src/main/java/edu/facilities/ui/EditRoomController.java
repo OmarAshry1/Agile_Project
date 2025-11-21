@@ -1,8 +1,15 @@
 package edu.facilities.ui;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+
+import java.io.IOException;
 
 import edu.facilities.model.Room;
 import edu.facilities.model.RoomType;
@@ -35,6 +42,8 @@ public class EditRoomController {
     @FXML private Label typeError;
     @FXML private Label capacityError;
     @FXML private Label buildingError;
+
+    @FXML private Button backButton;
 
     // Store the original room object to update it directly
     private Room roomObject;
@@ -147,29 +156,20 @@ public class EditRoomController {
         // Combine building, floor, and equipment into location
         String location = combineLocation(building, floor, equipment);
 
-        // Update the room using RoomService
-        // IMPORTANT: Use originalRoomId for WHERE clauses to ensure we only update the specific room
+        // Update the room using RoomService - update all attributes in one call
+        // IMPORTANT: Use originalRoomId for WHERE clause to ensure we only update the specific room
         if (roomObject != null && roomService != null && originalRoomId != null) {
-            // Update room code/name if changed (using original ID to find the room)
+            // Use the comprehensive updateRoom method to update all fields at once
+            roomService.updateRoom(originalRoomId, newRoomId, newRoomId, type, capacity, location, status);
+            
+            // Update the room object to reflect changes
             if (!originalRoomId.equals(newRoomId)) {
-                roomService.updateRoomCode(originalRoomId, newRoomId);
                 roomObject.setName(newRoomId);
             }
-
-            // Update location if changed
-            if (!roomObject.getLocation().equals(location)) {
-                roomService.updateRoomLocation(originalRoomId, location);
-                roomObject.setLocation(location);
-            }
-
-            // Update type using service (using original ID)
-            roomService.updateRoomType(originalRoomId, type);
-
-            // Update capacity using service (using original ID)
-            roomService.updateRoomCapacity(originalRoomId, capacity);
-
-            // Update status using service (using original ID)
-            roomService.updateRoomStatus(originalRoomId, status);
+            roomObject.setLocation(location);
+            roomObject.setType(type);
+            roomObject.setCapacity(capacity);
+            roomObject.setStatus(status);
 
             System.out.println("Room Updated Successfully:");
             System.out.println("  Original ID: " + originalRoomId);
@@ -182,7 +182,7 @@ public class EditRoomController {
             // Show success message
             showSuccess("Room updated successfully!");
         } else {
-            showError("Room service not available. Please contact support.");
+            showError("Error", "Room service not available. Please contact support.");
             return;
         }
 
@@ -283,6 +283,20 @@ public class EditRoomController {
         stage.close();
     }
 
+    @FXML
+    private void handleBack(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/rooms.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Room Management");
+            stage.show();
+        } catch (IOException e) {
+            showError("Error", "Unable to return to rooms page: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Show success message
      */
@@ -297,9 +311,9 @@ public class EditRoomController {
     /**
      * Show error message
      */
-    private void showError(String message) {
+    private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
+        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

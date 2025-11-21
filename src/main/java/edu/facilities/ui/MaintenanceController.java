@@ -2,12 +2,19 @@ package edu.facilities.ui;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 
 import edu.facilities.model.Room;
 import edu.facilities.model.User;
@@ -16,6 +23,7 @@ import edu.facilities.service.MaintenanceService;
 import edu.facilities.service.RoomService;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class MaintenanceController {
 
@@ -35,7 +43,7 @@ public class MaintenanceController {
     private Label issueError;
 
     @FXML
-    private TextField roomId;
+    private ComboBox<String> roomComboBox;
 
     @FXML
     private Label roomIdError;
@@ -43,9 +51,32 @@ public class MaintenanceController {
     @FXML
     private Label ticketNumberLabel;
 
+    @FXML
+    private Button backButton;
+
     private MaintenanceService maintenanceService = new MaintenanceService();
     private RoomService roomService = new RoomService();
     private AuthService authService = AuthService.getInstance();
+
+    @FXML
+    public void initialize() {
+        // Load available rooms into dropdown
+        try {
+            List<Room> availableRooms = roomService.getAvailableRooms();
+            roomComboBox.getItems().clear();
+            for (Room room : availableRooms) {
+                roomComboBox.getItems().add(room.getId()); // Add room code
+            }
+            if (roomComboBox.getItems().isEmpty()) {
+                roomComboBox.setPromptText("No available rooms");
+            } else {
+                roomComboBox.setPromptText("Select a room");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error loading available rooms: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     void handleGenerateTicket(ActionEvent event) {
@@ -53,8 +84,8 @@ public class MaintenanceController {
 
         boolean hasErrors = false;
 
-        if (roomId == null || roomId.getText().isBlank()) {
-            showFieldError(roomIdError, "Room ID is required");
+        if (roomComboBox == null || roomComboBox.getValue() == null || roomComboBox.getValue().isBlank()) {
+            showFieldError(roomIdError, "Please select a room");
             hasErrors = true;
         }
 
@@ -89,19 +120,17 @@ public class MaintenanceController {
         }
 
 
-        String roomCode = roomId.getText().trim();
+        String roomCode = roomComboBox.getValue().trim();
         String description = issueDescription.getText().trim();
 
         try {
-
             Room room = roomService.getRoomById(roomCode);
             
             if (room == null) {
-                showFieldError(roomIdError, "Room not found. Please check the room code.");
+                showFieldError(roomIdError, "Room not found. Please select a valid room.");
                 confirmationBox.setVisible(false);
                 return;
             }
-
 
             edu.facilities.model.MaintenanceTicket ticket = maintenanceService.createTicket(room, reporter, description);
 
@@ -110,9 +139,12 @@ public class MaintenanceController {
                 confirmationLabel.setText("Ticket generated successfully!");
                 ticketNumberLabel.setText("Ticket ID: #" + ticket.getId());
                 
-
-                roomId.clear();
+                // Clear form
+                roomComboBox.setValue(null);
                 issueDescription.clear();
+                
+                // Reload available rooms (in case status changed)
+                initialize();
             } else {
                 showError("Database Error", "Failed to create ticket. Please try again.");
                 confirmationBox.setVisible(false);
@@ -155,6 +187,20 @@ public class MaintenanceController {
         } else {
             label.setText(message);
             label.setVisible(true);
+        }
+    }
+
+    @FXML
+    void handleBack(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Dashboard");
+            stage.show();
+        } catch (IOException e) {
+            showError("Navigation Error", "Unable to return to dashboard: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
