@@ -216,6 +216,12 @@ public class RoomsController {
      */
     @FXML
     private void handleAddRoom() {
+        // REQUIREMENT: Only admins can create rooms
+        if (!checkAdminAccess()) {
+            showError("Access Denied", "Only administrators can create rooms.");
+            return;
+        }
+        
         try {
             System.out.println("Opening Add Room window...");
 
@@ -258,6 +264,12 @@ public class RoomsController {
      */
     @FXML
     private void handleEditRoom() {
+        // REQUIREMENT: Only admins can update rooms
+        if (!checkAdminAccess()) {
+            showError("Access Denied", "Only administrators can update rooms.");
+            return;
+        }
+        
         // Get selected room
         Room selectedRoom = roomsTable.getSelectionModel().getSelectedItem();
 
@@ -322,6 +334,12 @@ public class RoomsController {
      */
     @FXML
     private void handleDeleteRoom() {
+        // REQUIREMENT: Only admins can delete rooms
+        if (!checkAdminAccess()) {
+            showError("Access Denied", "Only administrators can delete rooms.");
+            return;
+        }
+        
         // Get selected room
         Room selectedRoom = roomsTable.getSelectionModel().getSelectedItem();
 
@@ -342,36 +360,64 @@ public class RoomsController {
                 String roomId = selectedRoom.getId();
 
                 try {
-                    if (bookingService.hasFutureBookings(roomId)) {
-                        int bookingCount = bookingService.getFutureBookingCount(roomId);
-                        showError("Cannot Delete Room",
-                                "This room has " + bookingCount + " future booking(s). " +
-                                        "Please cancel or reschedule all future bookings before deleting the room.");
-                        return;
-                    }
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-
-                // Delete from backend service
-                boolean deleted = false;
-                try {
-                    deleted = roomService.deleteRoom(roomId);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-
-                if (deleted) {
-                    // Refresh data from service
+                    // Check for future bookings (only if Bookings table exists)
                     try {
-                        loadRoomData();
+                        if (bookingService.hasFutureBookings(roomId)) {
+                            int bookingCount = bookingService.getFutureBookingCount(roomId);
+                            showError("Cannot Delete Room",
+                                    "This room has " + bookingCount + " future booking(s). " +
+                                            "Please cancel or reschedule all future bookings before deleting the room.");
+                            return;
+                        }
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        // Bookings table might not exist yet - continue with deletion
+                        System.out.println("Note: Could not check bookings (table may not exist): " + e.getMessage());
                     }
-                    updateStatistics();
-                    showInfo("Success", "Room deleted successfully!");
-                } else {
-                    showError("Error", "Failed to delete room. Please try again.");
+
+                    // Delete from backend service (this will also delete related maintenance tickets)
+                    boolean deleted = roomService.deleteRoom(roomId);
+
+                    if (deleted) {
+                        // Refresh data from service
+                        try {
+                            loadRoomData();
+                        } catch (SQLException e) {
+                            showError("Warning", "Room was deleted but failed to refresh the list: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                        updateStatistics();
+                        showInfo("Success", "Room deleted successfully!");
+                    } else {
+                        showError("Error", "Failed to delete room. The room may not exist or there was a database error.");
+                    }
+                } catch (SQLException e) {
+                    // Handle SQL errors with user-friendly messages
+                    String errorMessage = e.getMessage();
+                    String userMessage = "Failed to delete room: ";
+                    
+                    if (errorMessage != null) {
+                        if (errorMessage.contains("foreign key constraint") || 
+                            errorMessage.contains("FOREIGN KEY constraint")) {
+                            userMessage += "The room cannot be deleted because it has related records (maintenance tickets or bookings). " +
+                                         "Please delete or resolve related records first.";
+                        } else if (errorMessage.contains("permission denied") || 
+                                  errorMessage.contains("access denied")) {
+                            userMessage += "You do not have permission to delete this room.";
+                        } else {
+                            userMessage += errorMessage;
+                        }
+                    } else {
+                        userMessage += "An unknown database error occurred.";
+                    }
+                    
+                    showError("Database Error", userMessage);
+                    System.err.println("Error deleting room '" + roomId + "': " + e.getMessage());
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    // Handle any other unexpected errors
+                    showError("Error", "An unexpected error occurred while deleting the room: " + e.getMessage());
+                    System.err.println("Unexpected error deleting room '" + roomId + "': " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         });

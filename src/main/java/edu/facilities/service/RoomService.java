@@ -1,46 +1,168 @@
 package edu.facilities.service;
 
 import edu.facilities.model.Room;
-import edu.facilities.model.RoomType;
 import edu.facilities.model.RoomStatus;
+import edu.facilities.model.RoomType;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Service for managing rooms using SQL Server database
+ * Service for managing room data using SQL Server database
  */
 public class RoomService {
 
     /**
-     * Create a new room in the database
-     * Note: RoomID is auto-increment, Code is the identifier
+     * Get all rooms from the database
+     * @return List of all rooms
+     * @throws SQLException if database error occurs
      */
-    public void createRoom(String code, String name, RoomType type, int capacity,
-                           String location, RoomStatus status) throws SQLException {
+    public List<Room> getAllRooms() throws SQLException {
+        List<Room> rooms = new ArrayList<>();
+        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Room room = mapResultSetToRoom(rs);
+                rooms.add(room);
+            }
+        }
+        
+        return rooms;
+    }
+
+    /**
+     * Create a new room in the database
+     * @param roomCode The room code/identifier
+     * @param roomName The room name
+     * @param type The room type
+     * @param capacity The room capacity
+     * @param location The room location (format: "Building|Floor|Equipment")
+     * @param status The room status
+     * @throws SQLException if database error occurs
+     */
+    public void createRoom(String roomCode, String roomName, RoomType type, 
+                          int capacity, String location, RoomStatus status) throws SQLException {
         String sql = "INSERT INTO Rooms (Code, Name, Type, Capacity, Location, Status) VALUES (?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, code);
-            pstmt.setString(2, name);
-            pstmt.setString(3, type.toString());
+            pstmt.setString(1, roomCode);
+            pstmt.setString(2, roomName);
+            pstmt.setString(3, typeToString(type));
             pstmt.setInt(4, capacity);
             pstmt.setString(5, location);
-            pstmt.setString(6, status.toString());
+            pstmt.setString(6, statusToString(status));
             
             pstmt.executeUpdate();
         }
     }
 
     /**
-     * Get a room by Code from the database
-     * Note: Uses Code field as identifier (e.g., 'R101', 'LAB1')
+     * Delete a room from the database by room code
+     * First deletes related records (MaintenanceTickets, Bookings) to avoid foreign key constraint violations
+     * @param roomCode The room code to delete
+     * @return true if room was deleted, false otherwise
+     * @throws SQLException if database error occurs
+     */
+    public boolean deleteRoom(String roomCode) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        boolean originalAutoCommit = conn.getAutoCommit();
+        
+        try {
+            // Disable auto-commit to use transaction
+            conn.setAutoCommit(false);
+            
+            // First, get the RoomID for this room code (needed for foreign key deletions)
+            int roomId = getRoomIdByCode(conn, roomCode);
+            if (roomId == -1) {
+                // Room doesn't exist
+                conn.rollback();
+                System.out.println("Room not found for deletion: " + roomCode);
+                return false;
+            }
+            
+            // Delete related maintenance tickets first (to avoid foreign key constraint)
+            try {
+                String deleteTicketsSql = "DELETE FROM MaintenanceTickets WHERE RoomID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(deleteTicketsSql)) {
+                    pstmt.setInt(1, roomId);
+                    int ticketsDeleted = pstmt.executeUpdate();
+                    if (ticketsDeleted > 0) {
+                        System.out.println("Deleted " + ticketsDeleted + " maintenance ticket(s) for room: " + roomCode);
+                    }
+                }
+            } catch (SQLException e) {
+                // Table might not exist or no tickets - continue anyway
+                System.out.println("Note: Could not delete maintenance tickets (may not exist): " + e.getMessage());
+            }
+            
+            // Delete related bookings if they exist (to avoid foreign key constraint)
+            try {
+                String deleteBookingsSql = "DELETE FROM Bookings WHERE RoomID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(deleteBookingsSql)) {
+                    pstmt.setInt(1, roomId);
+                    int bookingsDeleted = pstmt.executeUpdate();
+                    if (bookingsDeleted > 0) {
+                        System.out.println("Deleted " + bookingsDeleted + " booking(s) for room: " + roomCode);
+                    }
+                }
+            } catch (SQLException e) {
+                // Table might not exist or no bookings - continue anyway
+                System.out.println("Note: Could not delete bookings (may not exist): " + e.getMessage());
+            }
+            
+            // Now delete the room itself
+            String deleteRoomSql = "DELETE FROM Rooms WHERE Code = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteRoomSql)) {
+                pstmt.setString(1, roomCode);
+                int rowsAffected = pstmt.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    // Commit the transaction
+                    conn.commit();
+                    System.out.println("Successfully deleted room: " + roomCode);
+                    return true;
+                } else {
+                    // No rows affected - room not found (shouldn't happen since we checked above)
+                    conn.rollback();
+                    System.out.println("Warning: Room not found during deletion: " + roomCode);
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            // Rollback on any error
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Error during rollback: " + rollbackEx.getMessage());
+            }
+            System.err.println("Error deleting room '" + roomCode + "': " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            // Restore original auto-commit setting
+            try {
+                conn.setAutoCommit(originalAutoCommit);
+            } catch (SQLException e) {
+                System.err.println("Error restoring auto-commit: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Get room by room code
+     * @param roomCode The room code to search for
+     * @return Room object if found, null otherwise
+     * @throws SQLException if database error occurs
      */
     public Room getRoomById(String roomCode) throws SQLException {
-        String sql = "SELECT Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Code = ?";
+        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -57,149 +179,209 @@ public class RoomService {
     }
 
     /**
-     * Get all rooms from the database
+     * Get RoomID by room code (helper method for foreign key operations)
+     * @param conn The database connection
+     * @param roomCode The room code
+     * @return RoomID if found, -1 otherwise
+     * @throws SQLException if database error occurs
      */
-    public List<Room> getAllRooms() throws SQLException {
-        List<Room> rooms = new ArrayList<>();
-        String sql = "SELECT Code, Name, Type, Capacity, Location, Status FROM Rooms ORDER BY Code";
+    private int getRoomIdByCode(Connection conn, String roomCode) throws SQLException {
+        String sql = "SELECT RoomID FROM Rooms WHERE Code = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, roomCode);
             
-            while (rs.next()) {
-                rooms.add(mapResultSetToRoom(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("RoomID");
+                }
             }
         }
-        return rooms;
+        return -1;
     }
 
     /**
-     * Delete a room from the database by Code
+     * Update room type for a specific room
+     * Uses room code to identify the room (important: uses WHERE clause to update only the specific room)
+     * @param roomCode The room code to identify the room
+     * @param type The new room type
+     * @throws SQLException if database error occurs
      */
-    public boolean deleteRoom(String roomCode) throws SQLException {
-        String sql = "DELETE FROM Rooms WHERE Code = ?";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setString(1, roomCode);
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
-        }
-    }
-
-    /**
-     * Update room type in the database
-     */
-    public boolean updateRoomType(String roomCode, RoomType newType) throws SQLException {
+    public void updateRoomType(String roomCode, RoomType type) throws SQLException {
         String sql = "UPDATE Rooms SET Type = ? WHERE Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, newType.toString());
+            pstmt.setString(1, typeToString(type));
             pstmt.setString(2, roomCode);
+            
             int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            if (rowsAffected == 0) {
+                throw new SQLException("Room with code '" + roomCode + "' not found");
+            }
         }
     }
 
     /**
-     * Update room capacity in the database
+     * Update room capacity for a specific room
+     * Uses room code to identify the room (important: uses WHERE clause to update only the specific room)
+     * @param roomCode The room code to identify the room
+     * @param capacity The new capacity
+     * @throws SQLException if database error occurs
      */
-    public boolean updateRoomCapacity(String roomCode, int newCapacity) throws SQLException {
+    public void updateRoomCapacity(String roomCode, int capacity) throws SQLException {
         String sql = "UPDATE Rooms SET Capacity = ? WHERE Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setInt(1, newCapacity);
+            pstmt.setInt(1, capacity);
             pstmt.setString(2, roomCode);
+            
             int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            if (rowsAffected == 0) {
+                throw new SQLException("Room with code '" + roomCode + "' not found");
+            }
         }
     }
 
     /**
-     * Update room status in the database
+     * Update room status for a specific room
+     * Uses room code to identify the room (important: uses WHERE clause to update only the specific room)
+     * @param roomCode The room code to identify the room
+     * @param status The new status
+     * @throws SQLException if database error occurs
      */
-    public boolean updateRoomStatus(String roomCode, RoomStatus newStatus) throws SQLException {
+    public void updateRoomStatus(String roomCode, RoomStatus status) throws SQLException {
         String sql = "UPDATE Rooms SET Status = ? WHERE Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, newStatus.toString());
+            pstmt.setString(1, statusToString(status));
             pstmt.setString(2, roomCode);
+            
             int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            if (rowsAffected == 0) {
+                throw new SQLException("Room with code '" + roomCode + "' not found");
+            }
         }
     }
 
     /**
-     * Update room name in the database
+     * Update room code/identifier for a specific room
+     * Uses original room code to identify the room, then updates to new code
+     * @param originalRoomCode The original room code to identify the room
+     * @param newRoomCode The new room code
+     * @throws SQLException if database error occurs
      */
-    public boolean updateRoomName(String roomCode, String newName) throws SQLException {
-        String sql = "UPDATE Rooms SET Name = ? WHERE Code = ?";
+    public void updateRoomCode(String originalRoomCode, String newRoomCode) throws SQLException {
+        String sql = "UPDATE Rooms SET Code = ?, Name = ? WHERE Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, newName);
-            pstmt.setString(2, roomCode);
+            pstmt.setString(1, newRoomCode);
+            pstmt.setString(2, newRoomCode); // Update name to match code
+            pstmt.setString(3, originalRoomCode); // Use original code in WHERE clause
+            
             int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            if (rowsAffected == 0) {
+                throw new SQLException("Room with code '" + originalRoomCode + "' not found");
+            }
         }
     }
 
     /**
-     * Update room location in the database
+     * Update room location for a specific room
+     * Uses room code to identify the room (important: uses WHERE clause to update only the specific room)
+     * @param roomCode The room code to identify the room
+     * @param location The new location (format: "Building|Floor|Equipment")
+     * @throws SQLException if database error occurs
      */
-    public boolean updateRoomLocation(String roomCode, String newLocation) throws SQLException {
+    public void updateRoomLocation(String roomCode, String location) throws SQLException {
         String sql = "UPDATE Rooms SET Location = ? WHERE Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, newLocation);
+            pstmt.setString(1, location);
             pstmt.setString(2, roomCode);
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
-        }
-    }
-
-    /**
-     * Get all available rooms from the database
-     */
-    public List<Room> getAvailableRooms() throws SQLException {
-        List<Room> availableRooms = new ArrayList<>();
-        String sql = "SELECT Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Status = 'AVAILABLE' ORDER BY Code";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
             
-            while (rs.next()) {
-                availableRooms.add(mapResultSetToRoom(rs));
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Room with code '" + roomCode + "' not found");
             }
         }
-        return availableRooms;
     }
 
     /**
      * Map ResultSet row to Room object
-     * Note: Code field maps to Room.id, RoomID is auto-increment and not used
      */
     private Room mapResultSetToRoom(ResultSet rs) throws SQLException {
-        String code = rs.getString("Code");
+        String roomId = rs.getString("Code");
         String name = rs.getString("Name");
-        RoomType type = RoomType.valueOf(rs.getString("Type"));
+        RoomType type = stringToRoomType(rs.getString("Type"));
         int capacity = rs.getInt("Capacity");
         String location = rs.getString("Location");
-        RoomStatus status = RoomStatus.valueOf(rs.getString("Status"));
+        RoomStatus status = stringToRoomStatus(rs.getString("Status"));
         
-        return new Room(code, name, type, capacity, location, status);
+        return new Room(roomId, name, type, capacity, location, status);
+    }
+
+    /**
+     * Convert RoomType enum to database string
+     */
+    private String typeToString(RoomType type) {
+        if (type == null) return "CLASSROOM";
+        switch (type) {
+            case CLASSROOM: return "CLASSROOM";
+            case LAB: return "LAB";
+            case OFFICE: return "OFFICE";
+            case CONFERENCE: return "CONFERENCE";
+            default: return "CLASSROOM";
+        }
+    }
+
+    /**
+     * Convert database string to RoomType enum
+     */
+    private RoomType stringToRoomType(String typeStr) {
+        if (typeStr == null) return RoomType.CLASSROOM;
+        switch (typeStr.toUpperCase()) {
+            case "CLASSROOM": return RoomType.CLASSROOM;
+            case "LAB": case "LABORATORY": return RoomType.LAB;
+            case "OFFICE": return RoomType.OFFICE;
+            case "CONFERENCE": return RoomType.CONFERENCE;
+            default: return RoomType.CLASSROOM;
+        }
+    }
+
+    /**
+     * Convert RoomStatus enum to database string
+     */
+    private String statusToString(RoomStatus status) {
+        if (status == null) return "AVAILABLE";
+        switch (status) {
+            case AVAILABLE: return "AVAILABLE";
+            case OCCUPIED: return "OCCUPIED";
+            case MAINTENANCE: return "MAINTENANCE";
+            default: return "AVAILABLE";
+        }
+    }
+
+    /**
+     * Convert database string to RoomStatus enum
+     */
+    private RoomStatus stringToRoomStatus(String statusStr) {
+        if (statusStr == null) return RoomStatus.AVAILABLE;
+        switch (statusStr.toUpperCase()) {
+            case "AVAILABLE": return RoomStatus.AVAILABLE;
+            case "OCCUPIED": case "BOOKED": return RoomStatus.OCCUPIED;
+            case "MAINTENANCE": return RoomStatus.MAINTENANCE;
+            default: return RoomStatus.AVAILABLE;
+        }
     }
 }
 

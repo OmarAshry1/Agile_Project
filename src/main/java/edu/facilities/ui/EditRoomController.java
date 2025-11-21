@@ -7,6 +7,7 @@ import javafx.stage.Stage;
 import edu.facilities.model.Room;
 import edu.facilities.model.RoomType;
 import edu.facilities.model.RoomStatus;
+import edu.facilities.service.AuthService;
 import edu.facilities.service.RoomService;
 
 import java.sql.SQLException;
@@ -37,9 +38,15 @@ public class EditRoomController {
 
     // Store the original room object to update it directly
     private Room roomObject;
+    
+    // Store the original room ID/code to use in WHERE clauses
+    private String originalRoomId;
 
     // Reference to the room service
     private RoomService roomService;
+    
+    // Reference to auth service for authorization checks
+    private AuthService authService = AuthService.getInstance();
 
     // ============================================
     //  INITIALIZATION
@@ -77,6 +84,8 @@ public class EditRoomController {
     public void setRoomData(Room room, String roomNumber, String type, int capacity,
                             String building, String floor, String equipment, String status) {
         this.roomObject = room;
+        // Store the original room ID/code to use in WHERE clauses for updates
+        this.originalRoomId = roomNumber;
 
         // Populate fields with existing data
         roomNumberField.setText(roomNumber);
@@ -108,6 +117,12 @@ public class EditRoomController {
      */
     @FXML
     private void handleUpdate() throws SQLException {
+        // REQUIREMENT: Only admins can update rooms
+        if (!checkAdminAccess()) {
+            showError("Access Denied", "Only administrators can update rooms.");
+            return;
+        }
+        
         // Clear previous errors
         clearErrors();
 
@@ -117,7 +132,7 @@ public class EditRoomController {
         }
 
         // Get updated values from form
-        String roomId = roomNumberField.getText().trim();
+        String newRoomId = roomNumberField.getText().trim();
         String typeStr = typeComboBox.getValue();
         int capacity = Integer.parseInt(capacityField.getText().trim());
         String building = buildingField.getText().trim();
@@ -133,28 +148,32 @@ public class EditRoomController {
         String location = combineLocation(building, floor, equipment);
 
         // Update the room using RoomService
-        if (roomObject != null && roomService != null) {
-            // Update name if changed
-            if (!roomObject.getName().equals(roomId)) {
-                roomObject.setName(roomId);
+        // IMPORTANT: Use originalRoomId for WHERE clauses to ensure we only update the specific room
+        if (roomObject != null && roomService != null && originalRoomId != null) {
+            // Update room code/name if changed (using original ID to find the room)
+            if (!originalRoomId.equals(newRoomId)) {
+                roomService.updateRoomCode(originalRoomId, newRoomId);
+                roomObject.setName(newRoomId);
             }
 
             // Update location if changed
             if (!roomObject.getLocation().equals(location)) {
+                roomService.updateRoomLocation(originalRoomId, location);
                 roomObject.setLocation(location);
             }
 
-            // Update type using service
-            roomService.updateRoomType(roomId, type);
+            // Update type using service (using original ID)
+            roomService.updateRoomType(originalRoomId, type);
 
-            // Update capacity using service
-            roomService.updateRoomCapacity(roomId, capacity);
+            // Update capacity using service (using original ID)
+            roomService.updateRoomCapacity(originalRoomId, capacity);
 
-            // Update status using service
-            roomService.updateRoomStatus(roomId, status);
+            // Update status using service (using original ID)
+            roomService.updateRoomStatus(originalRoomId, status);
 
             System.out.println("Room Updated Successfully:");
-            System.out.println("  ID: " + roomId);
+            System.out.println("  Original ID: " + originalRoomId);
+            System.out.println("  New ID: " + newRoomId);
             System.out.println("  Type: " + type);
             System.out.println("  Capacity: " + capacity);
             System.out.println("  Location: " + location);
@@ -325,5 +344,31 @@ public class EditRoomController {
         return (building != null ? building : "") + "|" +
                 (floor != null ? floor : "") + "|" +
                 (equipment != null ? equipment : "");
+    }
+    
+    /**
+     * Check if current user is an admin
+     * REQUIREMENT: Admin-only access to room updates
+     * @return true if user is admin, false otherwise
+     */
+    private boolean checkAdminAccess() {
+        if (authService == null) {
+            System.err.println("AuthService is not initialized");
+            return false;
+        }
+
+        if (!authService.isLoggedIn()) {
+            System.out.println("User is not logged in");
+            return false;
+        }
+
+        String userType = authService.getCurrentUserType();
+        boolean isAdmin = "ADMIN".equals(userType);
+
+        if (!isAdmin) {
+            System.out.println("Access denied: User type is " + userType + ", ADMIN required");
+        }
+
+        return isAdmin;
     }
 }

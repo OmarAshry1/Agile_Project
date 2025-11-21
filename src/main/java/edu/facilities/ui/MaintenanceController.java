@@ -74,6 +74,14 @@ public class MaintenanceController {
             return;
         }
 
+        // REQUIREMENT: Admins cannot create maintenance tickets
+        String userType = authService.getCurrentUserType();
+        if ("ADMIN".equals(userType)) {
+            showError("Access Denied", "Administrators cannot create maintenance tickets. Only students, staff, and professors can create tickets.");
+            confirmationBox.setVisible(false);
+            return;
+        }
+
         User reporter = authService.getCurrentUser();
         if (reporter == null) {
             showError("Authentication Error", "User session expired. Please login again.");

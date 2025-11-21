@@ -6,6 +6,7 @@ import javafx.stage.Stage;
 
 import edu.facilities.model.RoomType;
 import edu.facilities.model.RoomStatus;
+import edu.facilities.service.AuthService;
 import edu.facilities.service.RoomService;
 
 import java.sql.SQLException;
@@ -33,6 +34,9 @@ public class AddRoomController {
 
     // Reference to the room service
     private RoomService roomService;
+    
+    // Reference to auth service for authorization checks
+    private AuthService authService = AuthService.getInstance();
 
     // ============================================
     //  INITIALIZATION
@@ -83,6 +87,12 @@ public class AddRoomController {
      */
     @FXML
     private void handleSave() throws SQLException {
+        // REQUIREMENT: Only admins can create rooms
+        if (!checkAdminAccess()) {
+            showError("Access Denied", "Only administrators can create rooms.");
+            return;
+        }
+        
         // Clear previous errors
         clearErrors();
 
@@ -299,5 +309,31 @@ public class AddRoomController {
         return (building != null ? building : "") + "|" +
                 (floor != null ? floor : "") + "|" +
                 (equipment != null ? equipment : "");
+    }
+    
+    /**
+     * Check if current user is an admin
+     * REQUIREMENT: Admin-only access to room creation
+     * @return true if user is admin, false otherwise
+     */
+    private boolean checkAdminAccess() {
+        if (authService == null) {
+            System.err.println("AuthService is not initialized");
+            return false;
+        }
+
+        if (!authService.isLoggedIn()) {
+            System.out.println("User is not logged in");
+            return false;
+        }
+
+        String userType = authService.getCurrentUserType();
+        boolean isAdmin = "ADMIN".equals(userType);
+
+        if (!isAdmin) {
+            System.out.println("Access denied: User type is " + userType + ", ADMIN required");
+        }
+
+        return isAdmin;
     }
 }
