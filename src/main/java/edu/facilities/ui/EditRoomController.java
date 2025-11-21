@@ -9,6 +9,8 @@ import edu.facilities.model.RoomType;
 import edu.facilities.model.RoomStatus;
 import edu.facilities.service.RoomService;
 
+import java.sql.SQLException;
+
 /**
  * Controller for Edit Room Form (edit_room.fxml)
  * Handles editing existing room records
@@ -105,7 +107,7 @@ public class EditRoomController {
      * Validates input and updates the room
      */
     @FXML
-    private void handleUpdate() {
+    private void handleUpdate() throws SQLException {
         // Clear previous errors
         clearErrors();
 

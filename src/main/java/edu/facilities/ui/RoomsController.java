@@ -22,6 +22,7 @@ import edu.facilities.service.BookingService;
 import edu.facilities.service.RoomService;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -78,7 +79,7 @@ public class RoomsController {
      * This method is automatically called after FXML is loaded
      */
     @FXML
-    public void initialize() {
+    public void initialize() throws SQLException {
         // Check admin access - REQUIREMENT: Admin-only access
         if (!checkAdminAccess()) {
             showError("Access Denied", "Only administrators can access the room management page.");
@@ -235,7 +236,11 @@ public class RoomsController {
             // Set up callback for when window closes
             stage.setOnHidden(event -> {
                 // Refresh data after adding new room
-                loadRoomData();
+                try {
+                    loadRoomData();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 updateStatistics();
             });
 
@@ -292,7 +297,11 @@ public class RoomsController {
             // Set up callback for when window closes
             stage.setOnHidden(event -> {
                 // Refresh data after editing
-                loadRoomData();
+                try {
+                    loadRoomData();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 updateStatistics();
             });
 
@@ -332,20 +341,33 @@ public class RoomsController {
                 // REQUIREMENT: Verify room has no future bookings before deletion
                 String roomId = selectedRoom.getId();
 
-                if (bookingService.hasFutureBookings(roomId)) {
-                    int bookingCount = bookingService.getFutureBookingCount(roomId);
-                    showError("Cannot Delete Room",
-                            "This room has " + bookingCount + " future booking(s). " +
-                                    "Please cancel or reschedule all future bookings before deleting the room.");
-                    return;
+                try {
+                    if (bookingService.hasFutureBookings(roomId)) {
+                        int bookingCount = bookingService.getFutureBookingCount(roomId);
+                        showError("Cannot Delete Room",
+                                "This room has " + bookingCount + " future booking(s). " +
+                                        "Please cancel or reschedule all future bookings before deleting the room.");
+                        return;
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
 
                 // Delete from backend service
-                boolean deleted = roomService.deleteRoom(roomId);
+                boolean deleted = false;
+                try {
+                    deleted = roomService.deleteRoom(roomId);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
 
                 if (deleted) {
                     // Refresh data from service
-                    loadRoomData();
+                    try {
+                        loadRoomData();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                     updateStatistics();
                     showInfo("Success", "Room deleted successfully!");
                 } else {
@@ -403,7 +425,7 @@ public class RoomsController {
     /**
      * Load room data from backend service
      */
-    private void loadRoomData() {
+    private void loadRoomData() throws SQLException {
         List<Room> rooms = roomService.getAllRooms();
         roomsList.setAll(rooms);
         updateStatistics();

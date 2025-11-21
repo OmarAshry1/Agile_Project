@@ -8,6 +8,8 @@ import edu.facilities.model.RoomType;
 import edu.facilities.model.RoomStatus;
 import edu.facilities.service.RoomService;
 
+import java.sql.SQLException;
+
 
 public class AddRoomController {
 
@@ -80,7 +82,7 @@ public class AddRoomController {
      * Validates input and saves the new room
      */
     @FXML
-    private void handleSave() {
+    private void handleSave() throws SQLException {
         // Clear previous errors
         clearErrors();
 
