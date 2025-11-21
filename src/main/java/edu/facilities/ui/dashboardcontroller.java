@@ -45,11 +45,9 @@ public class dashboardcontroller {
             if ("ADMIN".equals(userType)) {
                 // Admins can view all tickets and assign them
                 if (reportButton != null) reportButton.setText("View All Tickets");
-            } else if ("STAFF".equals(userType)) {
-                // Staff can view their assigned tickets
-                if (reportButton != null) reportButton.setText("My Assigned Tickets");
             } else {
-                // Students/Professors can create tickets
+                // Students, Staff, and Professors can create tickets
+                // Staff can also view their assigned tickets from the tickets view
                 if (reportButton != null) reportButton.setText("Report Maintenance Issue");
             }
         } else {
@@ -99,11 +97,11 @@ public class dashboardcontroller {
         }
         
         String userType = authService.getCurrentUserType();
-        if ("ADMIN".equals(userType) || "STAFF".equals(userType)) {
-            // Admins and staff go to tickets view
+        if ("ADMIN".equals(userType)) {
+            // Admins can only view and assign tickets
             navigateTo("/fxml/tickets_view.fxml", event, "Maintenance Tickets");
         } else {
-            // Students/Professors go to ticket creation
+            // Students, Staff, and Professors can create tickets
             navigateTo("/fxml/maintenanceTicket.fxml", event, "Report Maintenance Issue");
         }
     }
@@ -116,12 +114,8 @@ public class dashboardcontroller {
     @FXML
     void handleLogout(ActionEvent event) {
         authService.logout();
-        updateUI();
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Logged Out");
-        alert.setHeaderText(null);
-        alert.setContentText("You have been logged out successfully.");
-        alert.showAndWait();
+        // Navigate to login page after logout
+        navigateTo("/fxml/login.fxml", event, "Login");
     }
 
     @FXML

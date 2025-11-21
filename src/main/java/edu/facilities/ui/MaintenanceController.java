@@ -54,6 +54,9 @@ public class MaintenanceController {
     @FXML
     private Button backButton;
 
+    @FXML
+    private Button viewMyTicketsButton;
+
     private MaintenanceService maintenanceService = new MaintenanceService();
     private RoomService roomService = new RoomService();
     private AuthService authService = AuthService.getInstance();
@@ -75,6 +78,17 @@ public class MaintenanceController {
         } catch (SQLException e) {
             System.err.println("Error loading available rooms: " + e.getMessage());
             e.printStackTrace();
+        }
+
+        // Show "View My Tickets" button for staff users
+        if (authService.isLoggedIn() && "STAFF".equals(authService.getCurrentUserType())) {
+            if (viewMyTicketsButton != null) {
+                viewMyTicketsButton.setVisible(true);
+            }
+        } else {
+            if (viewMyTicketsButton != null) {
+                viewMyTicketsButton.setVisible(false);
+            }
         }
     }
 
@@ -200,6 +214,20 @@ public class MaintenanceController {
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Unable to return to dashboard: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    void handleViewMyTickets(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/tickets_view.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("My Assigned Tickets");
+            stage.show();
+        } catch (IOException e) {
+            showError("Navigation Error", "Unable to open tickets view: " + e.getMessage());
             e.printStackTrace();
         }
     }

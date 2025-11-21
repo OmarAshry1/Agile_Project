@@ -6,6 +6,7 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -49,6 +50,7 @@
                 <!-- Action Buttons -->
                 <HBox spacing="10">
                     <Button fx:id="backButton" onAction="#handleBack" prefHeight="40" prefWidth="120" styleClass="btn-secondary" text="Back" />
+                    <Button fx:id="viewMyTicketsButton" onAction="#handleViewMyTickets" prefHeight="40" prefWidth="150" styleClass="btn-primary" text="View My Tickets" visible="false" />
                     <Button fx:id="generateTicketButton" HBox.hgrow="ALWAYS" maxWidth="Infinity" onAction="#handleGenerateTicket" prefHeight="40" styleClass="btn-success" text="Generate Ticket" />
                 </HBox>
             </VBox>
