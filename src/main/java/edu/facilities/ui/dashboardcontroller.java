@@ -45,37 +45,22 @@ public class dashboardcontroller {
             if ("ADMIN".equals(userType)) {
                 // Admins can view all tickets and assign them
                 if (reportButton != null) reportButton.setText("View All Tickets");
+                // Hide and disable "View My Tickets" button for admins
+                if (viewMyTicketsButton != null) {
+                    viewMyTicketsButton.setVisible(false);
+                    viewMyTicketsButton.setManaged(false);
+                    viewMyTicketsButton.setDisable(true);
+                }
             } else {
-                // Students, Staff, and Professors can create tickets
+                // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
                 if (reportButton != null) reportButton.setText("Report Maintenance Issue");
-            }
-            
-            // Add "View My Tickets" button for non-admin users
-            if (!"ADMIN".equals(userType) && extraButtonsContainer != null) {
-                // Clear existing buttons first
-                extraButtonsContainer.getChildren().clear();
-                
-                javafx.scene.control.Button viewMyTicketsButton = new javafx.scene.control.Button("View My Tickets");
-                viewMyTicketsButton.setPrefHeight(40);
-                viewMyTicketsButton.setPrefWidth(200);
-                viewMyTicketsButton.getStyleClass().add("btn-primary");
-                viewMyTicketsButton.setOnAction(e -> {
-                    try {
-                        javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/fxml/tickets_view.fxml"));
-                        javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) e.getSource()).getScene().getWindow();
-                        stage.setScene(new javafx.scene.Scene(root));
-                        stage.setTitle("My Tickets");
-                        stage.show();
-                    } catch (java.io.IOException ex) {
-                        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-                        alert.setTitle("Navigation Error");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Unable to open tickets view: " + ex.getMessage());
-                        alert.showAndWait();
-                    }
-                });
-                extraButtonsContainer.getChildren().add(viewMyTicketsButton);
+                // Show and enable "View My Tickets" button for Students, Professors, and Staff only
+                if (viewMyTicketsButton != null) {
+                    viewMyTicketsButton.setVisible(true);
+                    viewMyTicketsButton.setManaged(true);
+                    viewMyTicketsButton.setDisable(false);
+                }
             }
         } else {
             userIdLabel.setText("Guest");
@@ -88,7 +73,37 @@ public class dashboardcontroller {
             // Disable feature buttons
             if (roomsButton != null) roomsButton.setDisable(true);
             if (reportButton != null) reportButton.setDisable(true);
+            if (viewMyTicketsButton != null) {
+                viewMyTicketsButton.setVisible(false);
+                viewMyTicketsButton.setManaged(false);
+            }
         }
+    }
+    
+    @FXML
+    void handleViewMyTickets(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your tickets.");
+            alert.showAndWait();
+            return;
+        }
+        
+        // Only allow Students, Professors, and Staff to view their tickets
+        // Admins should use "View All Tickets" instead
+        String userType = authService.getCurrentUserType();
+        if ("ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Administrators cannot view individual tickets. Please use 'View All Tickets' to see all tickets.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/tickets_view.fxml", event, "My Tickets");
     }
 
     @FXML
@@ -99,6 +114,9 @@ public class dashboardcontroller {
 
     @FXML
     private Button roomsButton;
+    
+    @FXML
+    private Button viewMyTicketsButton;
 
     @FXML
     private Button logoutButton;
