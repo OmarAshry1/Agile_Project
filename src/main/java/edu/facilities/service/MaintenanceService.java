@@ -211,8 +211,16 @@ public class MaintenanceService {
                 "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
                 "ORDER BY t.CreatedDate DESC";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
+        // Get connection but don't use try-with-resources since we pass it to mapResultSetToTicket
+        // The connection is managed by DatabaseConnection singleton
+        Connection conn = DatabaseConnection.getConnection();
+        
+        // Verify connection is still valid
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Database connection is closed or invalid");
+        }
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
@@ -222,6 +230,7 @@ public class MaintenanceService {
                 }
             }
         }
+        // Don't close the connection here - it's managed by DatabaseConnection singleton
         return tickets;
     }
 
@@ -249,8 +258,16 @@ public class MaintenanceService {
                 "WHERE t.AssignedToUserID = ? " +
                 "ORDER BY t.CreatedDate DESC";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        // Get connection but don't use try-with-resources since we pass it to mapResultSetToTicket
+        // The connection is managed by DatabaseConnection singleton
+        Connection conn = DatabaseConnection.getConnection();
+        
+        // Verify connection is still valid
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Database connection is closed or invalid");
+        }
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, assigneeId);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -262,6 +279,7 @@ public class MaintenanceService {
                 }
             }
         }
+        // Don't close the connection here - it's managed by DatabaseConnection singleton
         return tickets;
     }
 
@@ -366,12 +384,6 @@ public class MaintenanceService {
             // Get Assignee Staff object if assigned
             Staff assignee = null;
             if (assignedToId != null) {
-                // Get staff member by ID - this ensures we only get Staff users
-                assignee = getStaffById(conn, assignedToId);
-                if (assignee == null) {
-                    // If assigned user is not Staff, log warning but continue
-                    System.err.println("Warning: Ticket " + ticketId + " assigned to non-staff user ID " + assignedToId);
-                }
                 // Get staff member by ID - this ensures we only get Staff users
                 assignee = getStaffById(conn, assignedToId);
                 if (assignee == null) {
