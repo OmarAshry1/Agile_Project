@@ -63,23 +63,8 @@ public class MaintenanceController {
 
     @FXML
     public void initialize() {
-        // Load available rooms into dropdown
-        try {
-            List<Room> availableRooms = roomService.getAvailableRooms();
-            roomComboBox.getItems().clear();
-            for (Room room : availableRooms) {
-                roomComboBox.getItems().add(room.getId()); // Add room code
-            }
-            if (roomComboBox.getItems().isEmpty()) {
-                roomComboBox.setPromptText("No available rooms");
-            } else {
-                roomComboBox.setPromptText("Select a room");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error loading available rooms: " + e.getMessage());
-            e.printStackTrace();
-        }
-
+        loadAvailableRooms();
+        
         // Show "View My Tickets" button for staff users
         if (authService.isLoggedIn() && "STAFF".equals(authService.getCurrentUserType())) {
             if (viewMyTicketsButton != null) {
@@ -89,6 +74,33 @@ public class MaintenanceController {
             if (viewMyTicketsButton != null) {
                 viewMyTicketsButton.setVisible(false);
             }
+        }
+    }
+    
+    /**
+     * Load available rooms into the dropdown
+     */
+    private void loadAvailableRooms() {
+        try {
+            List<Room> availableRooms = roomService.getAvailableRooms();
+            System.out.println("Loading " + availableRooms.size() + " available rooms into dropdown");
+            
+            roomComboBox.getItems().clear();
+            for (Room room : availableRooms) {
+                String roomCode = room.getId();
+                roomComboBox.getItems().add(roomCode);
+                System.out.println("Added room to dropdown: " + roomCode);
+            }
+            
+            if (roomComboBox.getItems().isEmpty()) {
+                roomComboBox.setPromptText("No available rooms");
+            } else {
+                roomComboBox.setPromptText("Select a room (" + roomComboBox.getItems().size() + " available)");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error loading available rooms: " + e.getMessage());
+            e.printStackTrace();
+            showError("Database Error", "Failed to load available rooms: " + e.getMessage());
         }
     }
 
@@ -158,7 +170,7 @@ public class MaintenanceController {
                 issueDescription.clear();
                 
                 // Reload available rooms (in case status changed)
-                initialize();
+                loadAvailableRooms();
             } else {
                 showError("Database Error", "Failed to create ticket. Please try again.");
                 confirmationBox.setVisible(false);

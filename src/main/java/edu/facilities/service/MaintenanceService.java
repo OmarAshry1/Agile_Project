@@ -211,27 +211,114 @@ public class MaintenanceService {
                 "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
                 "ORDER BY t.CreatedDate DESC";
 
-        // Get connection but don't use try-with-resources since we pass it to mapResultSetToTicket
-        // The connection is managed by DatabaseConnection singleton
+        // Get connection - ensure it's valid
         Connection conn = DatabaseConnection.getConnection();
-        
-        // Verify connection is still valid
         if (conn == null || conn.isClosed()) {
             throw new SQLException("Database connection is closed or invalid");
         }
         
+        // First, read all ticket data into a list to avoid ResultSet conflicts
+        List<TicketData> ticketDataList = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
+            
             while (rs.next()) {
-                MaintenanceTicket ticket = mapResultSetToTicket(rs, conn);
+                TicketData data = new TicketData();
+                data.ticketId = rs.getInt("TicketID");
+                data.roomId = rs.getInt("RoomID");
+                data.reporterId = rs.getInt("ReporterUserID");
+                data.assignedToId = rs.getObject("AssignedToUserID", Integer.class);
+                data.description = rs.getString("Description");
+                data.statusStr = rs.getString("Status");
+                data.createdDate = rs.getTimestamp("CreatedDate");
+                data.resolvedDate = rs.getTimestamp("ResolvedDate");
+                data.roomCode = rs.getString("RoomCode");
+                ticketDataList.add(data);
+            }
+        }
+        
+        // Now process each ticket data to create MaintenanceTicket objects
+        for (TicketData data : ticketDataList) {
+            try {
+                MaintenanceTicket ticket = createTicketFromData(data, conn);
                 if (ticket != null) {
                     tickets.add(ticket);
                 }
+            } catch (Exception e) {
+                System.err.println("Error creating ticket from data for ticket ID " + data.ticketId + ": " + e.getMessage());
+                e.printStackTrace();
             }
         }
-        // Don't close the connection here - it's managed by DatabaseConnection singleton
+        
         return tickets;
+    }
+    
+    /**
+     * Helper class to store ticket data from ResultSet
+     */
+    private static class TicketData {
+        int ticketId;
+        int roomId;
+        int reporterId;
+        Integer assignedToId;
+        String description;
+        String statusStr;
+        Timestamp createdDate;
+        Timestamp resolvedDate;
+        String roomCode;
+    }
+    
+    /**
+     * Create MaintenanceTicket from TicketData
+     */
+    private MaintenanceTicket createTicketFromData(TicketData data, Connection conn) throws SQLException {
+        // Get Room object
+        Room room = getRoomById(conn, data.roomId, data.roomCode);
+        if (room == null) {
+            System.err.println("Room not found for ticket " + data.ticketId);
+            return null;
+        }
+
+        // Get Reporter User object
+        User reporter = getUserById(conn, data.reporterId);
+        if (reporter == null) {
+            System.err.println("Reporter not found for ticket " + data.ticketId);
+            return null;
+        }
+        
+        // Get Assignee Staff object if assigned
+        Staff assignee = null;
+        if (data.assignedToId != null) {
+            assignee = getStaffById(conn, data.assignedToId);
+            if (assignee == null) {
+                System.err.println("Warning: Ticket " + data.ticketId + " assigned to non-staff user ID " + data.assignedToId);
+            }
+        }
+
+        // Convert status string to enum
+        TicketStatus status = TicketStatus.NEW;
+        if (data.statusStr != null) {
+            try {
+                status = TicketStatus.valueOf(data.statusStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                status = TicketStatus.NEW;
+            }
+        }
+
+        // Convert timestamps
+        LocalDateTime created = data.createdDate != null ? data.createdDate.toLocalDateTime() : LocalDateTime.now();
+        LocalDateTime resolved = data.resolvedDate != null ? data.resolvedDate.toLocalDateTime() : null;
+
+        return new MaintenanceTicket(
+                String.valueOf(data.ticketId),
+                room,
+                reporter,
+                assignee,
+                data.description,
+                status,
+                created,
+                resolved
+        );
     }
 
     /**
@@ -258,28 +345,47 @@ public class MaintenanceService {
                 "WHERE t.AssignedToUserID = ? " +
                 "ORDER BY t.CreatedDate DESC";
 
-        // Get connection but don't use try-with-resources since we pass it to mapResultSetToTicket
-        // The connection is managed by DatabaseConnection singleton
+        // Get connection - ensure it's valid
         Connection conn = DatabaseConnection.getConnection();
-        
-        // Verify connection is still valid
         if (conn == null || conn.isClosed()) {
             throw new SQLException("Database connection is closed or invalid");
         }
         
+        // First, read all ticket data into a list to avoid ResultSet conflicts
+        List<TicketData> ticketDataList = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, assigneeId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    MaintenanceTicket ticket = mapResultSetToTicket(rs, conn);
-                    if (ticket != null) {
-                        tickets.add(ticket);
-                    }
+                    TicketData data = new TicketData();
+                    data.ticketId = rs.getInt("TicketID");
+                    data.roomId = rs.getInt("RoomID");
+                    data.reporterId = rs.getInt("ReporterUserID");
+                    data.assignedToId = rs.getObject("AssignedToUserID", Integer.class);
+                    data.description = rs.getString("Description");
+                    data.statusStr = rs.getString("Status");
+                    data.createdDate = rs.getTimestamp("CreatedDate");
+                    data.resolvedDate = rs.getTimestamp("ResolvedDate");
+                    data.roomCode = rs.getString("RoomCode");
+                    ticketDataList.add(data);
                 }
             }
         }
-        // Don't close the connection here - it's managed by DatabaseConnection singleton
+        
+        // Now process each ticket data to create MaintenanceTicket objects
+        for (TicketData data : ticketDataList) {
+            try {
+                MaintenanceTicket ticket = createTicketFromData(data, conn);
+                if (ticket != null) {
+                    tickets.add(ticket);
+                }
+            } catch (Exception e) {
+                System.err.println("Error creating ticket from data for ticket ID " + data.ticketId + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
         return tickets;
     }
 
@@ -340,7 +446,6 @@ public class MaintenanceService {
 
             while (rs.next()) {
                 // Create Staff object since we're querying for STAFF users
-                // Create Staff object since we're querying for STAFF users
                 String userId = String.valueOf(rs.getInt("UserID"));
                 String username = rs.getString("Username");
                 
@@ -350,77 +455,6 @@ public class MaintenanceService {
             }
         }
         return staffUsers;
-    }
-
-    /**
-     * Map a ResultSet row to a MaintenanceTicket object
-     */
-    private MaintenanceTicket mapResultSetToTicket(ResultSet rs, Connection conn) throws SQLException {
-        try {
-            int ticketId = rs.getInt("TicketID");
-            int roomId = rs.getInt("RoomID");
-            int reporterId = rs.getInt("ReporterUserID");
-            Integer assignedToId = rs.getObject("AssignedToUserID", Integer.class);
-            String description = rs.getString("Description");
-            String statusStr = rs.getString("Status");
-            Timestamp createdDate = rs.getTimestamp("CreatedDate");
-            Timestamp resolvedDate = rs.getTimestamp("ResolvedDate");
-            String roomCode = rs.getString("RoomCode");
-
-            // Get Room object
-            Room room = getRoomById(conn, roomId, roomCode);
-            if (room == null) {
-                System.err.println("Room not found for ticket " + ticketId);
-                return null;
-            }
-
-            // Get Reporter User object
-            User reporter = getUserById(conn, reporterId);
-            if (reporter == null) {
-                System.err.println("Reporter not found for ticket " + ticketId);
-                return null;
-            }
-            
-            // Get Assignee Staff object if assigned
-            Staff assignee = null;
-            if (assignedToId != null) {
-                // Get staff member by ID - this ensures we only get Staff users
-                assignee = getStaffById(conn, assignedToId);
-                if (assignee == null) {
-                    // If assigned user is not Staff, log warning but continue
-                    System.err.println("Warning: Ticket " + ticketId + " assigned to non-staff user ID " + assignedToId);
-                }
-            }
-
-            // Convert status string to enum
-            TicketStatus status = TicketStatus.NEW;
-            if (statusStr != null) {
-                try {
-                    status = TicketStatus.valueOf(statusStr.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    status = TicketStatus.NEW;
-                }
-            }
-
-            // Convert timestamps
-            LocalDateTime created = createdDate != null ? createdDate.toLocalDateTime() : LocalDateTime.now();
-            LocalDateTime resolved = resolvedDate != null ? resolvedDate.toLocalDateTime() : null;
-
-            return new MaintenanceTicket(
-                    String.valueOf(ticketId),
-                    room,
-                    reporter,
-                    assignee,
-                    description,
-                    status,
-                    created,
-                    resolved
-            );
-        } catch (Exception e) {
-            System.err.println("Error mapping ticket from ResultSet: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
     }
 
     /**

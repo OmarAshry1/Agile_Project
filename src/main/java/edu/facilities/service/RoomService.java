@@ -42,7 +42,8 @@ public class RoomService {
      */
     public List<Room> getAvailableRooms() throws SQLException {
         List<Room> rooms = new ArrayList<>();
-        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Status = 'AVAILABLE' ORDER BY Code";
+        // Use UPPER() to handle case-insensitive comparison
+        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE UPPER(Status) = 'AVAILABLE' ORDER BY Code";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
