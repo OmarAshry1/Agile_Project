@@ -185,7 +185,7 @@ public class MaintenanceService {
         List<MaintenanceTicket> tickets = new ArrayList<>();
         // Check if AssignedToUserID column exists, if not use a simpler query
         String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
-                     "ISNULL(t.AssignedToUserID, NULL) as AssignedToUserID, " +
+                     "t.AssignedToUserID, " +
                      "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
                      "r.Code as RoomCode, r.Name as RoomName " +
                      "FROM MaintenanceTickets t " +
@@ -222,7 +222,7 @@ public class MaintenanceService {
         }
         
         String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
-                     "ISNULL(t.AssignedToUserID, NULL) as AssignedToUserID, " +
+                     "t.AssignedToUserID, " +
                      "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
                      "r.Code as RoomCode, r.Name as RoomName " +
                      "FROM MaintenanceTickets t " +
@@ -387,20 +387,25 @@ public class MaintenanceService {
      */
     private Room getRoomById(Connection conn, int roomId, String roomCode) throws SQLException {
         RoomService roomService = new RoomService();
-        if (roomCode != null && !roomCode.isBlank()) {
-            return roomService.getRoomById(roomCode);
-        }
-        
-        // Fallback: query by RoomID
-        String sql = "SELECT Code FROM Rooms WHERE RoomID = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, roomId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    String code = rs.getString("Code");
-                    return roomService.getRoomById(code);
+        try {
+            if (roomCode != null && !roomCode.isBlank()) {
+                return roomService.getRoomById(roomCode);
+            }
+            
+            // Fallback: query by RoomID
+            String sql = "SELECT Code FROM Rooms WHERE RoomID = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, roomId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        String code = rs.getString("Code");
+                        return roomService.getRoomById(code);
+                    }
                 }
             }
+        } catch (SQLException e) {
+            System.err.println("Error getting room by ID: " + e.getMessage());
+            throw e;
         }
         return null;
     }
