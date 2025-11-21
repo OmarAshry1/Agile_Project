@@ -1,6 +1,5 @@
 package edu.facilities.service;
 
-import edu.facilities.data.Database;
 import edu.facilities.model.MaintenanceTicket;
 import edu.facilities.model.Room;
 import edu.facilities.model.TicketStatus;
@@ -27,7 +26,7 @@ public class MaintenanceService {
                 "(RoomID, ReporterUserID, Description, Status) " +
                 "VALUES (?, ?, ?, 'NEW')";
 
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      sql, Statement.RETURN_GENERATED_KEYS)) {
 

@@ -115,3 +115,34 @@ edu.facilities
      ├─ RoomsScreen
      ├─ RoomManagementScreen
      └─ MaintenanceScreen
+
+---
+
+## 5. Database Configuration
+
+The application expects the following environment variables to establish a Microsoft SQL Server connection:
+
+- `MSSQL_HOST` – server hostname or IP (e.g., `localhost`)
+- `MSSQL_INSTANCE` – optional named instance (omit for default)
+- `MSSQL_PORT` – TCP port, usually `1433`
+- `MSSQL_DB` – database name (e.g., `agile`)
+- `MSSQL_USER` / `MSSQL_PASSWORD` – SQL authentication credentials
+- `MSSQL_ENCRYPT` – `true` or `false` (defaults to SQL Server driver behavior)
+- `MSSQL_TRUST_SERVER_CERT` – set `true` when using self-signed certs in dev
+- `MSSQL_LOGIN_TIMEOUT` – optional login timeout in seconds
+- `MSSQL_JDBC_EXTRA` – any additional `key=value;` pairs to append to the JDBC URL
+
+Example (PowerShell):
+
+```powershell
+setx MSSQL_HOST "localhost"
+setx MSSQL_INSTANCE ""
+setx MSSQL_PORT "1433"
+setx MSSQL_DB "agile"
+setx MSSQL_USER "agile_user"
+setx MSSQL_PASSWORD "agile123!"
+setx MSSQL_ENCRYPT "true"
+setx MSSQL_TRUST_SERVER_CERT "true"
+```
+
+Restart your IDE/terminal after setting the variables so the JVM can read them.

@@ -97,7 +97,7 @@ public class BookingService {
     public boolean createBooking(String bookingId, String roomId, String userId, LocalDateTime bookingDate) throws SQLException {
         String sql = "INSERT INTO Bookings (BookingID, RoomID, UserID, BookingDate) VALUES (?, ?, ?, ?)";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn =DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, bookingId);
