@@ -29,31 +29,42 @@ public class EditRoomController {
     //  FXML INJECTED COMPONENTS
     // ============================================
 
-    @FXML private Label roomInfoLabel;
-    @FXML private TextField roomNumberField;
-    @FXML private ComboBox<String> typeComboBox;
-    @FXML private TextField capacityField;
-    @FXML private TextField buildingField;
-    @FXML private TextField floorField;
-    @FXML private TextArea equipmentArea;
-    @FXML private ComboBox<String> statusComboBox;
+    @FXML
+    private Label roomInfoLabel;
+    @FXML
+    private TextField roomNumberField;
+    @FXML
+    private ComboBox<String> typeComboBox;
+    @FXML
+    private TextField capacityField;
+    @FXML
+    private TextField buildingField;
+    @FXML
+    private TextField floorField;
+    @FXML
+    private TextArea equipmentArea;
+    @FXML
+    private ComboBox<String> statusComboBox;
 
     // Error Labels
-    @FXML private Label typeError;
-    @FXML private Label capacityError;
-    @FXML private Label buildingError;
+    @FXML
+    private Label typeError;
+    @FXML
+    private Label capacityError;
+    @FXML
+    private Label buildingError;
 
     @FXML private Button backButton;
 
     // Store the original room object to update it directly
     private Room roomObject;
-    
+
     // Store the original room ID/code to use in WHERE clauses
     private String originalRoomId;
 
     // Reference to the room service
     private RoomService roomService;
-    
+
     // Reference to auth service for authorization checks
     private AuthService authService = AuthService.getInstance();
 
@@ -131,7 +142,7 @@ public class EditRoomController {
             showError("Access Denied", "Only administrators can update rooms.");
             return;
         }
-        
+
         // Clear previous errors
         clearErrors();
 
@@ -329,11 +340,20 @@ public class EditRoomController {
     private RoomType stringToRoomType(String typeStr) {
         if (typeStr == null) return RoomType.CLASSROOM;
         switch (typeStr.toLowerCase()) {
-            case "classroom": return RoomType.CLASSROOM;
-            case "laboratory": case "lab": return RoomType.LAB;
-            case "office": return RoomType.OFFICE;
-            case "conference": case "seminar room": case "lecture hall": case "computer lab": return RoomType.CONFERENCE;
-            default: return RoomType.CLASSROOM;
+            case "classroom":
+                return RoomType.CLASSROOM;
+            case "laboratory":
+            case "lab":
+                return RoomType.LAB;
+            case "office":
+                return RoomType.OFFICE;
+            case "conference":
+            case "seminar room":
+            case "lecture hall":
+            case "computer lab":
+                return RoomType.CONFERENCE;
+            default:
+                return RoomType.CLASSROOM;
         }
     }
 
@@ -343,10 +363,16 @@ public class EditRoomController {
     private RoomStatus stringToRoomStatus(String statusStr) {
         if (statusStr == null) return RoomStatus.AVAILABLE;
         switch (statusStr.toLowerCase()) {
-            case "available": return RoomStatus.AVAILABLE;
-            case "booked": case "occupied": case "unavailable": return RoomStatus.OCCUPIED;
-            case "maintenance": return RoomStatus.MAINTENANCE;
-            default: return RoomStatus.AVAILABLE;
+            case "available":
+                return RoomStatus.AVAILABLE;
+            case "booked":
+            case "occupied":
+            case "unavailable":
+                return RoomStatus.OCCUPIED;
+            case "maintenance":
+                return RoomStatus.MAINTENANCE;
+            default:
+                return RoomStatus.AVAILABLE;
         }
     }
 
@@ -359,10 +385,11 @@ public class EditRoomController {
                 (floor != null ? floor : "") + "|" +
                 (equipment != null ? equipment : "");
     }
-    
+
     /**
      * Check if current user is an admin
      * REQUIREMENT: Admin-only access to room updates
+     *
      * @return true if user is admin, false otherwise
      */
     private boolean checkAdminAccess() {
