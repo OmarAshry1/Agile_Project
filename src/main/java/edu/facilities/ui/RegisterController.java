@@ -81,13 +81,14 @@ public class RegisterController {
         AuthService authService = AuthService.getInstance();
         String username = usernameField.getText().trim();
         String password = passwordField.getText();
+        String email = emailField.getText().trim();
         String role = roleComboBox.getValue();
         
 
         String userType = mapRoleToUserType(role);
 
         try {
-            boolean success = authService.register(username, password, userType);
+            boolean success = authService.register(username, password, email, userType);
             
             if (success) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
