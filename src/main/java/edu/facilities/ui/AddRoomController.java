@@ -34,7 +34,7 @@ public class AddRoomController {
 
     // Reference to the room service
     private RoomService roomService;
-    
+
     // Reference to auth service for authorization checks
     private AuthService authService = AuthService.getInstance();
 
@@ -92,7 +92,7 @@ public class AddRoomController {
             showError("Access Denied", "Only administrators can create rooms.");
             return;
         }
-        
+
         // Clear previous errors
         clearErrors();
 
@@ -138,7 +138,7 @@ public class AddRoomController {
             // Close the window
             closeWindow();
         } else {
-            showError("Room service not available. Please contact support.");
+            showError("Error", "Room service not available. Please contact support.");
         }
     }
 
@@ -262,9 +262,9 @@ public class AddRoomController {
     /**
      * Show error message
      */
-    private void showError(String message) {
+    private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
+        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
@@ -310,7 +310,7 @@ public class AddRoomController {
                 (floor != null ? floor : "") + "|" +
                 (equipment != null ? equipment : "");
     }
-    
+
     /**
      * Check if current user is an admin
      * REQUIREMENT: Admin-only access to room creation

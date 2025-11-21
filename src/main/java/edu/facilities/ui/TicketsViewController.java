@@ -35,7 +35,7 @@ public class TicketsViewController {
     @FXML private TableColumn<MaintenanceTicket, String> descriptionColumn;
     @FXML private TableColumn<MaintenanceTicket, String> statusColumn;
     @FXML private TableColumn<MaintenanceTicket, String> createdDateColumn;
-    
+
     @FXML private Button assignButton;
     @FXML private Button backButton;
     @FXML private Button refreshButton;
@@ -55,7 +55,7 @@ public class TicketsViewController {
         if (authService.isLoggedIn()) {
             String userType = authService.getCurrentUserType();
             isAdmin = "ADMIN".equals(userType);
-            
+
             if (isAdmin) {
                 titleLabel.setText("All Maintenance Tickets - Admin View");
                 assignButton.setVisible(true);
@@ -104,8 +104,8 @@ public class TicketsViewController {
             return new javafx.beans.property.SimpleStringProperty("N/A");
         });
         assigneeColumn.setCellValueFactory(cellData -> {
-            if (cellData.getValue().getAssignee() != null) {
-                return new javafx.beans.property.SimpleStringProperty(cellData.getValue().getAssignee().getUsername());
+            if (cellData.getValue().getAssignedStaff() != null) {
+                return new javafx.beans.property.SimpleStringProperty(cellData.getValue().getAssignedStaff().getUsername());
             }
             return new javafx.beans.property.SimpleStringProperty("Unassigned");
         });
@@ -117,10 +117,10 @@ public class TicketsViewController {
             return new javafx.beans.property.SimpleStringProperty("N/A");
         });
         createdDateColumn.setCellValueFactory(cellData -> {
-            if (cellData.getValue().getCreatedDate() != null) {
+            if (cellData.getValue().getCreatedAt() != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                 return new javafx.beans.property.SimpleStringProperty(
-                    cellData.getValue().getCreatedDate().format(formatter)
+                        cellData.getValue().getCreatedAt().format(formatter)
                 );
             }
             return new javafx.beans.property.SimpleStringProperty("N/A");
@@ -141,7 +141,7 @@ public class TicketsViewController {
         if (!authService.isLoggedIn()) {
             return;
         }
-        
+
         User currentUser = authService.getCurrentUser();
         if (currentUser == null) {
             showError("Authentication Error", "User session expired. Please login again.");
@@ -161,7 +161,7 @@ public class TicketsViewController {
         try {
             var staffUsers = maintenanceService.getStaffUsers();
             staffComboBox.setItems(FXCollections.observableArrayList(staffUsers));
-            
+
             // Set cell factory to display username
             staffComboBox.setCellFactory(param -> new ListCell<User>() {
                 @Override
@@ -174,7 +174,7 @@ public class TicketsViewController {
                     }
                 }
             });
-            
+
             // Set button cell to display username
             staffComboBox.setButtonCell(new ListCell<User>() {
                 @Override
@@ -212,19 +212,19 @@ public class TicketsViewController {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Assign Ticket");
         confirmDialog.setHeaderText("Assign ticket to staff member?");
-        confirmDialog.setContentText("Ticket #" + selectedTicket.getId() + 
-                                    " will be assigned to " + selectedStaff.getUsername());
+        confirmDialog.setContentText("Ticket #" + selectedTicket.getId() +
+                " will be assigned to " + selectedStaff.getUsername());
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
                     boolean success = maintenanceService.assignTicketToStaff(
-                        selectedTicket.getId(), 
-                        selectedStaff.getId()
+                            selectedTicket.getId(),
+                            selectedStaff.getId()
                     );
 
                     if (success) {
-                        showInfo("Success", "Ticket #" + selectedTicket.getId() + 
+                        showInfo("Success", "Ticket #" + selectedTicket.getId() +
                                 " has been assigned to " + selectedStaff.getUsername());
                         // Refresh the ticket list
                         loadAllTickets();
@@ -288,4 +288,3 @@ public class TicketsViewController {
         alert.showAndWait();
     }
 }
-
