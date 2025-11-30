@@ -62,6 +62,33 @@ public class dashboardcontroller {
                     viewMyBookingsButton.setManaged(false);
                     viewMyBookingsButton.setDisable(true);
                 }
+                // Hide equipment viewing for admins (they have admin tools instead)
+                if (viewEquipmentButton != null) {
+                    viewEquipmentButton.setVisible(false);
+                    viewEquipmentButton.setManaged(false);
+                    viewEquipmentButton.setDisable(true);
+                }
+                if (myAllocatedEquipmentButton != null) {
+                    myAllocatedEquipmentButton.setVisible(false);
+                    myAllocatedEquipmentButton.setManaged(false);
+                    myAllocatedEquipmentButton.setDisable(true);
+                }
+                // Show admin equipment management buttons
+                if (allocateEquipmentButton != null) {
+                    allocateEquipmentButton.setVisible(true);
+                    allocateEquipmentButton.setManaged(true);
+                    allocateEquipmentButton.setDisable(false);
+                }
+                if (addEquipmentButton != null) {
+                    addEquipmentButton.setVisible(true);
+                    addEquipmentButton.setManaged(true);
+                    addEquipmentButton.setDisable(false);
+                }
+                if (softwareLicensesButton != null) {
+                    softwareLicensesButton.setVisible(true);
+                    softwareLicensesButton.setManaged(true);
+                    softwareLicensesButton.setDisable(false);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
@@ -85,6 +112,17 @@ public class dashboardcontroller {
                         viewMyBookingsButton.setManaged(true);
                         viewMyBookingsButton.setDisable(false);
                     }
+                    // Show equipment viewing for PROFESSOR and STAFF
+                    if (viewEquipmentButton != null) {
+                        viewEquipmentButton.setVisible(true);
+                        viewEquipmentButton.setManaged(true);
+                        viewEquipmentButton.setDisable(false);
+                    }
+                    if (myAllocatedEquipmentButton != null) {
+                        myAllocatedEquipmentButton.setVisible(true);
+                        myAllocatedEquipmentButton.setManaged(true);
+                        myAllocatedEquipmentButton.setDisable(false);
+                    }
                 } else {
                     // Hide booking buttons for STUDENT
                     if (bookRoomButton != null) {
@@ -97,6 +135,33 @@ public class dashboardcontroller {
                         viewMyBookingsButton.setManaged(false);
                         viewMyBookingsButton.setDisable(true);
                     }
+                    // Hide equipment buttons for STUDENT
+                    if (viewEquipmentButton != null) {
+                        viewEquipmentButton.setVisible(false);
+                        viewEquipmentButton.setManaged(false);
+                        viewEquipmentButton.setDisable(true);
+                    }
+                    if (myAllocatedEquipmentButton != null) {
+                        myAllocatedEquipmentButton.setVisible(false);
+                        myAllocatedEquipmentButton.setManaged(false);
+                        myAllocatedEquipmentButton.setDisable(true);
+                    }
+                }
+                // Hide admin equipment management buttons for non-admins
+                if (allocateEquipmentButton != null) {
+                    allocateEquipmentButton.setVisible(false);
+                    allocateEquipmentButton.setManaged(false);
+                    allocateEquipmentButton.setDisable(true);
+                }
+                if (addEquipmentButton != null) {
+                    addEquipmentButton.setVisible(false);
+                    addEquipmentButton.setManaged(false);
+                    addEquipmentButton.setDisable(true);
+                }
+                if (softwareLicensesButton != null) {
+                    softwareLicensesButton.setVisible(false);
+                    softwareLicensesButton.setManaged(false);
+                    softwareLicensesButton.setDisable(true);
                 }
             }
         } else {
@@ -123,6 +188,31 @@ public class dashboardcontroller {
                 viewMyBookingsButton.setVisible(false);
                 viewMyBookingsButton.setManaged(false);
                 viewMyBookingsButton.setDisable(true);
+            }
+            if (viewEquipmentButton != null) {
+                viewEquipmentButton.setVisible(false);
+                viewEquipmentButton.setManaged(false);
+                viewEquipmentButton.setDisable(true);
+            }
+            if (myAllocatedEquipmentButton != null) {
+                myAllocatedEquipmentButton.setVisible(false);
+                myAllocatedEquipmentButton.setManaged(false);
+                myAllocatedEquipmentButton.setDisable(true);
+            }
+            if (allocateEquipmentButton != null) {
+                allocateEquipmentButton.setVisible(false);
+                allocateEquipmentButton.setManaged(false);
+                allocateEquipmentButton.setDisable(true);
+            }
+            if (addEquipmentButton != null) {
+                addEquipmentButton.setVisible(false);
+                addEquipmentButton.setManaged(false);
+                addEquipmentButton.setDisable(true);
+            }
+            if (softwareLicensesButton != null) {
+                softwareLicensesButton.setVisible(false);
+                softwareLicensesButton.setManaged(false);
+                softwareLicensesButton.setDisable(true);
             }
         }
     }
@@ -170,6 +260,21 @@ public class dashboardcontroller {
 
     @FXML
     private Button viewMyBookingsButton;
+
+    @FXML
+    private Button viewEquipmentButton;
+
+    @FXML
+    private Button myAllocatedEquipmentButton;
+
+    @FXML
+    private Button allocateEquipmentButton;
+
+    @FXML
+    private Button addEquipmentButton;
+
+    @FXML
+    private Button softwareLicensesButton;
 
     @FXML
     private Button logoutButton;
@@ -255,6 +360,126 @@ public class dashboardcontroller {
         }
         
         navigateTo("/fxml/my_bookings.fxml", event, "My Bookings");
+    }
+
+    @FXML
+    void handleViewEquipment(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors and staff can view equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/view_equipment.fxml", event, "View Equipment");
+    }
+
+    @FXML
+    void handleMyAllocatedEquipment(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your allocated equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors and staff can view allocated equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/my_allocated_equipment.fxml", event, "My Allocated Equipment");
+    }
+
+    @FXML
+    void handleAllocateEquipment(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to allocate equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can allocate equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/allocate_equipment.fxml", event, "Allocate Equipment");
+    }
+
+    @FXML
+    void handleAddEquipment(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to add equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can add equipment.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/add_equipment.fxml", event, "Add Equipment");
+    }
+
+    @FXML
+    void handleSoftwareLicenses(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view software licenses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can view software licenses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/software_licenses.fxml", event, "Software Licenses");
     }
 
     @FXML

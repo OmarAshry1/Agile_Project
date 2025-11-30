@@ -21,12 +21,17 @@
         </HBox>
 
         <!-- Buttons Row -->
-        <HBox alignment="CENTER_LEFT" spacing="15">
+        <HBox alignment="CENTER_LEFT" spacing="15" wrapText="true">
             <Button fx:id="roomsButton" onAction="#handleRooms" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Rooms" />
             <Button fx:id="reportButton" onAction="#handleReport" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Report" />
             <Button fx:id="bookRoomButton" onAction="#handleBookRoom" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Book Room" />
             <Button fx:id="viewMyBookingsButton" onAction="#handleViewMyBookings" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="My Bookings" />
             <Button fx:id="viewMyTicketsButton" onAction="#handleViewMyTickets" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="View My Tickets" />
+            <Button fx:id="viewEquipmentButton" onAction="#handleViewEquipment" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="View Equipment" />
+            <Button fx:id="myAllocatedEquipmentButton" onAction="#handleMyAllocatedEquipment" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="My Equipment" />
+            <Button fx:id="allocateEquipmentButton" onAction="#handleAllocateEquipment" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Allocate Equipment" />
+            <Button fx:id="addEquipmentButton" onAction="#handleAddEquipment" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Add Equipment" />
+            <Button fx:id="softwareLicensesButton" onAction="#handleSoftwareLicenses" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Software Licenses" />
             <Button fx:id="logoutButton" onAction="#handleLogout" prefHeight="50" prefWidth="150" styleClass="btn-secondary" text="Logout" />
             <Button fx:id="loginButton" onAction="#handleLogin" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Login" />
             <Button fx:id="registerButton" onAction="#handleRegister" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Register" />

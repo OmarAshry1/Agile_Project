@@ -189,3 +189,94 @@ GO
 CREATE INDEX IX_Bookings_Status 
 ON Bookings(Status);
 GO
+
+-- Equipment table (standalone equipment items)
+CREATE TABLE Equipment (
+    EquipmentID      INT PRIMARY KEY IDENTITY(1,1),
+    EquipmentTypeID INT NOT NULL,
+    SerialNumber    VARCHAR(100) NULL,              -- Optional serial number
+    Status          VARCHAR(20) DEFAULT 'AVAILABLE' -- AVAILABLE, ALLOCATED, MAINTENANCE, RETIRED
+                CHECK (Status IN ('AVAILABLE', 'ALLOCATED', 'MAINTENANCE', 'RETIRED')),
+    Location        VARCHAR(200) NULL,              -- Current location
+    Notes           VARCHAR(MAX) NULL,              -- Additional notes
+    CreatedDate     DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (EquipmentTypeID) REFERENCES EquipmentType(EquipmentTypeID)
+);
+GO
+
+-- Create index on EquipmentTypeID for faster lookups
+CREATE INDEX IX_Equipment_EquipmentTypeID 
+ON Equipment(EquipmentTypeID);
+GO
+
+-- Create index on Status for filtering equipment by availability
+CREATE INDEX IX_Equipment_Status 
+ON Equipment(Status);
+GO
+
+-- EquipmentAllocation table (tracks equipment allocated to staff/departments)
+CREATE TABLE EquipmentAllocation (
+    AllocationID    INT PRIMARY KEY IDENTITY(1,1),
+    EquipmentID     INT NOT NULL,
+    AllocatedToUserID INT NULL,                    -- NULL if allocated to department
+    Department      VARCHAR(100) NULL,             -- NULL if allocated to specific user
+    AllocatedByUserID INT NOT NULL,                -- Admin who allocated it
+    AllocationDate  DATETIME2 NOT NULL DEFAULT GETDATE(),
+    ReturnDate      DATETIME2 NULL,                -- NULL if still allocated
+    Notes           VARCHAR(MAX) NULL,
+    Status          VARCHAR(20) DEFAULT 'ACTIVE'   -- ACTIVE, RETURNED
+                CHECK (Status IN ('ACTIVE', 'RETURNED')),
+    FOREIGN KEY (EquipmentID) REFERENCES Equipment(EquipmentID),
+    FOREIGN KEY (AllocatedToUserID) REFERENCES Users(UserID),
+    FOREIGN KEY (AllocatedByUserID) REFERENCES Users(UserID)
+);
+GO
+
+-- Create index on EquipmentID for faster lookups
+CREATE INDEX IX_EquipmentAllocation_EquipmentID 
+ON EquipmentAllocation(EquipmentID);
+GO
+
+-- Create index on AllocatedToUserID for faster user lookups
+CREATE INDEX IX_EquipmentAllocation_AllocatedToUserID 
+ON EquipmentAllocation(AllocatedToUserID);
+GO
+
+-- Create index on Department for faster department lookups
+CREATE INDEX IX_EquipmentAllocation_Department 
+ON EquipmentAllocation(Department);
+GO
+
+-- Create index on Status for filtering active allocations
+CREATE INDEX IX_EquipmentAllocation_Status 
+ON EquipmentAllocation(Status);
+GO
+
+-- SoftwareLicenses table
+CREATE TABLE SoftwareLicenses (
+    LicenseID       INT PRIMARY KEY IDENTITY(1,1),
+    SoftwareName   VARCHAR(200) NOT NULL,
+    LicenseKey      VARCHAR(500) NULL,             -- Optional license key
+    Vendor          VARCHAR(200) NULL,
+    PurchaseDate    DATETIME2 NULL,
+    ExpiryDate      DATETIME2 NULL,               -- NULL for perpetual licenses
+    Cost            DECIMAL(10,2) NULL,            -- Purchase/renewal cost
+    Quantity        INT NOT NULL DEFAULT 1,        -- Number of licenses
+    UsedQuantity    INT NOT NULL DEFAULT 0,        -- Number of licenses in use
+    Status          VARCHAR(20) DEFAULT 'ACTIVE'   -- ACTIVE, EXPIRED, CANCELLED
+                CHECK (Status IN ('ACTIVE', 'EXPIRED', 'CANCELLED')),
+    Notes           VARCHAR(MAX) NULL,
+    CreatedDate     DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedDate     DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+GO
+
+-- Create index on ExpiryDate for finding near-expiring licenses
+CREATE INDEX IX_SoftwareLicenses_ExpiryDate 
+ON SoftwareLicenses(ExpiryDate);
+GO
+
+-- Create index on Status for filtering active licenses
+CREATE INDEX IX_SoftwareLicenses_Status 
+ON SoftwareLicenses(Status);
+GO
