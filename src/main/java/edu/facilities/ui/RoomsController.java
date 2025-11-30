@@ -45,6 +45,8 @@ public class RoomsController {
     @FXML private TextField searchField;
     @FXML private ComboBox<String> typeFilter;
     @FXML private ComboBox<String> statusFilter;
+    @FXML private ComboBox<String> capacityFilter;
+    @FXML private TextField equipmentFilter;
 
     // Table and Columns
     @FXML private TableView<Room> roomsTable;
@@ -176,6 +178,10 @@ public class RoomsController {
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
             applyFilters();
         });
+
+        capacityFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
+            applyFilters();
+        });
     }
 
     /**
@@ -208,6 +214,31 @@ public class RoomsController {
             if (selectedStatus != null && !selectedStatus.equals("All Status") &&
                     !selectedStatus.equals(roomStatusToString(room.getStatus()))) {
                 return false;
+            }
+
+            // Capacity filter
+            String selectedCapacity = capacityFilter.getValue();
+            if (selectedCapacity != null && !selectedCapacity.equals("Any Capacity")) {
+                try {
+                    // Parse capacity from string like "10+", "20+", "50+", etc.
+                    int minCapacity = Integer.parseInt(selectedCapacity.replace("+", "").trim());
+                    if (room.getCapacity() < minCapacity) {
+                        return false;
+                    }
+                } catch (NumberFormatException e) {
+                    // If parsing fails, ignore this filter
+                }
+            }
+
+            // Equipment filter
+            String equipmentText = equipmentFilter.getText();
+            if (equipmentText != null && !equipmentText.isBlank()) {
+                String lowerCaseEquipment = equipmentText.toLowerCase();
+                String[] locationParts = parseLocation(room.getLocation());
+                String equipment = locationParts.length > 2 ? locationParts[2] : "";
+                if (!equipment.toLowerCase().contains(lowerCaseEquipment)) {
+                    return false;
+                }
             }
 
             return true;
@@ -461,6 +492,22 @@ public class RoomsController {
         applyFilters();
     }
 
+    /**
+     * Handle capacity filter selection
+     */
+    @FXML
+    private void handleFilterCapacity() {
+        applyFilters();
+    }
+
+    /**
+     * Handle equipment filter input
+     */
+    @FXML
+    private void handleFilterEquipment() {
+        applyFilters();
+    }
+
     @FXML
     private void handleBack(ActionEvent event) {
         try {
@@ -527,6 +574,18 @@ public class RoomsController {
                 "Unavailable"
         );
         statusFilter.setValue("All Status");
+
+        // Populate capacity filter
+        capacityFilter.getItems().addAll(
+                "Any Capacity",
+                "10+",
+                "20+",
+                "30+",
+                "50+",
+                "100+",
+                "200+"
+        );
+        capacityFilter.setValue("Any Capacity");
     }
 
     // ============================================
@@ -687,6 +746,8 @@ public class RoomsController {
         if (searchField != null) searchField.setDisable(true);
         if (typeFilter != null) typeFilter.setDisable(true);
         if (statusFilter != null) statusFilter.setDisable(true);
+        if (capacityFilter != null) capacityFilter.setDisable(true);
+        if (equipmentFilter != null) equipmentFilter.setDisable(true);
         if (roomsTable != null) roomsTable.setDisable(true);
     }
 }

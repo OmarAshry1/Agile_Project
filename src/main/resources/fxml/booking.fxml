@@ -35,6 +35,24 @@
                     <Insets bottom="20" left="20" right="20" top="20" />
                 </padding>
 
+                <!-- Filter Section -->
+                <VBox spacing="10" styleClass="card">
+                    <padding>
+                        <Insets bottom="15" left="15" right="15" top="15" />
+                    </padding>
+                    <Label styleClass="form-label" text="Filter Rooms" style="-fx-font-weight: bold;" />
+                    <HBox spacing="10">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label styleClass="form-label" text="Min Capacity" />
+                            <ComboBox fx:id="capacityFilter" promptText="Any Capacity" prefWidth="150" />
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label styleClass="form-label" text="Equipment" />
+                            <TextField fx:id="equipmentFilter" promptText="e.g., Projector, Whiteboard..." prefWidth="200" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
                 <!-- Room Selection -->
                 <VBox spacing="5">
                     <Label styleClass="form-label" text="Select Room *" />

@@ -28,6 +28,12 @@ public class BookingController {
     private ComboBox<String> roomComboBox;
 
     @FXML
+    private ComboBox<String> capacityFilter;
+
+    @FXML
+    private TextField equipmentFilter;
+
+    @FXML
     private DatePicker datePicker;
 
     @FXML
@@ -97,6 +103,28 @@ public class BookingController {
         endHourSpinner.setValueFactory(endHourFactory);
         endMinuteSpinner.setValueFactory(endMinuteFactory);
 
+        // Populate capacity filter
+        if (capacityFilter != null) {
+            capacityFilter.getItems().addAll(
+                    "Any Capacity",
+                    "10+",
+                    "20+",
+                    "30+",
+                    "50+",
+                    "100+",
+                    "200+"
+            );
+            capacityFilter.setValue("Any Capacity");
+            capacityFilter.setOnAction(e -> filterRooms());
+        }
+
+        // Add listener to equipment filter
+        if (equipmentFilter != null) {
+            equipmentFilter.textProperty().addListener((observable, oldValue, newValue) -> {
+                filterRooms();
+            });
+        }
+
         // Load available rooms
         loadAvailableRooms();
     }
@@ -105,9 +133,46 @@ public class BookingController {
      * Load available rooms into the dropdown
      */
     private void loadAvailableRooms() {
+        filterRooms();
+    }
+
+    /**
+     * Filter rooms based on capacity and equipment filters
+     */
+    private void filterRooms() {
         try {
             List<Room> availableRooms = roomService.getAvailableRooms();
             System.out.println("Loading " + availableRooms.size() + " available rooms into dropdown");
+
+            // Apply capacity filter
+            String selectedCapacity = capacityFilter != null ? capacityFilter.getValue() : null;
+            if (selectedCapacity != null && !selectedCapacity.equals("Any Capacity")) {
+                try {
+                    int minCapacity = Integer.parseInt(selectedCapacity.replace("+", "").trim());
+                    availableRooms = availableRooms.stream()
+                            .filter(room -> room.getCapacity() >= minCapacity)
+                            .collect(java.util.stream.Collectors.toList());
+                } catch (NumberFormatException e) {
+                    // If parsing fails, ignore this filter
+                }
+            }
+
+            // Apply equipment filter
+            String equipmentText = equipmentFilter != null ? equipmentFilter.getText() : null;
+            if (equipmentText != null && !equipmentText.isBlank()) {
+                String lowerCaseEquipment = equipmentText.toLowerCase();
+                availableRooms = availableRooms.stream()
+                        .filter(room -> {
+                            String location = room.getLocation();
+                            if (location == null || location.isEmpty()) {
+                                return false;
+                            }
+                            String[] locationParts = location.split("\\|", 3);
+                            String equipment = locationParts.length > 2 ? locationParts[2] : "";
+                            return equipment.toLowerCase().contains(lowerCaseEquipment);
+                        })
+                        .collect(java.util.stream.Collectors.toList());
+            }
 
             roomComboBox.getItems().clear();
             for (Room room : availableRooms) {
@@ -117,7 +182,7 @@ public class BookingController {
             }
 
             if (roomComboBox.getItems().isEmpty()) {
-                roomComboBox.setPromptText("No available rooms");
+                roomComboBox.setPromptText("No available rooms match filters");
             } else {
                 roomComboBox.setPromptText("Select a room (" + roomComboBox.getItems().size() + " available)");
             }

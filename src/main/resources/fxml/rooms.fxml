@@ -53,6 +53,18 @@
                 <ComboBox fx:id="statusFilter" promptText="All Status" prefWidth="180"
                           onAction="#handleFilterStatus"/>
             </VBox>
+
+            <VBox spacing="5">
+                <Label text="Min Capacity" styleClass="form-label"/>
+                <ComboBox fx:id="capacityFilter" promptText="Any Capacity" prefWidth="180"
+                          onAction="#handleFilterCapacity"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <Label text="Filter by Equipment" styleClass="form-label"/>
+                <TextField fx:id="equipmentFilter" promptText="e.g., Projector, Whiteboard..."
+                           prefWidth="200" onKeyReleased="#handleFilterEquipment"/>
+            </VBox>
         </HBox>
 
         <!-- Table Section -->
