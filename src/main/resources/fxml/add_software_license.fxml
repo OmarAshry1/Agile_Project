@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="700.0" prefWidth="700.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.AddSoftwareLicenseController">
+
+    <StackPane alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <VBox alignment="CENTER" maxWidth="500" spacing="20" styleClass="padding-large">
+
+            <VBox alignment="CENTER" maxWidth="500" spacing="10" styleClass="card">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
+                <Label styleClass="page-title" text="Add Software License" />
+                <Label styleClass="form-label" text="Add new software license information" textAlignment="CENTER" wrapText="true" />
+            </VBox>
+
+            <VBox maxWidth="500" spacing="15" styleClass="card">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
+
+                <!-- Software Name -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Software Name *" />
+                    <TextField fx:id="softwareNameField" promptText="e.g., Microsoft Office, Adobe Creative Suite..." />
+                    <Label fx:id="softwareNameError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
+                </VBox>
+
+                <!-- Vendor -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Vendor (Optional)" />
+                    <TextField fx:id="vendorField" promptText="e.g., Microsoft, Adobe..." />
+                </VBox>
+
+                <!-- License Key -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="License Key (Optional)" />
+                    <TextField fx:id="licenseKeyField" promptText="Enter license key" />
+                </VBox>
+
+                <!-- Purchase Date and Expiry Date -->
+                <HBox spacing="10">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Purchase Date (Optional)" />
+                        <DatePicker fx:id="purchaseDatePicker" />
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Expiry Date (Optional)" />
+                        <DatePicker fx:id="expiryDatePicker" />
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Leave empty for perpetual" />
+                    </VBox>
+                </HBox>
+
+                <!-- Cost and Quantity -->
+                <HBox spacing="10">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Cost (Optional)" />
+                        <TextField fx:id="costField" promptText="0.00" />
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Quantity *" />
+                        <Spinner fx:id="quantitySpinner" editable="true" min="1" max="10000" initialValue="1" prefWidth="150" />
+                        <Label fx:id="quantityError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
+                    </VBox>
+                </HBox>
+
+                <!-- Notes -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Notes (Optional)" />
+                    <TextArea fx:id="notesTextArea" prefHeight="80" promptText="Additional notes about this license..." wrapText="true" />
+                </VBox>
+
+                <!-- Action Buttons -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="addButton" onAction="#handleAdd" styleClass="button-primary" text="Add License" />
+                    <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="button-secondary" text="Cancel" />
+                </HBox>
+
+                <!-- Status Message -->
+                <Label fx:id="statusLabel" alignment="CENTER" style="-fx-text-fill: #4CAF50; -fx-font-size: 12px;" text="" textAlignment="CENTER" visible="false" wrapText="true" />
+
+            </VBox>
+        </VBox>
+    </StackPane>
+</AnchorPane>
+

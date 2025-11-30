@@ -61,6 +61,7 @@
          <!-- Action Buttons -->
          <HBox spacing="10" alignment="CENTER">
             <Button fx:id="refreshButton" onAction="#handleRefresh" styleClass="button-primary" text="Refresh" />
+            <Button fx:id="addLicenseButton" onAction="#handleAddLicense" styleClass="button-primary" text="Add License" />
             <Button fx:id="backButton" onAction="#handleBack" styleClass="button-secondary" text="Back to Dashboard" />
          </HBox>
 

@@ -438,6 +438,103 @@ public class EquipmentService {
     }
 
     /**
+     * Add new software license (Admin only)
+     * @param softwareName The software name
+     * @param licenseKey Optional license key
+     * @param vendor Optional vendor name
+     * @param purchaseDate Optional purchase date
+     * @param expiryDate Optional expiry date (null for perpetual)
+     * @param cost Optional cost
+     * @param quantity Number of licenses
+     * @param notes Optional notes
+     * @return SoftwareLicense object if successful
+     * @throws SQLException if database error occurs
+     */
+    public SoftwareLicense addSoftwareLicense(String softwareName, String licenseKey, 
+                                             String vendor, LocalDate purchaseDate, 
+                                             LocalDate expiryDate, Double cost, 
+                                             int quantity, String notes) throws SQLException {
+        if (softwareName == null || softwareName.isBlank()) {
+            throw new IllegalArgumentException("Software name is required");
+        }
+        
+        if (quantity < 1) {
+            throw new IllegalArgumentException("Quantity must be at least 1");
+        }
+        
+        String sql = "INSERT INTO SoftwareLicenses " +
+                    "(SoftwareName, LicenseKey, Vendor, PurchaseDate, ExpiryDate, Cost, Quantity, UsedQuantity, Status, Notes, CreatedDate, UpdatedDate) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'ACTIVE', ?, GETDATE(), GETDATE())";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setString(1, softwareName);
+            pstmt.setString(2, licenseKey);
+            pstmt.setString(3, vendor);
+            if (purchaseDate != null) {
+                pstmt.setDate(4, Date.valueOf(purchaseDate));
+            } else {
+                pstmt.setNull(4, Types.DATE);
+            }
+            if (expiryDate != null) {
+                pstmt.setDate(5, Date.valueOf(expiryDate));
+            } else {
+                pstmt.setNull(5, Types.DATE);
+            }
+            if (cost != null) {
+                pstmt.setDouble(6, cost);
+            } else {
+                pstmt.setNull(6, Types.DECIMAL);
+            }
+            pstmt.setInt(7, quantity);
+            pstmt.setString(8, notes);
+            
+            pstmt.executeUpdate();
+            
+            // Get generated license ID
+            try (ResultSet keys = pstmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    int licenseId = keys.getInt(1);
+                    return getSoftwareLicenseById(String.valueOf(licenseId));
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get software license by ID
+     * @param licenseId The license ID
+     * @return SoftwareLicense object or null if not found
+     * @throws SQLException if database error occurs
+     */
+    private SoftwareLicense getSoftwareLicenseById(String licenseId) throws SQLException {
+        int licenseIdInt = Integer.parseInt(licenseId);
+        
+        String sql = "SELECT LicenseID, SoftwareName, LicenseKey, Vendor, PurchaseDate, " +
+                    "ExpiryDate, Cost, Quantity, UsedQuantity, Status, Notes, " +
+                    "CreatedDate, UpdatedDate " +
+                    "FROM SoftwareLicenses " +
+                    "WHERE LicenseID = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, licenseIdInt);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToLicense(rs);
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
      * Get all equipment types
      * @return List of equipment type names
      * @throws SQLException if database error occurs

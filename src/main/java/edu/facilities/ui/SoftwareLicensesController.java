@@ -12,7 +12,10 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.fxml.FXMLLoader;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -62,6 +65,9 @@ public class SoftwareLicensesController {
 
     @FXML
     private Button refreshButton;
+
+    @FXML
+    private Button addLicenseButton;
 
     @FXML
     private Button backButton;
@@ -222,6 +228,33 @@ public class SoftwareLicensesController {
         statusLabel.setText("Licenses refreshed.");
         statusLabel.setVisible(true);
         statusLabel.setStyle("-fx-text-fill: #4CAF50; -fx-font-size: 12px;");
+    }
+
+    @FXML
+    void handleAddLicense(ActionEvent event) {
+        try {
+            // Load the add software license form
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/add_software_license.fxml"));
+            Parent root = loader.load();
+
+            // Create new stage
+            Stage stage = new Stage();
+            stage.setTitle("Add Software License");
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+
+            // Set up callback for when window closes
+            stage.setOnHidden(e -> {
+                // Refresh licenses after adding
+                loadLicenses();
+            });
+
+            stage.showAndWait();
+
+        } catch (IOException e) {
+            showError("Navigation Error", "Unable to open add license form: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
