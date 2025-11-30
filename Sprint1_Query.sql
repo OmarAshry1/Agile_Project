@@ -153,3 +153,39 @@ GO
 CREATE INDEX IX_MaintenanceTickets_Status 
 ON MaintenanceTickets(Status);
 GO
+
+-- Bookings table
+CREATE TABLE Bookings (
+    BookingID     INT PRIMARY KEY IDENTITY(1,1),
+    RoomID         INT NOT NULL,
+    UserID         INT NOT NULL,
+    BookingDate    DATETIME2 NOT NULL,              -- Start date/time of booking
+    EndDate        DATETIME2 NOT NULL,              -- End date/time of booking
+    Purpose        VARCHAR(200) NULL,               -- Purpose/description of booking
+    Status         VARCHAR(20) DEFAULT 'CONFIRMED'  -- CONFIRMED, CANCELLED
+                CHECK (Status IN ('CONFIRMED', 'CANCELLED')),
+    CreatedDate    DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+GO
+
+-- Create index on RoomID for faster room booking lookups
+CREATE INDEX IX_Bookings_RoomID 
+ON Bookings(RoomID);
+GO
+
+-- Create index on UserID for faster user booking lookups
+CREATE INDEX IX_Bookings_UserID 
+ON Bookings(UserID);
+GO
+
+-- Create index on BookingDate for faster date range queries
+CREATE INDEX IX_Bookings_BookingDate 
+ON Bookings(BookingDate);
+GO
+
+-- Create index on Status for filtering bookings by status
+CREATE INDEX IX_Bookings_Status 
+ON Bookings(Status);
+GO

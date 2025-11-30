@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="650.0" prefWidth="700.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.EditBookingController">
+
+    <!-- Center the content -->
+    <StackPane alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+        <!-- Main VBox -->
+        <VBox alignment="CENTER" maxWidth="500" spacing="20" styleClass="padding-large">
+
+            <!-- Header -->
+            <VBox alignment="CENTER" maxWidth="500" spacing="10" styleClass="card">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
+                <Label styleClass="page-title" text="Edit Booking" />
+                <Label fx:id="bookingIdLabel" styleClass="form-label" text="Booking ID: #" textAlignment="CENTER" />
+            </VBox>
+
+            <!-- Room Info Card -->
+            <VBox maxWidth="500" spacing="10" styleClass="card">
+                <padding>
+                    <Insets bottom="15" left="20" right="20" top="15" />
+                </padding>
+                <Label styleClass="form-label" text="Current Room Information" style="-fx-font-weight: bold;" />
+                <Label fx:id="currentRoomInfo" styleClass="form-label" text="" wrapText="true" />
+            </VBox>
+
+            <!-- Form Card -->
+            <VBox maxWidth="500" spacing="15" styleClass="card">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
+
+                <!-- Room Selection -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Select Room *" />
+                    <ComboBox fx:id="roomComboBox" prefHeight="40" promptText="Select a room" />
+                    <Label fx:id="roomError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
+                </VBox>
+
+                <!-- Date Selection -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Booking Date *" />
+                    <DatePicker fx:id="datePicker" prefHeight="40" />
+                    <Label fx:id="dateError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
+                </VBox>
+
+                <!-- Time Selection -->
+                <HBox spacing="10">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Start Time *" />
+                        <HBox spacing="5">
+                            <Spinner fx:id="startHourSpinner" editable="true" max="23" min="0" prefWidth="80" />
+                            <Label text=":" />
+                            <Spinner fx:id="startMinuteSpinner" editable="true" max="59" min="0" prefWidth="80" />
+                        </HBox>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="End Time *" />
+                        <HBox spacing="5">
+                            <Spinner fx:id="endHourSpinner" editable="true" max="23" min="0" prefWidth="80" />
+                            <Label text=":" />
+                            <Spinner fx:id="endMinuteSpinner" editable="true" max="59" min="0" prefWidth="80" />
+                        </HBox>
+                    </VBox>
+                </HBox>
+                <Label fx:id="timeError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
+
+                <!-- Purpose/Description -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Purpose (Optional)" />
+                    <TextArea fx:id="purposeTextArea" prefHeight="80" promptText="e.g., Class lecture, Meeting, Event..." wrapText="true" />
+                </VBox>
+
+                <!-- Action Buttons -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="updateButton" onAction="#handleUpdate" styleClass="button-primary" text="Update Booking" />
+                    <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="button-secondary" text="Cancel" />
+                </HBox>
+
+                <!-- Status Message -->
+                <Label fx:id="statusLabel" alignment="CENTER" style="-fx-text-fill: #4CAF50; -fx-font-size: 12px;" text="" textAlignment="CENTER" visible="false" wrapText="true" />
+
+            </VBox>
+        </VBox>
+    </StackPane>
+</AnchorPane>
+

@@ -51,6 +51,17 @@ public class dashboardcontroller {
                     viewMyTicketsButton.setManaged(false);
                     viewMyTicketsButton.setDisable(true);
                 }
+                // Hide booking buttons for admins
+                if (bookRoomButton != null) {
+                    bookRoomButton.setVisible(false);
+                    bookRoomButton.setManaged(false);
+                    bookRoomButton.setDisable(true);
+                }
+                if (viewMyBookingsButton != null) {
+                    viewMyBookingsButton.setVisible(false);
+                    viewMyBookingsButton.setManaged(false);
+                    viewMyBookingsButton.setDisable(true);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
@@ -60,6 +71,32 @@ public class dashboardcontroller {
                     viewMyTicketsButton.setVisible(true);
                     viewMyTicketsButton.setManaged(true);
                     viewMyTicketsButton.setDisable(false);
+                }
+                
+                // Show booking buttons only for PROFESSOR and STAFF
+                if ("PROFESSOR".equals(userType) || "STAFF".equals(userType)) {
+                    if (bookRoomButton != null) {
+                        bookRoomButton.setVisible(true);
+                        bookRoomButton.setManaged(true);
+                        bookRoomButton.setDisable(false);
+                    }
+                    if (viewMyBookingsButton != null) {
+                        viewMyBookingsButton.setVisible(true);
+                        viewMyBookingsButton.setManaged(true);
+                        viewMyBookingsButton.setDisable(false);
+                    }
+                } else {
+                    // Hide booking buttons for STUDENT
+                    if (bookRoomButton != null) {
+                        bookRoomButton.setVisible(false);
+                        bookRoomButton.setManaged(false);
+                        bookRoomButton.setDisable(true);
+                    }
+                    if (viewMyBookingsButton != null) {
+                        viewMyBookingsButton.setVisible(false);
+                        viewMyBookingsButton.setManaged(false);
+                        viewMyBookingsButton.setDisable(true);
+                    }
                 }
             }
         } else {
@@ -76,6 +113,16 @@ public class dashboardcontroller {
             if (viewMyTicketsButton != null) {
                 viewMyTicketsButton.setVisible(false);
                 viewMyTicketsButton.setManaged(false);
+            }
+            if (bookRoomButton != null) {
+                bookRoomButton.setVisible(false);
+                bookRoomButton.setManaged(false);
+                bookRoomButton.setDisable(true);
+            }
+            if (viewMyBookingsButton != null) {
+                viewMyBookingsButton.setVisible(false);
+                viewMyBookingsButton.setManaged(false);
+                viewMyBookingsButton.setDisable(true);
             }
         }
     }
@@ -119,6 +166,12 @@ public class dashboardcontroller {
     private Button viewMyTicketsButton;
 
     @FXML
+    private Button bookRoomButton;
+
+    @FXML
+    private Button viewMyBookingsButton;
+
+    @FXML
     private Button logoutButton;
 
     @FXML
@@ -154,6 +207,54 @@ public class dashboardcontroller {
     @FXML
     void handleRooms(ActionEvent event) {
         navigateTo("/fxml/rooms.fxml", event, "Room Management");
+    }
+
+    @FXML
+    void handleBookRoom(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to book a room.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors and staff can book rooms.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/booking.fxml", event, "Book a Room");
+    }
+
+    @FXML
+    void handleViewMyBookings(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your bookings.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors and staff can view bookings.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/my_bookings.fxml", event, "My Bookings");
     }
 
     @FXML
