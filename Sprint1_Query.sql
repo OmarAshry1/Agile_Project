@@ -13,6 +13,7 @@
 --   - Maintenance ticket system with staff assignment
 --   - Admission application management (US 2.5)
 --   - Student records management (US 2.1)
+--   - Transcript request management (US 2.2, 2.3, 2.4)
 --   - All foreign key constraints and indexes for optimal performance
 -- 
 -- Note: Uses DATETIME2 and VARCHAR(MAX) for modern SQL Server compatibility
@@ -342,4 +343,42 @@ GO
 -- Create index on Email for lookups
 CREATE INDEX IX_AdmissionApplications_Email 
 ON AdmissionApplications(Email);
+GO
+
+-- ============================================================================
+-- Transcript Requests Table (US 2.2, 2.3, 2.4 - Transcript Management)
+-- ============================================================================
+CREATE TABLE TranscriptRequests (
+    RequestID       INT PRIMARY KEY IDENTITY(1,1),
+    StudentUserID   INT NOT NULL,                    -- Student requesting transcript
+    RequestDate     DATETIME2 NOT NULL DEFAULT GETDATE(),
+    Status          VARCHAR(20) DEFAULT 'PENDING'    -- PENDING, IN_PROGRESS, READY_FOR_PICKUP, COMPLETED, CANCELLED
+                        CHECK (Status IN ('PENDING', 'IN_PROGRESS', 'READY_FOR_PICKUP', 'COMPLETED', 'CANCELLED')),
+    RequestedByUserID INT NOT NULL,                  -- Usually same as StudentUserID, but tracks who made the request
+    ProcessedByUserID INT NULL,                      -- Admin who processed the request
+    ProcessedDate   DATETIME2 NULL,                  -- When admin started processing
+    CompletedDate   DATETIME2 NULL,                  -- When transcript was generated/completed
+    PickupDate      DATETIME2 NULL,                  -- When student picked up transcript
+    Purpose         VARCHAR(500) NULL,                -- Purpose of transcript request
+    Notes           VARCHAR(MAX) NULL,                -- Admin notes
+    PDFPath         VARCHAR(500) NULL,                -- Path to generated PDF file
+    FOREIGN KEY (StudentUserID) REFERENCES Users(UserID),
+    FOREIGN KEY (RequestedByUserID) REFERENCES Users(UserID),
+    FOREIGN KEY (ProcessedByUserID) REFERENCES Users(UserID)
+);
+GO
+
+-- Create index on StudentUserID for faster student lookups
+CREATE INDEX IX_TranscriptRequests_StudentUserID 
+ON TranscriptRequests(StudentUserID);
+GO
+
+-- Create index on Status for faster filtering
+CREATE INDEX IX_TranscriptRequests_Status 
+ON TranscriptRequests(Status);
+GO
+
+-- Create index on RequestDate for sorting
+CREATE INDEX IX_TranscriptRequests_RequestDate 
+ON TranscriptRequests(RequestDate);
 GO
