@@ -32,6 +32,8 @@
             <Button fx:id="allocateEquipmentButton" onAction="#handleAllocateEquipment" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Allocate Equipment" />
             <Button fx:id="addEquipmentButton" onAction="#handleAddEquipment" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Add Equipment" />
             <Button fx:id="softwareLicensesButton" onAction="#handleSoftwareLicenses" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Software Licenses" />
+            <Button fx:id="admissionApplicationsButton" onAction="#handleAdmissionApplications" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Admission Applications" />
+            <Button fx:id="studentRecordsButton" onAction="#handleStudentRecords" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Student Records" />
             <Button fx:id="logoutButton" onAction="#handleLogout" prefHeight="50" prefWidth="150" styleClass="btn-secondary" text="Logout" />
             <Button fx:id="loginButton" onAction="#handleLogin" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Login" />
             <Button fx:id="registerButton" onAction="#handleRegister" prefHeight="50" prefWidth="150" styleClass="btn-primary" text="Register" />

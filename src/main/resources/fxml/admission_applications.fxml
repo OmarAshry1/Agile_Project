@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.facilities.ui.AdmissionApplicationController"
+            prefHeight="700.0" prefWidth="1200.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="20" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Admission Application Management" styleClass="page-title"/>
+                <Label text="View and manage admission applications" styleClass="form-label"/>
+            </VBox>
+
+            <!-- Action Buttons (Right Side) -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button fx:id="backButton" text="⬅ Back" styleClass="btn-secondary"
+                        onAction="#handleBack" prefWidth="120"/>
+                <Button fx:id="viewDetailsButton" text="👁️ View Details" styleClass="btn-primary"
+                        onAction="#handleViewDetails" prefWidth="150"/>
+                <Button fx:id="updateStatusButton" text="✏️ Update Status" styleClass="btn-primary"
+                        onAction="#handleUpdateStatus" prefWidth="150"/>
+            </HBox>
+        </HBox>
+
+        <!-- Search and Filter Section -->
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="card">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Search Applications" styleClass="form-label"/>
+                <TextField fx:id="searchField" promptText="Search by name, email, or program..."
+                           styleClass="search-field" prefWidth="400"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <Label text="Filter by Status" styleClass="form-label"/>
+                <ComboBox fx:id="statusFilter" promptText="All Statuses" prefWidth="180"/>
+            </VBox>
+        </HBox>
+
+        <!-- Table Section -->
+        <VBox VBox.vgrow="ALWAYS" spacing="10">
+            <Label text="All Applications" styleClass="section-header"/>
+
+            <TableView fx:id="applicationsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <columns>
+                    <!-- ID Column -->
+                    <TableColumn fx:id="idColumn" text="Application ID" prefWidth="120"
+                                 sortable="true"/>
+
+                    <!-- Name Column -->
+                    <TableColumn fx:id="nameColumn" text="Name" prefWidth="200"
+                                 sortable="true"/>
+
+                    <!-- Email Column -->
+                    <TableColumn fx:id="emailColumn" text="Email" prefWidth="250"
+                                 sortable="true"/>
+
+                    <!-- Program Column -->
+                    <TableColumn fx:id="programColumn" text="Program" prefWidth="200"
+                                 sortable="true"/>
+
+                    <!-- Status Column -->
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="150"
+                                 sortable="true"/>
+
+                    <!-- Submitted Date Column -->
+                    <TableColumn fx:id="submittedDateColumn" text="Submitted Date" prefWidth="180"
+                                 sortable="true"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Status Label -->
+        <HBox alignment="CENTER_LEFT">
+            <Label fx:id="statusLabel" text="Ready" styleClass="form-label"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+

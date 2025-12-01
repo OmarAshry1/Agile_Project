@@ -89,6 +89,16 @@ public class dashboardcontroller {
                     softwareLicensesButton.setManaged(true);
                     softwareLicensesButton.setDisable(false);
                 }
+                if (admissionApplicationsButton != null) {
+                    admissionApplicationsButton.setVisible(true);
+                    admissionApplicationsButton.setManaged(true);
+                    admissionApplicationsButton.setDisable(false);
+                }
+                if (studentRecordsButton != null) {
+                    studentRecordsButton.setVisible(true);
+                    studentRecordsButton.setManaged(true);
+                    studentRecordsButton.setDisable(false);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
@@ -163,6 +173,16 @@ public class dashboardcontroller {
                     softwareLicensesButton.setManaged(false);
                     softwareLicensesButton.setDisable(true);
                 }
+                if (admissionApplicationsButton != null) {
+                    admissionApplicationsButton.setVisible(false);
+                    admissionApplicationsButton.setManaged(false);
+                    admissionApplicationsButton.setDisable(true);
+                }
+                if (studentRecordsButton != null) {
+                    studentRecordsButton.setVisible(false);
+                    studentRecordsButton.setManaged(false);
+                    studentRecordsButton.setDisable(true);
+                }
             }
         } else {
             userIdLabel.setText("Guest");
@@ -213,6 +233,16 @@ public class dashboardcontroller {
                 softwareLicensesButton.setVisible(false);
                 softwareLicensesButton.setManaged(false);
                 softwareLicensesButton.setDisable(true);
+            }
+            if (admissionApplicationsButton != null) {
+                admissionApplicationsButton.setVisible(false);
+                admissionApplicationsButton.setManaged(false);
+                admissionApplicationsButton.setDisable(true);
+            }
+            if (studentRecordsButton != null) {
+                studentRecordsButton.setVisible(false);
+                studentRecordsButton.setManaged(false);
+                studentRecordsButton.setDisable(true);
             }
         }
     }
@@ -275,6 +305,12 @@ public class dashboardcontroller {
 
     @FXML
     private Button softwareLicensesButton;
+
+    @FXML
+    private Button admissionApplicationsButton;
+
+    @FXML
+    private Button studentRecordsButton;
 
     @FXML
     private Button logoutButton;
@@ -480,6 +516,54 @@ public class dashboardcontroller {
         }
         
         navigateTo("/fxml/software_licenses.fxml", event, "Software Licenses");
+    }
+
+    @FXML
+    void handleAdmissionApplications(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage admission applications.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can manage admission applications.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/admission_applications.fxml", event, "Admission Applications");
+    }
+
+    @FXML
+    void handleStudentRecords(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage student records.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can manage student records.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_records.fxml", event, "Student Records");
     }
 
     @FXML
