@@ -382,3 +382,156 @@ GO
 CREATE INDEX IX_TranscriptRequests_RequestDate 
 ON TranscriptRequests(RequestDate);
 GO
+
+-- ============================================================================
+-- Course Catalog & Enrollment Tables (US 2.1, 2.2, 2.3, 2.4)
+-- ============================================================================
+
+-- Courses table
+CREATE TABLE Courses (
+    CourseID      INT PRIMARY KEY IDENTITY(1,1),
+    Code          VARCHAR(20) NOT NULL UNIQUE,      -- e.g. 'CS101', 'MATH201'
+    Name          VARCHAR(200) NOT NULL,
+    Description   VARCHAR(MAX) NULL,
+    Credits       INT NOT NULL DEFAULT 3
+                    CHECK (Credits > 0 AND Credits <= 6),
+    Department    VARCHAR(100) NOT NULL,
+    Semester      VARCHAR(20) NOT NULL,              -- e.g. 'FALL2024', 'SPRING2024', 'SUMMER2024'
+    Type          VARCHAR(20) NOT NULL               -- CORE, ELECTIVE
+                    CHECK (Type IN ('CORE', 'ELECTIVE')),
+    MaxSeats      INT NOT NULL DEFAULT 30
+                    CHECK (MaxSeats > 0),
+    CurrentSeats  INT NOT NULL DEFAULT 0
+                    CHECK (CurrentSeats >= 0),
+    IsActive      BIT NOT NULL DEFAULT 1,           -- Soft delete flag
+    CreatedDate   DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedDate   DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+GO
+
+-- Create index on Code for faster lookups
+CREATE INDEX IX_Courses_Code 
+ON Courses(Code);
+GO
+
+-- Create index on Department for filtering
+CREATE INDEX IX_Courses_Department 
+ON Courses(Department);
+GO
+
+-- Create index on Semester for filtering
+CREATE INDEX IX_Courses_Semester 
+ON Courses(Semester);
+GO
+
+-- Create index on Type for filtering
+CREATE INDEX IX_Courses_Type 
+ON Courses(Type);
+GO
+
+-- Create index on IsActive for filtering active courses
+CREATE INDEX IX_Courses_IsActive 
+ON Courses(IsActive);
+GO
+
+-- CourseProfessors table (Many-to-Many: Courses can have multiple professors)
+CREATE TABLE CourseProfessors (
+    CourseProfessorID INT PRIMARY KEY IDENTITY(1,1),
+    CourseID          INT NOT NULL,
+    ProfessorUserID   INT NOT NULL,
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
+    FOREIGN KEY (ProfessorUserID) REFERENCES Users(UserID),
+    UNIQUE (CourseID, ProfessorUserID)              -- Prevent duplicate assignments
+);
+GO
+
+-- Create index on CourseID for faster lookups
+CREATE INDEX IX_CourseProfessors_CourseID 
+ON CourseProfessors(CourseID);
+GO
+
+-- Create index on ProfessorUserID for faster lookups
+CREATE INDEX IX_CourseProfessors_ProfessorUserID 
+ON CourseProfessors(ProfessorUserID);
+GO
+
+-- Prerequisites table (Many-to-Many: Courses can have multiple prerequisites)
+CREATE TABLE Prerequisites (
+    PrerequisiteID INT PRIMARY KEY IDENTITY(1,1),
+    CourseID       INT NOT NULL,                    -- Course that requires the prerequisite
+    PrerequisiteCourseID INT NOT NULL,              -- Course that must be completed first
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
+    FOREIGN KEY (PrerequisiteCourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
+    UNIQUE (CourseID, PrerequisiteCourseID)         -- Prevent duplicate prerequisites
+);
+GO
+
+-- Create index on CourseID for faster lookups
+CREATE INDEX IX_Prerequisites_CourseID 
+ON Prerequisites(CourseID);
+GO
+
+-- Create index on PrerequisiteCourseID for faster lookups
+CREATE INDEX IX_Prerequisites_PrerequisiteCourseID 
+ON Prerequisites(PrerequisiteCourseID);
+GO
+
+-- CourseAttributes table (EAV - Entity-Attribute-Value pattern for flexible attributes)
+CREATE TABLE CourseAttributes (
+    AttributeID   INT PRIMARY KEY IDENTITY(1,1),
+    CourseID      INT NOT NULL,
+    AttributeName VARCHAR(100) NOT NULL,            -- e.g. 'LabHours', 'Online', 'PrerequisitesText'
+    AttributeValue VARCHAR(MAX) NULL,                -- Flexible value (can be text, number, JSON, etc.)
+    AttributeType VARCHAR(20) DEFAULT 'TEXT'         -- TEXT, NUMBER, BOOLEAN, DATE, JSON
+                    CHECK (AttributeType IN ('TEXT', 'NUMBER', 'BOOLEAN', 'DATE', 'JSON')),
+    CreatedDate   DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedDate   DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
+    UNIQUE (CourseID, AttributeName)                -- One attribute name per course
+);
+GO
+
+-- Create index on CourseID for faster lookups
+CREATE INDEX IX_CourseAttributes_CourseID 
+ON CourseAttributes(CourseID);
+GO
+
+-- Create index on AttributeName for filtering
+CREATE INDEX IX_CourseAttributes_AttributeName 
+ON CourseAttributes(AttributeName);
+GO
+
+-- Enrollments table
+CREATE TABLE Enrollments (
+    EnrollmentID  INT PRIMARY KEY IDENTITY(1,1),
+    StudentUserID INT NOT NULL,
+    CourseID      INT NOT NULL,
+    EnrollmentDate DATETIME2 NOT NULL DEFAULT GETDATE(),
+    Status        VARCHAR(20) DEFAULT 'ENROLLED'      -- ENROLLED, DROPPED, COMPLETED, FAILED
+                    CHECK (Status IN ('ENROLLED', 'DROPPED', 'COMPLETED', 'FAILED')),
+    Grade         VARCHAR(5) NULL,                    -- e.g. 'A', 'B+', 'C', 'F', NULL if not graded yet
+    FOREIGN KEY (StudentUserID) REFERENCES Users(UserID),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
+    UNIQUE (StudentUserID, CourseID, Status)         -- Prevent duplicate enrollments (but allow re-enrollment after drop)
+);
+GO
+
+-- Create index on StudentUserID for faster student lookups
+CREATE INDEX IX_Enrollments_StudentUserID 
+ON Enrollments(StudentUserID);
+GO
+
+-- Create index on CourseID for faster course lookups
+CREATE INDEX IX_Enrollments_CourseID 
+ON Enrollments(CourseID);
+GO
+
+-- Create index on Status for filtering
+CREATE INDEX IX_Enrollments_Status 
+ON Enrollments(Status);
+GO
+
+-- Create composite index for common queries
+CREATE INDEX IX_Enrollments_Student_Course_Status 
+ON Enrollments(StudentUserID, CourseID, Status);
+GO

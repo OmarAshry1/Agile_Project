@@ -104,11 +104,33 @@ public class dashboardcontroller {
                     transcriptRequestsButton.setManaged(true);
                     transcriptRequestsButton.setDisable(false);
                 }
+                // Show course management button for admins
+                if (manageCoursesButton != null) {
+                    manageCoursesButton.setVisible(true);
+                    manageCoursesButton.setManaged(true);
+                    manageCoursesButton.setDisable(false);
+                }
                 // Hide student transcript button for admins
                 if (myTranscriptsButton != null) {
                     myTranscriptsButton.setVisible(false);
                     myTranscriptsButton.setManaged(false);
                     myTranscriptsButton.setDisable(true);
+                }
+                // Hide student course buttons for admins
+                if (viewCourseCatalogButton != null) {
+                    viewCourseCatalogButton.setVisible(false);
+                    viewCourseCatalogButton.setManaged(false);
+                    viewCourseCatalogButton.setDisable(true);
+                }
+                if (enrollInCoursesButton != null) {
+                    enrollInCoursesButton.setVisible(false);
+                    enrollInCoursesButton.setManaged(false);
+                    enrollInCoursesButton.setDisable(true);
+                }
+                if (myEnrolledCoursesButton != null) {
+                    myEnrolledCoursesButton.setVisible(false);
+                    myEnrolledCoursesButton.setManaged(false);
+                    myEnrolledCoursesButton.setDisable(true);
                 }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
@@ -206,12 +228,50 @@ public class dashboardcontroller {
                         myTranscriptsButton.setManaged(true);
                         myTranscriptsButton.setDisable(false);
                     }
+                    // Show course catalog buttons for students
+                    if (viewCourseCatalogButton != null) {
+                        viewCourseCatalogButton.setVisible(true);
+                        viewCourseCatalogButton.setManaged(true);
+                        viewCourseCatalogButton.setDisable(false);
+                    }
+                    if (enrollInCoursesButton != null) {
+                        enrollInCoursesButton.setVisible(true);
+                        enrollInCoursesButton.setManaged(true);
+                        enrollInCoursesButton.setDisable(false);
+                    }
+                    if (myEnrolledCoursesButton != null) {
+                        myEnrolledCoursesButton.setVisible(true);
+                        myEnrolledCoursesButton.setManaged(true);
+                        myEnrolledCoursesButton.setDisable(false);
+                    }
                 } else {
                     if (myTranscriptsButton != null) {
                         myTranscriptsButton.setVisible(false);
                         myTranscriptsButton.setManaged(false);
                         myTranscriptsButton.setDisable(true);
                     }
+                    // Hide course catalog buttons for non-students
+                    if (viewCourseCatalogButton != null) {
+                        viewCourseCatalogButton.setVisible(false);
+                        viewCourseCatalogButton.setManaged(false);
+                        viewCourseCatalogButton.setDisable(true);
+                    }
+                    if (enrollInCoursesButton != null) {
+                        enrollInCoursesButton.setVisible(false);
+                        enrollInCoursesButton.setManaged(false);
+                        enrollInCoursesButton.setDisable(true);
+                    }
+                    if (myEnrolledCoursesButton != null) {
+                        myEnrolledCoursesButton.setVisible(false);
+                        myEnrolledCoursesButton.setManaged(false);
+                        myEnrolledCoursesButton.setDisable(true);
+                    }
+                }
+                // Hide course management button for non-admins
+                if (manageCoursesButton != null) {
+                    manageCoursesButton.setVisible(false);
+                    manageCoursesButton.setManaged(false);
+                    manageCoursesButton.setDisable(true);
                 }
             }
         } else {
@@ -283,6 +343,26 @@ public class dashboardcontroller {
                 transcriptRequestsButton.setVisible(false);
                 transcriptRequestsButton.setManaged(false);
                 transcriptRequestsButton.setDisable(true);
+            }
+            if (manageCoursesButton != null) {
+                manageCoursesButton.setVisible(false);
+                manageCoursesButton.setManaged(false);
+                manageCoursesButton.setDisable(true);
+            }
+            if (viewCourseCatalogButton != null) {
+                viewCourseCatalogButton.setVisible(false);
+                viewCourseCatalogButton.setManaged(false);
+                viewCourseCatalogButton.setDisable(true);
+            }
+            if (enrollInCoursesButton != null) {
+                enrollInCoursesButton.setVisible(false);
+                enrollInCoursesButton.setManaged(false);
+                enrollInCoursesButton.setDisable(true);
+            }
+            if (myEnrolledCoursesButton != null) {
+                myEnrolledCoursesButton.setVisible(false);
+                myEnrolledCoursesButton.setManaged(false);
+                myEnrolledCoursesButton.setDisable(true);
             }
         }
     }
@@ -357,6 +437,15 @@ public class dashboardcontroller {
 
     @FXML
     private Button transcriptRequestsButton;
+
+    @FXML
+    private Button manageCoursesButton;        // Admin - Manage Course Catalog (US 2.1)
+    @FXML
+    private Button viewCourseCatalogButton;    // Student - View Course Catalog (US 2.2)
+    @FXML
+    private Button enrollInCoursesButton;      // Student - Enroll in Courses (US 2.3)
+    @FXML
+    private Button myEnrolledCoursesButton;    // Student - View My Enrolled Courses (US 2.4)
 
     @FXML
     private Button logoutButton;
@@ -675,6 +764,102 @@ public class dashboardcontroller {
     @FXML
     void handleRegister(ActionEvent event) {
         navigateTo("/fxml/register.fxml", event, "Register");
+    }
+
+    @FXML
+    void handleManageCourses(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage courses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can manage courses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/admin_courses.fxml", event, "Manage Course Catalog");
+    }
+
+    @FXML
+    void handleViewCourseCatalog(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view the course catalog.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can view the course catalog.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_course_catalog.fxml", event, "Course Catalog");
+    }
+
+    @FXML
+    void handleEnrollInCourses(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to enroll in courses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can enroll in courses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_enrollment.fxml", event, "Enroll in Courses");
+    }
+
+    @FXML
+    void handleMyEnrolledCourses(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your enrolled courses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can view enrolled courses.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_my_courses.fxml", event, "My Enrolled Courses");
     }
 
     private void navigateTo(String fxmlPath, ActionEvent event, String title) {
