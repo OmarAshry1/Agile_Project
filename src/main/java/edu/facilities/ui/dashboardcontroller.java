@@ -89,6 +89,27 @@ public class dashboardcontroller {
                     softwareLicensesButton.setManaged(true);
                     softwareLicensesButton.setDisable(false);
                 }
+                if (admissionApplicationsButton != null) {
+                    admissionApplicationsButton.setVisible(true);
+                    admissionApplicationsButton.setManaged(true);
+                    admissionApplicationsButton.setDisable(false);
+                }
+                if (studentRecordsButton != null) {
+                    studentRecordsButton.setVisible(true);
+                    studentRecordsButton.setManaged(true);
+                    studentRecordsButton.setDisable(false);
+                }
+                if (transcriptRequestsButton != null) {
+                    transcriptRequestsButton.setVisible(true);
+                    transcriptRequestsButton.setManaged(true);
+                    transcriptRequestsButton.setDisable(false);
+                }
+                // Hide student transcript button for admins
+                if (myTranscriptsButton != null) {
+                    myTranscriptsButton.setVisible(false);
+                    myTranscriptsButton.setManaged(false);
+                    myTranscriptsButton.setDisable(true);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
@@ -163,6 +184,35 @@ public class dashboardcontroller {
                     softwareLicensesButton.setManaged(false);
                     softwareLicensesButton.setDisable(true);
                 }
+                if (admissionApplicationsButton != null) {
+                    admissionApplicationsButton.setVisible(false);
+                    admissionApplicationsButton.setManaged(false);
+                    admissionApplicationsButton.setDisable(true);
+                }
+                if (studentRecordsButton != null) {
+                    studentRecordsButton.setVisible(false);
+                    studentRecordsButton.setManaged(false);
+                    studentRecordsButton.setDisable(true);
+                }
+                if (transcriptRequestsButton != null) {
+                    transcriptRequestsButton.setVisible(false);
+                    transcriptRequestsButton.setManaged(false);
+                    transcriptRequestsButton.setDisable(true);
+                }
+                // Show student transcript button for students only
+                if ("STUDENT".equals(userType)) {
+                    if (myTranscriptsButton != null) {
+                        myTranscriptsButton.setVisible(true);
+                        myTranscriptsButton.setManaged(true);
+                        myTranscriptsButton.setDisable(false);
+                    }
+                } else {
+                    if (myTranscriptsButton != null) {
+                        myTranscriptsButton.setVisible(false);
+                        myTranscriptsButton.setManaged(false);
+                        myTranscriptsButton.setDisable(true);
+                    }
+                }
             }
         } else {
             userIdLabel.setText("Guest");
@@ -213,6 +263,26 @@ public class dashboardcontroller {
                 softwareLicensesButton.setVisible(false);
                 softwareLicensesButton.setManaged(false);
                 softwareLicensesButton.setDisable(true);
+            }
+            if (admissionApplicationsButton != null) {
+                admissionApplicationsButton.setVisible(false);
+                admissionApplicationsButton.setManaged(false);
+                admissionApplicationsButton.setDisable(true);
+            }
+            if (studentRecordsButton != null) {
+                studentRecordsButton.setVisible(false);
+                studentRecordsButton.setManaged(false);
+                studentRecordsButton.setDisable(true);
+            }
+            if (myTranscriptsButton != null) {
+                myTranscriptsButton.setVisible(false);
+                myTranscriptsButton.setManaged(false);
+                myTranscriptsButton.setDisable(true);
+            }
+            if (transcriptRequestsButton != null) {
+                transcriptRequestsButton.setVisible(false);
+                transcriptRequestsButton.setManaged(false);
+                transcriptRequestsButton.setDisable(true);
             }
         }
     }
@@ -275,6 +345,18 @@ public class dashboardcontroller {
 
     @FXML
     private Button softwareLicensesButton;
+
+    @FXML
+    private Button admissionApplicationsButton;
+
+    @FXML
+    private Button studentRecordsButton;
+
+    @FXML
+    private Button myTranscriptsButton;
+
+    @FXML
+    private Button transcriptRequestsButton;
 
     @FXML
     private Button logoutButton;
@@ -480,6 +562,102 @@ public class dashboardcontroller {
         }
         
         navigateTo("/fxml/software_licenses.fxml", event, "Software Licenses");
+    }
+
+    @FXML
+    void handleAdmissionApplications(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage admission applications.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can manage admission applications.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/admission_applications.fxml", event, "Admission Applications");
+    }
+
+    @FXML
+    void handleStudentRecords(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage student records.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can manage student records.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_records.fxml", event, "Student Records");
+    }
+
+    @FXML
+    void handleMyTranscripts(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your transcript requests.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can view their transcript requests.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_transcript.fxml", event, "My Transcript Requests");
+    }
+
+    @FXML
+    void handleTranscriptRequests(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage transcript requests.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can manage transcript requests.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/admin_transcript.fxml", event, "Transcript Request Management");
     }
 
     @FXML

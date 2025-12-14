@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.facilities.ui.StudentTranscriptController"
+            prefHeight="700.0" prefWidth="1200.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="20" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="My Transcript Requests" styleClass="page-title"/>
+                <Label text="Request and track your transcript requests" styleClass="form-label"/>
+            </VBox>
+
+            <!-- Action Buttons (Right Side) -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button fx:id="backButton" text="⬅ Back" styleClass="btn-secondary"
+                        onAction="#handleBack" prefWidth="120"/>
+                <Button fx:id="requestTranscriptButton" text="➕ Request Transcript" styleClass="btn-primary"
+                        onAction="#handleRequestTranscript" prefWidth="180"/>
+                <Button fx:id="viewDetailsButton" text="👁️ View Details" styleClass="btn-primary"
+                        onAction="#handleViewDetails" prefWidth="150"/>
+            </HBox>
+        </HBox>
+
+        <!-- Filter Section -->
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="card">
+            <VBox spacing="5">
+                <Label text="Filter by Status" styleClass="form-label"/>
+                <ComboBox fx:id="statusFilter" promptText="All Statuses" prefWidth="180"/>
+            </VBox>
+        </HBox>
+
+        <!-- Table Section -->
+        <VBox VBox.vgrow="ALWAYS" spacing="10">
+            <Label text="My Transcript Requests" styleClass="section-header"/>
+
+            <TableView fx:id="requestsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <columns>
+                    <!-- ID Column -->
+                    <TableColumn fx:id="idColumn" text="Request ID" prefWidth="120"
+                                 sortable="true"/>
+
+                    <!-- Request Date Column -->
+                    <TableColumn fx:id="requestDateColumn" text="Request Date" prefWidth="180"
+                                 sortable="true"/>
+
+                    <!-- Status Column -->
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="150"
+                                 sortable="true"/>
+
+                    <!-- Purpose Column -->
+                    <TableColumn fx:id="purposeColumn" text="Purpose" prefWidth="300"
+                                 sortable="true"/>
+
+                    <!-- Processed Date Column -->
+                    <TableColumn fx:id="processedDateColumn" text="Processed Date" prefWidth="180"
+                                 sortable="true"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Status Label -->
+        <HBox alignment="CENTER_LEFT">
+            <Label fx:id="statusLabel" text="Ready" styleClass="form-label"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+
+
