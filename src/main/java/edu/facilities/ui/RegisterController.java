@@ -172,7 +172,9 @@ public class RegisterController {
     @FXML
     private void handleBack(ActionEvent event) {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
+            // Use Main.class to ensure consistent resource loading from classpath root
+            FXMLLoader loader = new FXMLLoader(edu.facilities.Main.class.getResource("/fxml/dashboard.fxml"));
+            Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Dashboard");

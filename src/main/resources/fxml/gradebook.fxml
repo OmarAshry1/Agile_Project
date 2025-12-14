@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="700.0" prefWidth="1200.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.curriculum.ui.GradebookController">
+   <children>
+      <VBox spacing="20" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" styleClass="padding-large">
+         
+         <!-- Header -->
+         <HBox alignment="CENTER_LEFT" spacing="20">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+               <Label text="Gradebook" styleClass="page-title"/>
+               <Label text="View and manage grades for all your courses" styleClass="form-label"/>
+            </VBox>
+            
+            <!-- Action Buttons -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+               <Button fx:id="refreshButton" text="🔄 Refresh" styleClass="btn-secondary" onAction="#handleRefresh" prefWidth="120"/>
+               <Button fx:id="backButton" text="⬅ Back" styleClass="btn-secondary" onAction="#handleBack" prefWidth="120"/>
+            </HBox>
+         </HBox>
+
+         <!-- Course Selection -->
+         <VBox spacing="10" styleClass="card">
+            <padding>
+               <Insets bottom="15" left="15" right="15" top="15"/>
+            </padding>
+            <Label text="Select Course" styleClass="section-header"/>
+            <ComboBox fx:id="courseComboBox" promptText="Select a course to view grades" prefHeight="35" maxWidth="Infinity" onAction="#handleCourseSelection"/>
+            <Label fx:id="statusLabel" text="" style="-fx-text-fill: #4CAF50; -fx-font-size: 12px;" visible="false" wrapText="true"/>
+         </VBox>
+
+         <!-- Grades Table -->
+         <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <Label text="Student Grades" styleClass="section-header"/>
+            
+            <TableView fx:id="gradesTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+               <columns>
+                  <TableColumn fx:id="studentNameColumn" text="Student Name" prefWidth="200" sortable="true"/>
+                  <TableColumn fx:id="studentIdColumn" text="Student ID" prefWidth="120" sortable="true"/>
+                  <TableColumn fx:id="assignmentTitleColumn" text="Assignment" prefWidth="250" sortable="true"/>
+                  <TableColumn fx:id="scoreColumn" text="Score" prefWidth="100" sortable="true"/>
+                  <TableColumn fx:id="maxPointsColumn" text="Max Points" prefWidth="100" sortable="true"/>
+                  <TableColumn fx:id="percentageColumn" text="Percentage" prefWidth="100" sortable="true"/>
+                  <TableColumn fx:id="statusColumn" text="Status" prefWidth="120" sortable="true"/>
+                  <TableColumn fx:id="submittedDateColumn" text="Submitted" prefWidth="150" sortable="true"/>
+               </columns>
+               
+               <placeholder>
+                  <VBox alignment="CENTER" spacing="10" styleClass="padding-large">
+                     <Label text="No Grades Available" styleClass="section-header"/>
+                     <Label text="Select a course to view student grades" styleClass="form-label"/>
+                  </VBox>
+               </placeholder>
+            </TableView>
+         </VBox>
+
+         <!-- Summary Statistics -->
+         <HBox spacing="20" alignment="CENTER">
+            <VBox spacing="5" alignment="CENTER" styleClass="card" minWidth="150">
+               <padding>
+                  <Insets bottom="10" left="10" right="10" top="10"/>
+               </padding>
+               <Label text="Total Students" styleClass="form-label"/>
+               <Label fx:id="totalStudentsLabel" text="0" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2196F3;"/>
+            </VBox>
+            
+            <VBox spacing="5" alignment="CENTER" styleClass="card" minWidth="150">
+               <padding>
+                  <Insets bottom="10" left="10" right="10" top="10"/>
+               </padding>
+               <Label text="Total Submissions" styleClass="form-label"/>
+               <Label fx:id="totalSubmissionsLabel" text="0" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+            </VBox>
+            
+            <VBox spacing="5" alignment="CENTER" styleClass="card" minWidth="150">
+               <padding>
+                  <Insets bottom="10" left="10" right="10" top="10"/>
+               </padding>
+               <Label text="Average Score" styleClass="form-label"/>
+               <Label fx:id="averageScoreLabel" text="0%" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FF9800;"/>
+            </VBox>
+         </HBox>
+
+      </VBox>
+   </children>
+</AnchorPane>
+

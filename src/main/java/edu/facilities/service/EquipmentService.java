@@ -202,6 +202,7 @@ public class EquipmentService {
         String updateSql = "UPDATE Equipment SET Status = 'ALLOCATED' WHERE EquipmentID = ?";
         
         Connection conn = DatabaseConnection.getConnection();
+        boolean originalAutoCommit = conn.getAutoCommit();
         try {
             conn.setAutoCommit(false);
             
@@ -245,8 +246,14 @@ public class EquipmentService {
                 conn.rollback();
                 throw e;
             } finally {
-                conn.setAutoCommit(true);
+                try {
+                    conn.setAutoCommit(originalAutoCommit);
+                } catch (SQLException e) {
+                    System.err.println("Error restoring auto-commit: " + e.getMessage());
+                }
             }
+        } catch (SQLException e) {
+            throw e;
         }
     }
 
@@ -285,6 +292,7 @@ public class EquipmentService {
         String updateEquipmentSql = "UPDATE Equipment SET Status = 'AVAILABLE' WHERE EquipmentID = ?";
         
         Connection conn = DatabaseConnection.getConnection();
+        boolean originalAutoCommit = conn.getAutoCommit();
         try {
             conn.setAutoCommit(false);
             
@@ -306,8 +314,15 @@ public class EquipmentService {
                 conn.rollback();
                 throw e;
             } finally {
-                conn.setAutoCommit(true);
+                try {
+                    conn.setAutoCommit(originalAutoCommit);
+                } catch (SQLException e) {
+                    System.err.println("Error restoring auto-commit: " + e.getMessage());
+                }
             }
+        } catch (SQLException e) {
+            // Re-throw SQLException from inner try-catch
+            throw e;
         }
     }
 

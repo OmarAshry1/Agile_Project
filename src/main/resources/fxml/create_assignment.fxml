@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.curriculum.ui.CreateAssignmentController"
+            prefHeight="600.0" prefWidth="700.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label text="Create New Assignment" styleClass="page-title"/>
+            <Label text="Fill in the details to create a new assignment" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Form Container - Two Column Layout -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+            <VBox spacing="15" styleClass="card">
+
+                <!-- Row 1: Course -->
+                <VBox spacing="5">
+                    <Label text="Course *" styleClass="form-label"/>
+                    <ComboBox fx:id="courseComboBox"
+                              promptText="Select a course"
+                              maxWidth="Infinity" prefHeight="35"/>
+                    <Label fx:id="courseError" text=""
+                           style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                           visible="false" wrapText="true"/>
+                </VBox>
+
+                <!-- Row 2: Title -->
+                <VBox spacing="5">
+                    <Label text="Title *" styleClass="form-label"/>
+                    <TextField fx:id="titleField"
+                               promptText="e.g., Midterm Exam, Lab Report 1"
+                               prefHeight="35"/>
+                    <Label fx:id="titleError" text=""
+                           style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                           visible="false" wrapText="true"/>
+                </VBox>
+
+                <!-- Row 3: Instructions -->
+                <VBox spacing="5">
+                    <Label text="Instructions *" styleClass="form-label"/>
+                    <TextArea fx:id="instructionsArea"
+                              promptText="Enter assignment instructions..."
+                              prefRowCount="5"
+                              wrapText="true"/>
+                    <Label fx:id="instructionsError" text=""
+                           style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                           visible="false" wrapText="true"/>
+                </VBox>
+
+                <!-- Row 4: Due Date and Time -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Due Date *" styleClass="form-label"/>
+                        <DatePicker fx:id="dueDatePicker" prefHeight="35"/>
+                        <Label fx:id="dueDateError" text=""
+                               style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                               visible="false" wrapText="true"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Hour" styleClass="form-label"/>
+                        <Spinner fx:id="hourSpinner" editable="true" min="0" max="23" prefWidth="80"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Minute" styleClass="form-label"/>
+                        <Spinner fx:id="minuteSpinner" editable="true" min="0" max="59" amountToStepBy="15" prefWidth="80"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Row 5: Total Points and Submission Type -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Total Points *" styleClass="form-label"/>
+                        <Spinner fx:id="totalPointsSpinner" editable="true" min="1" max="1000" prefWidth="150"/>
+                        <Label fx:id="pointsError" text=""
+                               style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                               visible="false" wrapText="true"/>
+                    </VBox>
+
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Submission Type *" styleClass="form-label"/>
+                        <ComboBox fx:id="submissionTypeComboBox"
+                                  promptText="Select submission type"
+                                  maxWidth="Infinity" prefHeight="35"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Row 6: Additional Options -->
+                <VBox spacing="10" styleClass="card">
+                    <padding>
+                        <Insets bottom="10" left="10" right="10" top="10"/>
+                    </padding>
+                    <Label text="Additional Options" styleClass="form-label" style="-fx-font-weight: bold;"/>
+                    
+                    <CheckBox fx:id="allowLateCheckBox" text="Allow Late Submissions"/>
+                    
+                    <VBox spacing="5">
+                        <Label text="Max File Size (MB)" styleClass="form-label"/>
+                        <TextField fx:id="maxFileSizeField" promptText="e.g., 10" prefHeight="35"/>
+                    </VBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Label text="* Required fields" styleClass="form-label"
+                   style="-fx-font-style: italic;" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35"/>
+            <Button text="Cancel" styleClass="btn-secondary"
+                    onAction="#handleCancel" prefWidth="110" prefHeight="35"/>
+            <Button text="💾 Create Assignment" styleClass="btn-success"
+                    onAction="#handleCreate" prefWidth="160" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+

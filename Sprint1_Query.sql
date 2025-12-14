@@ -385,9 +385,12 @@ GO
 
 -- ============================================================================
 -- Course Catalog & Enrollment Tables (US 2.1, 2.2, 2.3, 2.4)
+-- SPRINT 2 - CURRICULUM MODULE (Assignments & Coursework)
+-- User Stories: 2.7 (Create Assignment), 2.8 (Submit Assignment), 2.9 (Grade)
 -- ============================================================================
 
 -- Courses table
+-- Note: ProfessorUserID is kept for backward compatibility, but CourseProfessors table should be used for new data
 CREATE TABLE Courses (
     CourseID      INT PRIMARY KEY IDENTITY(1,1),
     Code          VARCHAR(20) NOT NULL UNIQUE,      -- e.g. 'CS101', 'MATH201'
@@ -396,87 +399,90 @@ CREATE TABLE Courses (
     Credits       INT NOT NULL DEFAULT 3
                     CHECK (Credits > 0 AND Credits <= 6),
     Department    VARCHAR(100) NOT NULL,
-    Semester      VARCHAR(20) NOT NULL,              -- e.g. 'FALL2024', 'SPRING2024', 'SUMMER2024'
+    Semester      VARCHAR(50) NOT NULL,              -- e.g. 'FALL2024', 'SPRING2024', 'SUMMER2024'
     Type          VARCHAR(20) NOT NULL               -- CORE, ELECTIVE
                     CHECK (Type IN ('CORE', 'ELECTIVE')),
+    ProfessorUserID INT NULL,                        -- Kept for backward compatibility
     MaxSeats      INT NOT NULL DEFAULT 30
                     CHECK (MaxSeats > 0),
     CurrentSeats  INT NOT NULL DEFAULT 0
                     CHECK (CurrentSeats >= 0),
     IsActive      BIT NOT NULL DEFAULT 1,           -- Soft delete flag
     CreatedDate   DATETIME2 NOT NULL DEFAULT GETDATE(),
-    UpdatedDate   DATETIME2 NOT NULL DEFAULT GETDATE()
+    UpdatedDate   DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (ProfessorUserID) REFERENCES Users(UserID)
 );
 GO
 
 -- Create index on Code for faster lookups
-CREATE INDEX IX_Courses_Code 
-ON Courses(Code);
+CREATE INDEX IX_Courses_Code ON Courses(Code);
 GO
 
 -- Create index on Department for filtering
-CREATE INDEX IX_Courses_Department 
-ON Courses(Department);
+CREATE INDEX IX_Courses_Department ON Courses(Department);
 GO
 
 -- Create index on Semester for filtering
-CREATE INDEX IX_Courses_Semester 
-ON Courses(Semester);
+CREATE INDEX IX_Courses_Semester ON Courses(Semester);
 GO
 
 -- Create index on Type for filtering
-CREATE INDEX IX_Courses_Type 
-ON Courses(Type);
+CREATE INDEX IX_Courses_Type ON Courses(Type);
 GO
 
 -- Create index on IsActive for filtering active courses
-CREATE INDEX IX_Courses_IsActive 
-ON Courses(IsActive);
+CREATE INDEX IX_Courses_IsActive ON Courses(IsActive);
+GO
+
+-- Create index on ProfessorUserID for backward compatibility
+CREATE INDEX IX_Courses_ProfessorUserID ON Courses(ProfessorUserID);
 GO
 
 -- CourseProfessors table (Many-to-Many: Courses can have multiple professors)
+-- This is the primary method for linking courses to professors
 CREATE TABLE CourseProfessors (
     CourseProfessorID INT PRIMARY KEY IDENTITY(1,1),
     CourseID          INT NOT NULL,
     ProfessorUserID   INT NOT NULL,
+    CreatedDate       DATETIME2 DEFAULT GETDATE(),
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
-    FOREIGN KEY (ProfessorUserID) REFERENCES Users(UserID),
+    FOREIGN KEY (ProfessorUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
     UNIQUE (CourseID, ProfessorUserID)              -- Prevent duplicate assignments
 );
 GO
 
 -- Create index on CourseID for faster lookups
-CREATE INDEX IX_CourseProfessors_CourseID 
-ON CourseProfessors(CourseID);
+CREATE INDEX IX_CourseProfessors_CourseID ON CourseProfessors(CourseID);
 GO
 
 -- Create index on ProfessorUserID for faster lookups
-CREATE INDEX IX_CourseProfessors_ProfessorUserID 
-ON CourseProfessors(ProfessorUserID);
+CREATE INDEX IX_CourseProfessors_ProfessorUserID ON CourseProfessors(ProfessorUserID);
 GO
 
 -- Prerequisites table (Many-to-Many: Courses can have multiple prerequisites)
+-- Stores which courses are prerequisites for other courses (e.g., CS201 requires CS101)
 CREATE TABLE Prerequisites (
     PrerequisiteID INT PRIMARY KEY IDENTITY(1,1),
     CourseID       INT NOT NULL,                    -- Course that requires the prerequisite
     PrerequisiteCourseID INT NOT NULL,              -- Course that must be completed first
+    CreatedDate    DATETIME2 DEFAULT GETDATE(),
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
     FOREIGN KEY (PrerequisiteCourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
-    UNIQUE (CourseID, PrerequisiteCourseID)         -- Prevent duplicate prerequisites
+    UNIQUE (CourseID, PrerequisiteCourseID),       -- Prevent duplicate prerequisites
+    CHECK (CourseID != PrerequisiteCourseID)        -- Prevent self-reference
 );
 GO
 
 -- Create index on CourseID for faster lookups
-CREATE INDEX IX_Prerequisites_CourseID 
-ON Prerequisites(CourseID);
+CREATE INDEX IX_Prerequisites_CourseID ON Prerequisites(CourseID);
 GO
 
 -- Create index on PrerequisiteCourseID for faster lookups
-CREATE INDEX IX_Prerequisites_PrerequisiteCourseID 
-ON Prerequisites(PrerequisiteCourseID);
+CREATE INDEX IX_Prerequisites_PrerequisiteCourseID ON Prerequisites(PrerequisiteCourseID);
 GO
 
 -- CourseAttributes table (EAV - Entity-Attribute-Value pattern for flexible attributes)
+-- Allows storing additional course attributes without schema changes
 CREATE TABLE CourseAttributes (
     AttributeID   INT PRIMARY KEY IDENTITY(1,1),
     CourseID      INT NOT NULL,
@@ -492,13 +498,11 @@ CREATE TABLE CourseAttributes (
 GO
 
 -- Create index on CourseID for faster lookups
-CREATE INDEX IX_CourseAttributes_CourseID 
-ON CourseAttributes(CourseID);
+CREATE INDEX IX_CourseAttributes_CourseID ON CourseAttributes(CourseID);
 GO
 
 -- Create index on AttributeName for filtering
-CREATE INDEX IX_CourseAttributes_AttributeName 
-ON CourseAttributes(AttributeName);
+CREATE INDEX IX_CourseAttributes_AttributeName ON CourseAttributes(AttributeName);
 GO
 
 -- Enrollments table
@@ -511,27 +515,273 @@ CREATE TABLE Enrollments (
                     CHECK (Status IN ('ENROLLED', 'DROPPED', 'COMPLETED', 'FAILED')),
     Grade         VARCHAR(5) NULL,                    -- e.g. 'A', 'B+', 'C', 'F', NULL if not graded yet
     FOREIGN KEY (StudentUserID) REFERENCES Users(UserID),
-    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
-    UNIQUE (StudentUserID, CourseID, Status)         -- Prevent duplicate enrollments (but allow re-enrollment after drop)
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE
 );
 GO
 
 -- Create index on StudentUserID for faster student lookups
-CREATE INDEX IX_Enrollments_StudentUserID 
-ON Enrollments(StudentUserID);
+CREATE INDEX IX_Enrollments_StudentUserID ON Enrollments(StudentUserID);
 GO
 
 -- Create index on CourseID for faster course lookups
-CREATE INDEX IX_Enrollments_CourseID 
-ON Enrollments(CourseID);
+CREATE INDEX IX_Enrollments_CourseID ON Enrollments(CourseID);
 GO
 
 -- Create index on Status for filtering
-CREATE INDEX IX_Enrollments_Status 
-ON Enrollments(Status);
+CREATE INDEX IX_Enrollments_Status ON Enrollments(Status);
 GO
 
 -- Create composite index for common queries
-CREATE INDEX IX_Enrollments_Student_Course_Status 
-ON Enrollments(StudentUserID, CourseID, Status);
+CREATE INDEX IX_Enrollments_Student_Course_Status ON Enrollments(StudentUserID, CourseID, Status);
+GO
+
+-- Assignments table (US 2.7 - Create Assignment)
+CREATE TABLE Assignments (
+    AssignmentID INT PRIMARY KEY IDENTITY(1,1),
+    CourseID INT NOT NULL,
+    Title VARCHAR(200) NOT NULL,
+    Instructions VARCHAR(MAX) NOT NULL,
+    DueDate DATETIME2 NOT NULL,
+    TotalPoints INT NOT NULL,
+    SubmissionType VARCHAR(50) DEFAULT 'TEXT' CHECK (SubmissionType IN ('FILE', 'TEXT', 'BOTH')),
+    CreatedDate DATETIME2 DEFAULT GETDATE(),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+);
+GO
+
+CREATE INDEX IX_Assignments_CourseID ON Assignments(CourseID);
+CREATE INDEX IX_Assignments_DueDate ON Assignments(DueDate);
+GO
+
+-- AssignmentAttributes table (EAV pattern for assignment metadata)
+CREATE TABLE AssignmentAttributes (
+    AttributeID INT PRIMARY KEY IDENTITY(1,1),
+    AssignmentID INT NOT NULL,
+    AttributeName VARCHAR(100) NOT NULL,
+    AttributeValue VARCHAR(MAX),
+    FOREIGN KEY (AssignmentID) REFERENCES Assignments(AssignmentID)
+);
+GO
+
+CREATE INDEX IX_AssignmentAttributes_AssignmentID ON AssignmentAttributes(AssignmentID);
+GO
+
+-- AssignmentSubmissions table (US 2.8 - Submit Assignment, US 2.9 - Grade)
+CREATE TABLE AssignmentSubmissions (
+    SubmissionID INT PRIMARY KEY IDENTITY(1,1),
+    AssignmentID INT NOT NULL,
+    StudentUserID INT NOT NULL,
+    SubmissionText VARCHAR(MAX),
+    FileName VARCHAR(255),
+    SubmittedDate DATETIME2 DEFAULT GETDATE(),
+    Score INT,
+    Feedback VARCHAR(MAX),
+    Status VARCHAR(50) DEFAULT 'SUBMITTED' CHECK (Status IN ('SUBMITTED', 'GRADED')),
+    GradedDate DATETIME2 NULL,
+    FOREIGN KEY (AssignmentID) REFERENCES Assignments(AssignmentID),
+    FOREIGN KEY (StudentUserID) REFERENCES Users(UserID)
+);
+GO
+
+CREATE INDEX IX_AssignmentSubmissions_AssignmentID ON AssignmentSubmissions(AssignmentID);
+CREATE INDEX IX_AssignmentSubmissions_StudentUserID ON AssignmentSubmissions(StudentUserID);
+CREATE INDEX IX_AssignmentSubmissions_Status ON AssignmentSubmissions(Status);
+GO
+
+-- ============================================================================
+-- TEST DATA SECTION
+-- ============================================================================
+-- Sample data for testing the Curriculum Module
+-- This section inserts sample courses and links them to professors
+-- ============================================================================
+
+-- Verify professor UserID 1003 exists
+IF NOT EXISTS (SELECT 1 FROM Users WHERE UserID = 1003 AND UserType = 'PROFESSOR')
+BEGIN
+    PRINT 'WARNING: UserID 1003 does not exist or is not a PROFESSOR';
+    PRINT 'Please ensure a professor user with UserID 1003 exists before running this script';
+END
+ELSE
+BEGIN
+    PRINT 'Professor UserID 1003 verified';
+END
+GO
+
+-- Insert Sample Courses for Professor 1003
+PRINT '';
+PRINT 'Inserting sample courses...';
+
+-- Course 1: Introduction to Programming
+IF NOT EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS101')
+BEGIN
+    INSERT INTO Courses (Code, Name, Description, Credits, Department, Semester, Type, ProfessorUserID, CreatedDate, MaxSeats, CurrentSeats, IsActive, UpdatedDate)
+    VALUES ('CS101', 'Introduction to Programming', 
+            'Basic programming concepts including variables, control structures, functions, and object-oriented programming fundamentals.', 
+            3, 'Computer Science', 'Fall 2024', 'CORE', 1003, GETDATE(), 30, 0, 1, GETDATE());
+    PRINT 'Inserted course: CS101 - Introduction to Programming';
+END
+ELSE
+BEGIN
+    PRINT 'Course CS101 already exists, skipping...';
+END
+GO
+
+-- Course 2: Data Structures
+IF NOT EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS201')
+BEGIN
+    INSERT INTO Courses (Code, Name, Description, Credits, Department, Semester, Type, ProfessorUserID, CreatedDate, MaxSeats, CurrentSeats, IsActive, UpdatedDate)
+    VALUES ('CS201', 'Data Structures', 
+            'Advanced data structures including arrays, linked lists, stacks, queues, trees, and graphs. Analysis of algorithms and complexity.', 
+            3, 'Computer Science', 'Fall 2024', 'CORE', 1003, GETDATE(), 25, 0, 1, GETDATE());
+    PRINT 'Inserted course: CS201 - Data Structures';
+END
+ELSE
+BEGIN
+    PRINT 'Course CS201 already exists, skipping...';
+END
+GO
+
+-- Course 3: Database Systems (Elective)
+IF NOT EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS301')
+BEGIN
+    INSERT INTO Courses (Code, Name, Description, Credits, Department, Semester, Type, ProfessorUserID, CreatedDate, MaxSeats, CurrentSeats, IsActive, UpdatedDate)
+    VALUES ('CS301', 'Database Systems', 
+            'Introduction to database design, SQL, normalization, transaction management, and database administration.', 
+            3, 'Computer Science', 'Fall 2024', 'ELECTIVE', 1003, GETDATE(), 20, 0, 1, GETDATE());
+    PRINT 'Inserted course: CS301 - Database Systems';
+END
+ELSE
+BEGIN
+    PRINT 'Course CS301 already exists, skipping...';
+END
+GO
+
+-- Course 4: Software Engineering
+IF NOT EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS401')
+BEGIN
+    INSERT INTO Courses (Code, Name, Description, Credits, Department, Semester, Type, ProfessorUserID, CreatedDate, MaxSeats, CurrentSeats, IsActive, UpdatedDate)
+    VALUES ('CS401', 'Software Engineering', 
+            'Software development lifecycle, requirements analysis, design patterns, testing, and project management.', 
+            4, 'Computer Science', 'Fall 2024', 'CORE', 1003, GETDATE(), 20, 0, 1, GETDATE());
+    PRINT 'Inserted course: CS401 - Software Engineering';
+END
+ELSE
+BEGIN
+    PRINT 'Course CS401 already exists, skipping...';
+END
+GO
+
+-- Link courses to professor in CourseProfessors table
+PRINT '';
+PRINT 'Linking courses to professor in CourseProfessors table...';
+
+-- Link CS101
+IF EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS101')
+BEGIN
+    INSERT INTO CourseProfessors (CourseID, ProfessorUserID, CreatedDate)
+    SELECT c.CourseID, 1003, GETDATE()
+    FROM Courses c
+    WHERE c.Code = 'CS101'
+      AND NOT EXISTS (
+          SELECT 1 FROM CourseProfessors cp 
+          WHERE cp.CourseID = c.CourseID AND cp.ProfessorUserID = 1003
+      );
+    PRINT 'Linked CS101 to professor 1003';
+END
+GO
+
+-- Link CS201
+IF EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS201')
+BEGIN
+    INSERT INTO CourseProfessors (CourseID, ProfessorUserID, CreatedDate)
+    SELECT c.CourseID, 1003, GETDATE()
+    FROM Courses c
+    WHERE c.Code = 'CS201'
+      AND NOT EXISTS (
+          SELECT 1 FROM CourseProfessors cp 
+          WHERE cp.CourseID = c.CourseID AND cp.ProfessorUserID = 1003
+      );
+    PRINT 'Linked CS201 to professor 1003';
+END
+GO
+
+-- Link CS301
+IF EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS301')
+BEGIN
+    INSERT INTO CourseProfessors (CourseID, ProfessorUserID, CreatedDate)
+    SELECT c.CourseID, 1003, GETDATE()
+    FROM Courses c
+    WHERE c.Code = 'CS301'
+      AND NOT EXISTS (
+          SELECT 1 FROM CourseProfessors cp 
+          WHERE cp.CourseID = c.CourseID AND cp.ProfessorUserID = 1003
+      );
+    PRINT 'Linked CS301 to professor 1003';
+END
+GO
+
+-- Link CS401
+IF EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS401')
+BEGIN
+    INSERT INTO CourseProfessors (CourseID, ProfessorUserID, CreatedDate)
+    SELECT c.CourseID, 1003, GETDATE()
+    FROM Courses c
+    WHERE c.Code = 'CS401'
+      AND NOT EXISTS (
+          SELECT 1 FROM CourseProfessors cp 
+          WHERE cp.CourseID = c.CourseID AND cp.ProfessorUserID = 1003
+      );
+    PRINT 'Linked CS401 to professor 1003';
+END
+GO
+
+-- Add sample prerequisite (CS201 requires CS101)
+PRINT '';
+PRINT 'Adding sample prerequisites...';
+
+IF EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS101') AND EXISTS (SELECT 1 FROM Courses WHERE Code = 'CS201')
+BEGIN
+    INSERT INTO Prerequisites (CourseID, PrerequisiteCourseID, CreatedDate)
+    SELECT c2.CourseID, c1.CourseID, GETDATE()
+    FROM Courses c1, Courses c2
+    WHERE c1.Code = 'CS101' AND c2.Code = 'CS201'
+      AND NOT EXISTS (
+          SELECT 1 FROM Prerequisites p 
+          WHERE p.CourseID = c2.CourseID AND p.PrerequisiteCourseID = c1.CourseID
+      );
+    PRINT 'Added prerequisite: CS201 requires CS101';
+END
+GO
+
+-- Verification
+PRINT '';
+PRINT '============================================================================';
+PRINT 'Test Data Verification';
+PRINT '============================================================================';
+
+PRINT '';
+PRINT 'Courses linked to Professor 1003 via CourseProfessors:';
+SELECT 
+    c.CourseID,
+    c.Code,
+    c.Name,
+    c.Department,
+    c.Semester,
+    c.Type,
+    c.MaxSeats,
+    c.CurrentSeats,
+    c.IsActive,
+    cp.CreatedDate AS LinkDate
+FROM Courses c
+INNER JOIN CourseProfessors cp ON c.CourseID = cp.CourseID
+WHERE cp.ProfessorUserID = 1003
+ORDER BY c.Code;
+
+PRINT '';
+DECLARE @CourseCount INT = (SELECT COUNT(*) FROM CourseProfessors WHERE ProfessorUserID = 1003);
+PRINT 'Total courses linked to Professor 1003: ' + CAST(@CourseCount AS VARCHAR);
+PRINT '';
+PRINT '============================================================================';
+PRINT 'Test Data Insertion Complete';
+PRINT '============================================================================';
 GO

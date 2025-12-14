@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="600.0" prefWidth="700.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.curriculum.ui.SubmitAssignmentController">
+
+    <!-- Center the content -->
+    <StackPane alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+        <!-- Main VBox -->
+        <VBox alignment="CENTER" maxWidth="600" spacing="20" styleClass="padding-large">
+
+            <!-- Header -->
+            <VBox alignment="CENTER" maxWidth="600" spacing="10" styleClass="card">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
+                <Label styleClass="page-title" text="Submit Assignment" />
+                <Label styleClass="form-label" text="Submit your assignment for grading" textAlignment="CENTER" wrapText="true" />
+            </VBox>
+
+            <!-- Assignment Details Card -->
+            <VBox maxWidth="600" spacing="15" styleClass="card">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
+
+                <Label styleClass="form-label" text="Assignment Details" style="-fx-font-weight: bold;" />
+
+                <!-- Assignment Title (Read-only) -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Title:" />
+                    <Label fx:id="titleLabel" styleClass="form-label" style="-fx-opacity: 0.8;" />
+                </VBox>
+
+                <!-- Course (Read-only) -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Course:" />
+                    <Label fx:id="courseLabel" styleClass="form-label" style="-fx-opacity: 0.8;" />
+                </VBox>
+
+                <!-- Due Date (Read-only) -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Due Date:" />
+                    <Label fx:id="dueDateLabel" styleClass="form-label" style="-fx-opacity: 0.8;" />
+                </VBox>
+
+                <!-- Total Points (Read-only) -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Total Points:" />
+                    <Label fx:id="totalPointsLabel" styleClass="form-label" style="-fx-opacity: 0.8;" />
+                </VBox>
+
+                <!-- Instructions (Read-only) -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Instructions:" />
+                    <Label fx:id="instructionsLabel" styleClass="form-label" wrapText="true" style="-fx-opacity: 0.8;" />
+                </VBox>
+
+            </VBox>
+
+            <!-- Submission Form Card -->
+            <VBox maxWidth="600" spacing="15" styleClass="card">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
+
+                <!-- Submission Text -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="Submission Text *" />
+                    <TextArea fx:id="submissionTextArea" prefRowCount="10" promptText="Enter your submission text here..." wrapText="true" />
+                    <Label fx:id="submissionTextError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
+                </VBox>
+
+                <!-- File Name (Optional) -->
+                <VBox spacing="5">
+                    <Label styleClass="form-label" text="File Name (Optional)" />
+                    <TextField fx:id="fileNameField" promptText="e.g., assignment1.pdf" />
+                </VBox>
+
+                <!-- Action Buttons -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="submitButton" onAction="#handleSubmit" styleClass="btn-success" text="Submit" />
+                    <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="btn-secondary" text="Cancel" />
+                </HBox>
+
+                <!-- Status Message -->
+                <Label fx:id="statusLabel" alignment="CENTER" style="-fx-text-fill: #4CAF50; -fx-font-size: 12px;" text="" textAlignment="CENTER" visible="false" wrapText="true" />
+
+            </VBox>
+        </VBox>
+    </StackPane>
+</AnchorPane>
+

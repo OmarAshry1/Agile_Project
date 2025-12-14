@@ -72,16 +72,29 @@ public class LoginController {
             if (authenticatedUser != null) {
 
                 try {
-                    Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
+                    // Use Main.class to ensure consistent resource loading from classpath root
+                    FXMLLoader loader = new FXMLLoader(edu.facilities.Main.class.getResource("/fxml/dashboard.fxml"));
+                    Parent root = loader.load();
                     Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                     stage.setScene(new Scene(root));
+                    stage.setTitle("University Management System - Dashboard");
                     stage.show();
                 } catch (IOException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Navigation Error");
                     alert.setHeaderText("Unable to load dashboard");
-                    alert.setContentText(e.getMessage());
+                    alert.setContentText("Error loading dashboard.fxml: " + e.getMessage() + 
+                                        "\n\nPlease ensure the file exists at: src/main/resources/fxml/dashboard.fxml");
                     alert.showAndWait();
+                    e.printStackTrace();
+                } catch (NullPointerException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Navigation Error");
+                    alert.setHeaderText("Resource not found");
+                    alert.setContentText("dashboard.fxml not found in classpath.\n" +
+                                        "Expected location: src/main/resources/fxml/dashboard.fxml");
+                    alert.showAndWait();
+                    e.printStackTrace();
                 }
             } else {
                 // Login failed
@@ -100,11 +113,30 @@ public class LoginController {
 
     @FXML
     void register(ActionEvent event) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/register.fxml"));
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        try {
+            FXMLLoader loader = new FXMLLoader(edu.facilities.Main.class.getResource("/fxml/register.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("University Management System - Register");
+            stage.show();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to load registration page");
+            alert.setContentText("Error loading register.fxml: " + e.getMessage());
+            alert.showAndWait();
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Resource not found");
+            alert.setContentText("register.fxml not found in classpath.\n" +
+                                "Expected location: src/main/resources/fxml/register.fxml");
+            alert.showAndWait();
+            e.printStackTrace();
+        }
     }
 
     private void clearErrors() {

@@ -198,26 +198,59 @@ public class StudentTranscriptController {
                     showError("Authentication Error", "User session expired. Please login again.");
                     return;
                 }
-                if (currentUser instanceof Student) {
-                    TranscriptRequest request = transcriptService.createTranscriptRequest(
-                            (Student) currentUser, purpose);
+                
+                // Verify user is a student
+                String userType = authService.getCurrentUserType();
+                if (!"STUDENT".equals(userType)) {
+                    showError("Access Error", "Only students can request transcripts. Current user type: " + 
+                            (userType != null ? userType : "Unknown"));
+                    return;
+                }
+                
+                if (!(currentUser instanceof Student)) {
+                    showError("Access Error", "Current user is not a student instance. Please contact support.");
+                    System.err.println("User type mismatch: Expected Student, got " + currentUser.getClass().getName());
+                    return;
+                }
+                
+                System.out.println("Creating transcript request for student ID: " + currentUser.getId());
+                TranscriptRequest request = transcriptService.createTranscriptRequest(
+                        (Student) currentUser, purpose);
 
-                    if (request != null) {
-                        showSuccess("Request Submitted", 
-                                "Your transcript request has been submitted successfully!\n" +
-                                "Request ID: #" + request.getId() + "\n" +
-                                "Status: " + statusToString(request.getStatus()));
-                        loadTranscriptRequests();
-                    } else {
-                        showError("Request Failed", "Failed to submit transcript request.");
-                    }
+                if (request != null) {
+                    showSuccess("Request Submitted", 
+                            "Your transcript request has been submitted successfully!\n" +
+                            "Request ID: #" + request.getId() + "\n" +
+                            "Status: " + statusToString(request.getStatus()));
+                    loadTranscriptRequests();
                 } else {
-                    showError("Access Error", "Only students can request transcripts.");
+                    showError("Request Failed", "Failed to submit transcript request. " +
+                            "The request was not created in the database. Please try again or contact support.");
+                    System.err.println("Transcript request creation returned null for student: " + currentUser.getId());
                 }
             } catch (IllegalArgumentException e) {
-                showError("Validation Error", e.getMessage());
+                showError("Validation Error", "Invalid input: " + e.getMessage());
+                e.printStackTrace();
             } catch (SQLException e) {
-                showError("Database Error", "Failed to submit request: " + e.getMessage());
+                String errorMsg = "Failed to submit transcript request due to database error.\n\n";
+                if (e.getMessage() != null) {
+                    if (e.getMessage().contains("foreign key")) {
+                        errorMsg += "Error: Student record not found in database.\n";
+                        errorMsg += "Please ensure your student profile is properly set up.";
+                    } else if (e.getMessage().contains("constraint")) {
+                        errorMsg += "Error: Database constraint violation.\n";
+                        errorMsg += "Details: " + e.getMessage();
+                    } else {
+                        errorMsg += "Details: " + e.getMessage();
+                    }
+                } else {
+                    errorMsg += "Unknown database error occurred.";
+                }
+                showError("Database Error", errorMsg);
+                e.printStackTrace();
+            } catch (Exception e) {
+                showError("Unexpected Error", "An unexpected error occurred while submitting your request: " + 
+                        e.getMessage() + "\n\nPlease contact support if this issue persists.");
                 e.printStackTrace();
             }
         });

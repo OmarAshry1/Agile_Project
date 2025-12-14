@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.curriculum.ui.ProfessorAssignmentsController"
+            prefHeight="700.0" prefWidth="1200.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="20" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Assignment Management" styleClass="page-title"/>
+                <Label text="View and manage assignments for your courses" styleClass="form-label"/>
+            </VBox>
+
+            <!-- Action Buttons (Right Side) -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button fx:id="backButton" text="⬅ Back" styleClass="btn-secondary"
+                        onAction="#handleBack" prefWidth="120"/>
+                <Button fx:id="createButton" text="➕ Create Assignment" styleClass="btn-primary"
+                        onAction="#handleCreateAssignment" prefWidth="180"/>
+                <Button fx:id="deleteButton" text="🗑️ Delete" styleClass="btn-danger"
+                        onAction="#handleDeleteAssignment" prefWidth="120"/>
+                <Button fx:id="viewSubmissionsButton" text="📝 View Submissions" styleClass="btn-primary"
+                        onAction="#handleViewSubmissions" prefWidth="160"/>
+            </HBox>
+        </HBox>
+
+        <!-- Table Section -->
+        <VBox VBox.vgrow="ALWAYS" spacing="10">
+            <Label text="All Assignments" styleClass="section-header"/>
+
+            <TableView fx:id="assignmentsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <columns>
+                    <!-- Assignment ID Column -->
+                    <TableColumn fx:id="assignmentIdColumn" text="Assignment ID" prefWidth="120"
+                                 sortable="true"/>
+
+                    <!-- Course Name Column -->
+                    <TableColumn fx:id="courseNameColumn" text="Course Name" prefWidth="200"
+                                 sortable="true"/>
+
+                    <!-- Title Column -->
+                    <TableColumn fx:id="titleColumn" text="Title" prefWidth="250"
+                                 sortable="true"/>
+
+                    <!-- Due Date Column -->
+                    <TableColumn fx:id="dueDateColumn" text="Due Date" prefWidth="180"
+                                 sortable="true"/>
+
+                    <!-- Total Points Column -->
+                    <TableColumn fx:id="totalPointsColumn" text="Total Points" prefWidth="120"
+                                 sortable="true"/>
+
+                    <!-- Submissions Count Column -->
+                    <TableColumn fx:id="submissionsCountColumn" text="Submissions" prefWidth="120"
+                                 sortable="true"/>
+                </columns>
+
+                <!-- Empty Table Placeholder -->
+                <placeholder>
+                    <VBox alignment="CENTER" spacing="10" styleClass="padding-large">
+                        <Label text="No Assignments Available" styleClass="section-header"/>
+                        <Label text="Click 'Create Assignment' to create your first assignment" styleClass="form-label"/>
+                    </VBox>
+                </placeholder>
+            </TableView>
+        </VBox>
+
+    </VBox>
+
+</AnchorPane>
+

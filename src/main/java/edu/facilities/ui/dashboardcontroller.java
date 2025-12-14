@@ -132,6 +132,22 @@ public class dashboardcontroller {
                     myEnrolledCoursesButton.setManaged(false);
                     myEnrolledCoursesButton.setDisable(true);
                 }
+                // Hide assignment buttons for admins
+                if (myAssignmentsButton != null) {
+                    myAssignmentsButton.setVisible(false);
+                    myAssignmentsButton.setManaged(false);
+                    myAssignmentsButton.setDisable(true);
+                }
+                if (manageAssignmentsButton != null) {
+                    manageAssignmentsButton.setVisible(false);
+                    manageAssignmentsButton.setManaged(false);
+                    manageAssignmentsButton.setDisable(true);
+                }
+                if (viewGradebookButton != null) {
+                    viewGradebookButton.setVisible(false);
+                    viewGradebookButton.setManaged(false);
+                    viewGradebookButton.setDisable(true);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
@@ -273,6 +289,43 @@ public class dashboardcontroller {
                     manageCoursesButton.setManaged(false);
                     manageCoursesButton.setDisable(true);
                 }
+                // Show assignment buttons based on role
+                if ("STUDENT".equals(userType)) {
+                    if (myAssignmentsButton != null) {
+                        myAssignmentsButton.setVisible(true);
+                        myAssignmentsButton.setManaged(true);
+                        myAssignmentsButton.setDisable(false);
+                    }
+                } else {
+                    if (myAssignmentsButton != null) {
+                        myAssignmentsButton.setVisible(false);
+                        myAssignmentsButton.setManaged(false);
+                        myAssignmentsButton.setDisable(true);
+                    }
+                }
+                if ("PROFESSOR".equals(userType)) {
+                    if (manageAssignmentsButton != null) {
+                        manageAssignmentsButton.setVisible(true);
+                        manageAssignmentsButton.setManaged(true);
+                        manageAssignmentsButton.setDisable(false);
+                    }
+                    if (viewGradebookButton != null) {
+                        viewGradebookButton.setVisible(true);
+                        viewGradebookButton.setManaged(true);
+                        viewGradebookButton.setDisable(false);
+                    }
+                } else {
+                    if (manageAssignmentsButton != null) {
+                        manageAssignmentsButton.setVisible(false);
+                        manageAssignmentsButton.setManaged(false);
+                        manageAssignmentsButton.setDisable(true);
+                    }
+                    if (viewGradebookButton != null) {
+                        viewGradebookButton.setVisible(false);
+                        viewGradebookButton.setManaged(false);
+                        viewGradebookButton.setDisable(true);
+                    }
+                }
             }
         } else {
             userIdLabel.setText("Guest");
@@ -364,6 +417,21 @@ public class dashboardcontroller {
                 myEnrolledCoursesButton.setManaged(false);
                 myEnrolledCoursesButton.setDisable(true);
             }
+            if (myAssignmentsButton != null) {
+                myAssignmentsButton.setVisible(false);
+                myAssignmentsButton.setManaged(false);
+                myAssignmentsButton.setDisable(true);
+            }
+            if (manageAssignmentsButton != null) {
+                manageAssignmentsButton.setVisible(false);
+                manageAssignmentsButton.setManaged(false);
+                manageAssignmentsButton.setDisable(true);
+            }
+            if (viewGradebookButton != null) {
+                viewGradebookButton.setVisible(false);
+                viewGradebookButton.setManaged(false);
+                viewGradebookButton.setDisable(true);
+            }
         }
     }
     
@@ -446,6 +514,13 @@ public class dashboardcontroller {
     private Button enrollInCoursesButton;      // Student - Enroll in Courses (US 2.3)
     @FXML
     private Button myEnrolledCoursesButton;    // Student - View My Enrolled Courses (US 2.4)
+
+    @FXML
+    private Button myAssignmentsButton;        // Student - My Assignments (US 2.8)
+    @FXML
+    private Button manageAssignmentsButton;   // Professor - Manage Assignments (US 2.7)
+    @FXML
+    private Button viewGradebookButton;        // Professor - View Gradebook (US 2.9)
 
     @FXML
     private Button logoutButton;
@@ -747,6 +822,80 @@ public class dashboardcontroller {
         }
         
         navigateTo("/fxml/admin_transcript.fxml", event, "Transcript Request Management");
+    }
+
+    @FXML
+    void handleMyAssignments(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your assignments.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can view their assignments.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_assignments.fxml", event, "My Assignments");
+    }
+
+    @FXML
+    void handleManageAssignments(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage assignments.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors can manage assignments.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/professor_assignments.fxml", event, "Assignment Management");
+    }
+
+    @FXML
+    void handleViewGradebook(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view gradebook.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors can view gradebook.");
+            alert.showAndWait();
+            return;
+        }
+        
+        // Navigate to dedicated gradebook page
+        System.out.println("Navigating to Gradebook page");
+        navigateTo("/fxml/gradebook.fxml", event, "Gradebook");
     }
 
     @FXML

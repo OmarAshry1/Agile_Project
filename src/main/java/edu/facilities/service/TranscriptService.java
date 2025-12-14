@@ -25,26 +25,59 @@ public class TranscriptService {
      * @throws SQLException if database error occurs
      */
     public TranscriptRequest createTranscriptRequest(Student student, String purpose) throws SQLException {
+        System.out.println("=== createTranscriptRequest START ===");
+        
         if (student == null) {
+            System.err.println("ERROR: Student is null");
             throw new IllegalArgumentException("Student is required");
         }
 
+        System.out.println("Student ID: " + student.getId() + ", Username: " + student.getUsername());
+
         // Verify user is a student
-        String userType = getUserType(student);
+        String userType = null;
+        try {
+            userType = getUserType(student);
+            System.out.println("User type retrieved: " + userType);
+        } catch (SQLException e) {
+            System.err.println("ERROR: Failed to get user type: " + e.getMessage());
+            e.printStackTrace();
+            throw new SQLException("Failed to verify user type: " + e.getMessage(), e);
+        }
+        
         if (!"STUDENT".equals(userType)) {
-            throw new IllegalArgumentException("Only students can request transcripts");
+            System.err.println("ERROR: User is not a student. UserType: " + userType);
+            throw new IllegalArgumentException("Only students can request transcripts. Current type: " + userType);
         }
 
         int studentId;
         try {
             studentId = Integer.parseInt(student.getId());
+            System.out.println("Parsed student ID: " + studentId);
         } catch (NumberFormatException e) {
+            System.err.println("ERROR: Invalid student ID format: " + student.getId());
             throw new IllegalArgumentException("Invalid student ID: " + student.getId());
         }
 
+        // Verify student exists in database
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement("SELECT UserID, USERNAME, UserType FROM Users WHERE UserID = ?")) {
+            checkStmt.setInt(1, studentId);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.err.println("ERROR: Student with UserID " + studentId + " does not exist in Users table");
+                    throw new SQLException("Student with ID " + studentId + " not found in database");
+                }
+                System.out.println("Verified student exists: " + rs.getString("USERNAME") + " (Type: " + rs.getString("UserType") + ")");
+            }
+        }
+
         String sql = "INSERT INTO TranscriptRequests " +
-                    "(StudentUserID, RequestedByUserID, Status, Purpose) " +
-                    "VALUES (?, ?, 'PENDING', ?)";
+                    "(StudentUserID, RequestedByUserID, Status, Purpose, RequestDate) " +
+                    "VALUES (?, ?, 'PENDING', ?, GETDATE())";
+
+        System.out.println("SQL: " + sql);
+        System.out.println("Parameters: StudentUserID=" + studentId + ", RequestedByUserID=" + studentId + ", Purpose=" + (purpose != null ? purpose : "(null)"));
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -53,17 +86,90 @@ public class TranscriptService {
             pstmt.setInt(2, studentId);
             pstmt.setString(3, purpose != null ? purpose : "");
 
+            System.out.println("Executing INSERT statement...");
             int rowsAffected = pstmt.executeUpdate();
+            System.out.println("Rows affected: " + rowsAffected);
+
             if (rowsAffected > 0) {
+                System.out.println("INSERT successful. Retrieving generated keys...");
                 try (ResultSet keys = pstmt.getGeneratedKeys()) {
                     if (keys.next()) {
-                        int requestId = keys.getInt(1);
-                        return getTranscriptRequestById(String.valueOf(requestId));
+                        // Try to get the key - SQL Server may return it as column 1 or by name
+                        int requestId = 0;
+                        try {
+                            // Try by column index first (most reliable)
+                            requestId = keys.getInt(1);
+                            System.out.println("Generated RequestID (by index): " + requestId);
+                        } catch (SQLException e) {
+                            // Try by column name
+                            try {
+                                requestId = keys.getInt("RequestID");
+                                System.out.println("Generated RequestID (by name): " + requestId);
+                            } catch (SQLException e2) {
+                                // Try SCOPE_IDENTITY() as fallback
+                                System.err.println("WARNING: Could not get generated key from ResultSet");
+                                System.err.println("Attempting to retrieve using SCOPE_IDENTITY()...");
+                                try (PreparedStatement idStmt = conn.prepareStatement("SELECT SCOPE_IDENTITY() AS RequestID")) {
+                                    try (ResultSet idRs = idStmt.executeQuery()) {
+                                        if (idRs.next()) {
+                                            requestId = idRs.getInt("RequestID");
+                                            System.out.println("Retrieved RequestID via SCOPE_IDENTITY(): " + requestId);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (requestId > 0) {
+                            System.out.println("Generated RequestID: " + requestId);
+                            
+                            TranscriptRequest request = getTranscriptRequestById(String.valueOf(requestId));
+                            if (request != null) {
+                                System.out.println("Successfully created and retrieved transcript request: " + request.getId());
+                                System.out.println("=== createTranscriptRequest SUCCESS ===");
+                                return request;
+                            } else {
+                                System.err.println("ERROR: Failed to retrieve created transcript request with ID: " + requestId);
+                                System.err.println("Attempting direct query to verify request exists...");
+                                // Try direct query to see if request exists
+                                try (PreparedStatement verifyStmt = conn.prepareStatement("SELECT RequestID FROM TranscriptRequests WHERE RequestID = ?")) {
+                                    verifyStmt.setInt(1, requestId);
+                                    try (ResultSet verifyRs = verifyStmt.executeQuery()) {
+                                        if (verifyRs.next()) {
+                                            System.err.println("Request exists in database but getTranscriptRequestById returned null");
+                                            System.err.println("This suggests an issue with getTranscriptRequestById() method");
+                                        } else {
+                                            System.err.println("Request does not exist in database - INSERT may have failed silently");
+                                        }
+                                    }
+                                }
+                                throw new SQLException("Failed to retrieve created transcript request with ID: " + requestId);
+                            }
+                        } else {
+                            System.err.println("ERROR: Could not determine generated RequestID");
+                            throw new SQLException("Could not determine generated RequestID from INSERT statement");
+                        }
+                    } else {
+                        System.err.println("ERROR: No generated keys returned from INSERT");
+                        System.err.println("ResultSet from getGeneratedKeys() is empty");
+                        throw new SQLException("No generated keys returned from INSERT statement");
                     }
                 }
+            } else {
+                System.err.println("ERROR: INSERT returned 0 rows affected");
+                throw new SQLException("INSERT statement affected 0 rows. Request was not created.");
             }
+        } catch (SQLException e) {
+            System.err.println("=== SQLException in createTranscriptRequest ===");
+            System.err.println("Error Message: " + e.getMessage());
+            System.err.println("SQL State: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
+            System.err.println("SQL: " + sql);
+            System.err.println("Student ID: " + studentId);
+            e.printStackTrace();
+            System.err.println("=== END SQLException ===");
+            throw e;
         }
-        return null;
     }
 
     /**
