@@ -3,7 +3,6 @@ package edu.facilities.ui;
 import edu.facilities.model.Course;
 import edu.facilities.model.CourseAttribute;
 import edu.facilities.model.CourseAttributeType;
-import edu.facilities.service.AuthService;
 import edu.facilities.service.CourseService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Controller for managing course attributes (EAV pattern)
@@ -39,7 +39,6 @@ public class CourseAttributesController {
     private CourseService courseService;
     private Course course;
     private ObservableList<CourseAttribute> attributesList = FXCollections.observableArrayList();
-    private AuthService authService = AuthService.getInstance();
 
     @FXML
     public void initialize() {

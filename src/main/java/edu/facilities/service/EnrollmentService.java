@@ -6,7 +6,6 @@ import edu.facilities.model.EnrollmentStatus;
 import edu.facilities.model.User;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -318,6 +317,8 @@ public class EnrollmentService {
         
         // Map course
         Course course = mapResultSetToCourse(rs, 7); // Starting from column 7
+        // Load course relations (professors, prerequisites) for full course data
+        loadCourseRelations(course, conn);
         enrollment.setCourse(course);
         
         Timestamp enrollmentTs = rs.getTimestamp("EnrollmentDate");
@@ -358,33 +359,86 @@ public class EnrollmentService {
         return course;
     }
     
+    /**
+     * Load course relations (professors, prerequisites, attributes)
+     * Used to populate full course data for enrollment views
+     */
+    private void loadCourseRelations(Course course, Connection conn) throws SQLException {
+        // Load professors
+        String professorsSql = "SELECT u.UserID, u.Username, u.Email, u.UserType " +
+                               "FROM CourseProfessors cp " +
+                               "INNER JOIN Users u ON cp.ProfessorUserID = u.UserID " +
+                               "WHERE cp.CourseID = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(professorsSql)) {
+            pstmt.setInt(1, Integer.parseInt(course.getId()));
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<User> professors = new ArrayList<>();
+                while (rs.next()) {
+                    // Create Professor object
+                    User professor = new edu.facilities.model.Professor(
+                        String.valueOf(rs.getInt("UserID")),
+                        rs.getString("Username"),
+                        null // Password not needed
+                    );
+                    professors.add(professor);
+                }
+                course.setProfessors(professors);
+            }
+        }
+        
+        // Load prerequisites
+        String prerequisitesSql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                                  "c.Department, c.Semester, c.Type, c.MaxSeats, c.CurrentSeats, " +
+                                  "c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                                  "FROM Prerequisites p " +
+                                  "INNER JOIN Courses c ON p.PrerequisiteCourseID = c.CourseID " +
+                                  "WHERE p.CourseID = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(prerequisitesSql)) {
+            pstmt.setInt(1, Integer.parseInt(course.getId()));
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<Course> prerequisites = new ArrayList<>();
+                while (rs.next()) {
+                    Course prereq = mapResultSetToCourse(rs, 1); // Map from first column
+                    prerequisites.add(prereq);
+                }
+                course.setPrerequisites(prerequisites);
+            }
+        }
+    }
+    
     private User mapResultSetToUser(ResultSet rs, int startColumn) throws SQLException {
         int userId = rs.getInt(startColumn);
         String username = rs.getString(startColumn + 1);
-        String email = rs.getString(startColumn + 2);
+        // email is at startColumn + 2 but not used in User constructor
+        rs.getString(startColumn + 2); // Skip email column
         String userType = rs.getString(startColumn + 3);
         
         // Create appropriate user type (simplified - you may need to load full data)
+        // Note: User constructors take (id, username, password) - password is not available from this query
         switch (userType) {
             case "STUDENT":
                 return new edu.facilities.model.Student(
-                    String.valueOf(userId), username, email, userType
+                    String.valueOf(userId), username, null
                 );
             case "PROFESSOR":
                 return new edu.facilities.model.Professor(
-                    String.valueOf(userId), username, email, userType
+                    String.valueOf(userId), username, null
                 );
             case "STAFF":
                 return new edu.facilities.model.Staff(
-                    String.valueOf(userId), username, email, userType
+                    String.valueOf(userId), username, null
                 );
             case "ADMIN":
                 return new edu.facilities.model.Admin(
-                    String.valueOf(userId), username, email, userType
+                    String.valueOf(userId), username, null
                 );
             default:
                 return new edu.facilities.model.Student(
-                    String.valueOf(userId), username, email, userType
+                    String.valueOf(userId), username, null
                 );
         }
     }

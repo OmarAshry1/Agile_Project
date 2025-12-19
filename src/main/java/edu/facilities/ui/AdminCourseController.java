@@ -1,10 +1,7 @@
 package edu.facilities.ui;
 
 import edu.facilities.model.Course;
-import edu.facilities.model.CourseAttribute;
-import edu.facilities.model.CourseAttributeType;
 import edu.facilities.model.CourseType;
-import edu.facilities.model.User;
 import edu.facilities.service.AuthService;
 import edu.facilities.service.CourseService;
 import javafx.collections.FXCollections;

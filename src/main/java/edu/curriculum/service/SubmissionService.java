@@ -18,12 +18,14 @@ public class SubmissionService {
 
     /**
      * Submit an assignment
+     * US 2.8 - Validates deadline and allows late submissions if configured
      * @param assignmentId The assignment ID
      * @param studentId The student user ID
      * @param submissionText Submission text
      * @param fileName File name (optional)
      * @return Created AssignmentSubmission object or null if failed
      * @throws SQLException if database error occurs
+     * @throws IllegalArgumentException if deadline passed and late submissions not allowed
      */
     public AssignmentSubmission submitAssignment(String assignmentId, String studentId,
                                                   String submissionText, String fileName) throws SQLException {
@@ -40,6 +42,26 @@ public class SubmissionService {
             return null;
         }
 
+        // Get assignment to check deadline
+        Assignment assignment = getAssignmentById(assignmentIdInt);
+        if (assignment == null) {
+            throw new IllegalArgumentException("Assignment not found");
+        }
+
+        // US 2.8 - Check deadline and late submission policy
+        LocalDateTime now = LocalDateTime.now();
+        boolean isLate = assignment.getDueDate() != null && now.isAfter(assignment.getDueDate());
+        
+        if (isLate) {
+            // Check if late submissions are allowed via EAV attribute
+            String allowLate = assignment.getAttribute("AllowLateSubmissions");
+            if (!"true".equalsIgnoreCase(allowLate)) {
+                throw new IllegalArgumentException(
+                    "Assignment deadline has passed. Late submissions are not allowed. " +
+                    "Deadline was: " + assignment.getDueDate());
+            }
+        }
+
         // Check if already submitted
         String checkSql = "SELECT SubmissionID FROM AssignmentSubmissions WHERE AssignmentID = ? AND StudentUserID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -52,14 +74,17 @@ public class SubmissionService {
                 if (rs.next()) {
                     System.out.println("Student " + studentId + " has already submitted assignment " + assignmentId);
                     // Update existing submission
-                    return updateSubmission(assignmentId, studentId, submissionText, fileName);
+                    return updateSubmission(assignmentId, studentId, submissionText, fileName, isLate);
                 }
             }
         }
 
+        // US 2.8 - Status should be "SUBMITTED" (changed from PENDING when student submits)
+        String status = isLate ? "SUBMITTED_LATE" : "SUBMITTED";
+        
         // Create new submission
         String sql = "INSERT INTO AssignmentSubmissions (AssignmentID, StudentUserID, SubmissionText, FileName, SubmittedDate, Status) " +
-                     "VALUES (?, ?, ?, ?, GETDATE(), 'SUBMITTED')";
+                     "VALUES (?, ?, ?, ?, GETDATE(), ?)";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -68,6 +93,7 @@ public class SubmissionService {
             pstmt.setInt(2, studentIdInt);
             pstmt.setString(3, submissionText);
             pstmt.setString(4, fileName);
+            pstmt.setString(5, status);
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -89,11 +115,12 @@ public class SubmissionService {
      * Update existing submission
      */
     private AssignmentSubmission updateSubmission(String assignmentId, String studentId,
-                                                  String submissionText, String fileName) throws SQLException {
+                                                  String submissionText, String fileName, boolean isLate) throws SQLException {
         int assignmentIdInt = Integer.parseInt(assignmentId);
         int studentIdInt = Integer.parseInt(studentId);
 
-        String sql = "UPDATE AssignmentSubmissions SET SubmissionText = ?, FileName = ?, SubmittedDate = GETDATE() " +
+        String status = isLate ? "SUBMITTED_LATE" : "SUBMITTED";
+        String sql = "UPDATE AssignmentSubmissions SET SubmissionText = ?, FileName = ?, SubmittedDate = GETDATE(), Status = ? " +
                      "WHERE AssignmentID = ? AND StudentUserID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -101,8 +128,9 @@ public class SubmissionService {
             
             pstmt.setString(1, submissionText);
             pstmt.setString(2, fileName);
-            pstmt.setInt(3, assignmentIdInt);
-            pstmt.setInt(4, studentIdInt);
+            pstmt.setString(3, status);
+            pstmt.setInt(4, assignmentIdInt);
+            pstmt.setInt(5, studentIdInt);
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -328,6 +356,14 @@ public class SubmissionService {
         edu.curriculum.service.AssignmentService assignmentService = new edu.curriculum.service.AssignmentService();
         return assignmentService.getAssignmentById(String.valueOf(assignmentId));
     }
+    
+    /**
+     * Get assignment by ID (overload for when connection is not available)
+     */
+    private Assignment getAssignmentById(int assignmentId) throws SQLException {
+        edu.curriculum.service.AssignmentService assignmentService = new edu.curriculum.service.AssignmentService();
+        return assignmentService.getAssignmentById(String.valueOf(assignmentId));
+    }
 
     /**
      * Get student by ID (helper method)
@@ -360,6 +396,7 @@ public class SubmissionService {
         if (statusStr == null) return SubmissionStatus.SUBMITTED;
         switch (statusStr.toUpperCase()) {
             case "SUBMITTED": return SubmissionStatus.SUBMITTED;
+            case "SUBMITTED_LATE": return SubmissionStatus.SUBMITTED; // Treat late as submitted
             case "GRADED": return SubmissionStatus.GRADED;
             default: return SubmissionStatus.SUBMITTED;
         }

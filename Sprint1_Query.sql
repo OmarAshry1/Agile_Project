@@ -519,6 +519,13 @@ CREATE TABLE Enrollments (
 );
 GO
 
+-- Create filtered unique index to prevent duplicate active enrollments
+-- This allows re-enrollment after drop but prevents multiple ENROLLED status for same student/course
+CREATE UNIQUE NONCLUSTERED INDEX IX_Enrollments_UniqueActiveEnrollment 
+ON Enrollments(StudentUserID, CourseID) 
+WHERE Status = 'ENROLLED';
+GO
+
 -- Create index on StudentUserID for faster student lookups
 CREATE INDEX IX_Enrollments_StudentUserID ON Enrollments(StudentUserID);
 GO
@@ -586,6 +593,40 @@ GO
 CREATE INDEX IX_AssignmentSubmissions_AssignmentID ON AssignmentSubmissions(AssignmentID);
 CREATE INDEX IX_AssignmentSubmissions_StudentUserID ON AssignmentSubmissions(StudentUserID);
 CREATE INDEX IX_AssignmentSubmissions_Status ON AssignmentSubmissions(Status);
+GO
+
+-- CourseMaterials table (US 2.5 - Upload Course Materials, US 2.6 - View Course Materials)
+-- Stores course materials uploaded by professors (files and links)
+CREATE TABLE CourseMaterials (
+    MaterialID INT PRIMARY KEY IDENTITY(1,1),
+    CourseID INT NOT NULL,
+    Title NVARCHAR(255) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
+    MaterialType VARCHAR(20) NOT NULL
+        CHECK (MaterialType IN ('LECTURE', 'READING', 'VIDEO', 'LINK')),
+    FileName NVARCHAR(255) NULL,              -- Original filename or link text
+    FilePath NVARCHAR(500) NOT NULL,           -- Path to file or URL for links
+    FileSizeBytes BIGINT DEFAULT 0,            -- File size in bytes (0 for links)
+    UploadDate DATETIME2 DEFAULT GETDATE(),
+    UploadedByUserID INT NOT NULL,             -- Professor who uploaded
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
+    FOREIGN KEY (UploadedByUserID) REFERENCES Users(UserID)
+);
+GO
+
+-- Create index on CourseID for faster queries
+CREATE INDEX IX_CourseMaterials_CourseID 
+ON CourseMaterials(CourseID);
+GO
+
+-- Create index on UploadDate for sorting (US 2.6 - organized by upload date)
+CREATE INDEX IX_CourseMaterials_UploadDate 
+ON CourseMaterials(UploadDate DESC);
+GO
+
+-- Create index on UploadedByUserID
+CREATE INDEX IX_CourseMaterials_UploadedBy 
+ON CourseMaterials(UploadedByUserID);
 GO
 
 -- ============================================================================

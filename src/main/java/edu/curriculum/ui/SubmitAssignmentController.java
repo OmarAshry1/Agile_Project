@@ -122,6 +122,9 @@ public class SubmitAssignmentController {
             } else {
                 showError("Error", "Failed to submit assignment.");
             }
+        } catch (IllegalArgumentException e) {
+            // US 2.8 - Handle deadline validation errors
+            showError("Submission Error", e.getMessage());
         } catch (SQLException e) {
             showError("Database Error", "Failed to submit assignment: " + e.getMessage());
             e.printStackTrace();

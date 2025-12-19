@@ -7,7 +7,6 @@ import edu.facilities.model.CourseType;
 import edu.facilities.model.User;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -482,6 +481,51 @@ public class CourseService {
         }
         
         return semesters;
+    }
+    
+    /**
+     * Get courses by professor ID
+     * @param professorId The professor user ID
+     * @return List of courses taught by the professor
+     * @throws SQLException if database error occurs
+     */
+    public List<Course> getCoursesByProfessor(String professorId) throws SQLException {
+        if (professorId == null || professorId.isBlank()) {
+            return new ArrayList<>();
+        }
+
+        int professorIdInt;
+        try {
+            professorIdInt = Integer.parseInt(professorId);
+        } catch (NumberFormatException e) {
+            return new ArrayList<>();
+        }
+
+        List<Course> courses = new ArrayList<>();
+        // Use CourseProfessors junction table
+        String sql = "SELECT DISTINCT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                    "c.Department, c.Semester, c.Type, c.MaxSeats, c.CurrentSeats, " +
+                    "c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                    "FROM Courses c " +
+                    "INNER JOIN CourseProfessors cp ON c.CourseID = cp.CourseID " +
+                    "WHERE cp.ProfessorUserID = ? AND (c.IsActive = 1 OR c.IsActive IS NULL) " +
+                    "ORDER BY c.Code";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, professorIdInt);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Course course = mapResultSetToCourse(rs);
+                    loadCourseRelations(course, conn);
+                    courses.add(course);
+                }
+            }
+        }
+
+        return courses;
     }
     
     // Helper methods

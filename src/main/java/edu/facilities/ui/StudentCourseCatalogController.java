@@ -241,7 +241,7 @@ public class StudentCourseCatalogController {
         // Navigate to enrollment page (or handle enrollment here)
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/student_enrollment.fxml"));
-            Stage stage = (Stage) ((Node) enrollButton.getScene().getWindow()).getScene().getWindow();
+            Stage stage = (Stage) enrollButton.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Enroll in Courses");
             stage.show();
