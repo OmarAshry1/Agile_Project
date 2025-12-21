@@ -110,11 +110,16 @@ public class dashboardcontroller {
                     manageCoursesButton.setManaged(true);
                     manageCoursesButton.setDisable(false);
                 }
-                // Hide student transcript button for admins
+                // Hide student transcript buttons for admins
                 if (myTranscriptsButton != null) {
                     myTranscriptsButton.setVisible(false);
                     myTranscriptsButton.setManaged(false);
                     myTranscriptsButton.setDisable(true);
+                }
+                if (requestTranscriptButton != null) {
+                    requestTranscriptButton.setVisible(false);
+                    requestTranscriptButton.setManaged(false);
+                    requestTranscriptButton.setDisable(true);
                 }
                 // Hide student course buttons for admins
                 if (viewCourseCatalogButton != null) {
@@ -258,12 +263,17 @@ public class dashboardcontroller {
                     transcriptRequestsButton.setManaged(false);
                     transcriptRequestsButton.setDisable(true);
                 }
-                // Show student transcript button for students only
+                // Show student transcript buttons for students only
                 if ("STUDENT".equals(userType)) {
                     if (myTranscriptsButton != null) {
                         myTranscriptsButton.setVisible(true);
                         myTranscriptsButton.setManaged(true);
                         myTranscriptsButton.setDisable(false);
+                    }
+                    if (requestTranscriptButton != null) {
+                        requestTranscriptButton.setVisible(true);
+                        requestTranscriptButton.setManaged(true);
+                        requestTranscriptButton.setDisable(false);
                     }
                     // Show course catalog buttons for students
                     if (viewCourseCatalogButton != null) {
@@ -286,6 +296,11 @@ public class dashboardcontroller {
                         myTranscriptsButton.setVisible(false);
                         myTranscriptsButton.setManaged(false);
                         myTranscriptsButton.setDisable(true);
+                    }
+                    if (requestTranscriptButton != null) {
+                        requestTranscriptButton.setVisible(false);
+                        requestTranscriptButton.setManaged(false);
+                        requestTranscriptButton.setDisable(true);
                     }
                     // Hide course catalog buttons for non-students
                     if (viewCourseCatalogButton != null) {
@@ -335,6 +350,11 @@ public class dashboardcontroller {
                         viewGradebookButton.setManaged(true);
                         viewGradebookButton.setDisable(false);
                     }
+                    if (calculateFinalGradesButton != null) {
+                        calculateFinalGradesButton.setVisible(true);
+                        calculateFinalGradesButton.setManaged(true);
+                        calculateFinalGradesButton.setDisable(false);
+                    }
                 } else {
                     if (manageAssignmentsButton != null) {
                         manageAssignmentsButton.setVisible(false);
@@ -345,6 +365,11 @@ public class dashboardcontroller {
                         viewGradebookButton.setVisible(false);
                         viewGradebookButton.setManaged(false);
                         viewGradebookButton.setDisable(true);
+                    }
+                    if (calculateFinalGradesButton != null) {
+                        calculateFinalGradesButton.setVisible(false);
+                        calculateFinalGradesButton.setManaged(false);
+                        calculateFinalGradesButton.setDisable(true);
                     }
                 }
                 // Show quiz/exam buttons based on role
@@ -359,6 +384,11 @@ public class dashboardcontroller {
                         myExamsButton.setManaged(true);
                         myExamsButton.setDisable(false);
                     }
+                    if (courseGradesButton != null) {
+                        courseGradesButton.setVisible(true);
+                        courseGradesButton.setManaged(true);
+                        courseGradesButton.setDisable(false);
+                    }
                 } else {
                     if (myQuizzesButton != null) {
                         myQuizzesButton.setVisible(false);
@@ -369,6 +399,11 @@ public class dashboardcontroller {
                         myExamsButton.setVisible(false);
                         myExamsButton.setManaged(false);
                         myExamsButton.setDisable(true);
+                    }
+                    if (courseGradesButton != null) {
+                        courseGradesButton.setVisible(false);
+                        courseGradesButton.setManaged(false);
+                        courseGradesButton.setDisable(true);
                     }
                 }
                 if ("PROFESSOR".equals(userType)) {
@@ -460,6 +495,11 @@ public class dashboardcontroller {
                 myTranscriptsButton.setManaged(false);
                 myTranscriptsButton.setDisable(true);
             }
+            if (requestTranscriptButton != null) {
+                requestTranscriptButton.setVisible(false);
+                requestTranscriptButton.setManaged(false);
+                requestTranscriptButton.setDisable(true);
+            }
             if (transcriptRequestsButton != null) {
                 transcriptRequestsButton.setVisible(false);
                 transcriptRequestsButton.setManaged(false);
@@ -500,6 +540,11 @@ public class dashboardcontroller {
                 viewGradebookButton.setManaged(false);
                 viewGradebookButton.setDisable(true);
             }
+            if (calculateFinalGradesButton != null) {
+                calculateFinalGradesButton.setVisible(false);
+                calculateFinalGradesButton.setManaged(false);
+                calculateFinalGradesButton.setDisable(true);
+            }
             if (myQuizzesButton != null) {
                 myQuizzesButton.setVisible(false);
                 myQuizzesButton.setManaged(false);
@@ -509,6 +554,11 @@ public class dashboardcontroller {
                 myExamsButton.setVisible(false);
                 myExamsButton.setManaged(false);
                 myExamsButton.setDisable(true);
+            }
+            if (courseGradesButton != null) {
+                courseGradesButton.setVisible(false);
+                courseGradesButton.setManaged(false);
+                courseGradesButton.setDisable(true);
             }
             if (manageQuizzesButton != null) {
                 manageQuizzesButton.setVisible(false);
@@ -610,9 +660,15 @@ public class dashboardcontroller {
     @FXML
     private Button viewGradebookButton;        // Professor - View Gradebook (US 2.9)
     @FXML
+    private Button calculateFinalGradesButton; // Professor - Calculate Final Grades
+    @FXML
+    private Button requestTranscriptButton;    // Student - Request Transcript
+    @FXML
     private Button myQuizzesButton;            // Student - My Quizzes (US 2.11)
     @FXML
     private Button myExamsButton;              // Student - My Exams
+    @FXML
+    private Button courseGradesButton;          // Student - View Course Grades
     @FXML
     private Button manageQuizzesButton;        // Professor - Manage Quizzes (US 2.10)
     @FXML
@@ -878,7 +934,7 @@ public class dashboardcontroller {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Not Logged In");
             alert.setHeaderText(null);
-            alert.setContentText("Please login to view your transcript requests.");
+            alert.setContentText("Please login to view your transcript.");
             alert.showAndWait();
             return;
         }
@@ -888,12 +944,38 @@ public class dashboardcontroller {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Access Denied");
             alert.setHeaderText(null);
-            alert.setContentText("Only students can view their transcript requests.");
+            alert.setContentText("Only students can view their transcript.");
             alert.showAndWait();
             return;
         }
         
-        navigateTo("/fxml/student_transcript.fxml", event, "My Transcript Requests");
+        // Navigate to transcript view (academic record)
+        navigateTo("/fxml/view_transcript.fxml", event, "View Transcript");
+    }
+
+    @FXML
+    void handleRequestTranscript(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to request a transcript.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can request transcripts.");
+            alert.showAndWait();
+            return;
+        }
+        
+        // Navigate to transcript request page
+        navigateTo("/fxml/student_transcript.fxml", event, "Request Transcript");
     }
 
     @FXML
@@ -992,6 +1074,30 @@ public class dashboardcontroller {
         // Navigate to dedicated gradebook page
         System.out.println("Navigating to Gradebook page");
         navigateTo("/fxml/gradebook.fxml", event, "Gradebook");
+    }
+
+    @FXML
+    void handleCalculateFinalGrades(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to calculate final grades.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors can calculate final grades.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/calculate_final_grades.fxml", event, "Calculate Final Grades");
     }
 
     @FXML
@@ -1201,6 +1307,30 @@ public class dashboardcontroller {
         }
         
         navigateTo("/fxml/student_exams.fxml", event, "My Exams");
+    }
+
+    @FXML
+    void handleCourseGrades(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view course grades.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can view course grades.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_course_grades.fxml", event, "Course Grades");
     }
 
     private void navigateTo(String fxmlPath, ActionEvent event, String title) {

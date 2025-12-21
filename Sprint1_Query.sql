@@ -765,6 +765,27 @@ CREATE INDEX IX_ExamGrades_ExamID ON ExamGrades(ExamID);
 CREATE INDEX IX_ExamGrades_StudentUserID ON ExamGrades(StudentUserID);
 GO
 
+
+-- ============================================================================
+-- Table for storing grade weight distributions for courses
+-- US: As a professor/system, I want to calculate final grades using weight distributions
+-- ============================================================================
+
+CREATE TABLE CourseGradeWeights (
+                                    CourseID INT PRIMARY KEY,
+                                    AssignmentsWeight DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+                                    QuizzesWeight DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+                                    ExamsWeight DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+                                    CreatedDate DATETIME2 DEFAULT GETDATE(),
+                                    UpdatedDate DATETIME2 DEFAULT GETDATE(),
+                                    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
+                                    CONSTRAINT CHK_WeightsSum CHECK (AssignmentsWeight + QuizzesWeight + ExamsWeight = 100.00)
+);
+GO
+
+CREATE INDEX IX_CourseGradeWeights_CourseID ON CourseGradeWeights(CourseID);
+GO
+
 -- ============================================================================
 -- TEST DATA SECTION
 -- ============================================================================

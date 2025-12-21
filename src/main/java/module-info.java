@@ -3,6 +3,7 @@ module edu.facilities {
     requires javafx.fxml;
     requires java.sql;
     requires com.microsoft.sqlserver.jdbc;
+    requires org.apache.pdfbox;
 
     opens edu.facilities.ui to javafx.fxml, javafx.graphics;
     opens edu.facilities to javafx.fxml, javafx.graphics;
