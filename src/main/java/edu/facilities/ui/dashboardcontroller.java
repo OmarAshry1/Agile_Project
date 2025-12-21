@@ -148,6 +148,27 @@ public class dashboardcontroller {
                     viewGradebookButton.setManaged(false);
                     viewGradebookButton.setDisable(true);
                 }
+                // Hide quiz/exam buttons for admins
+                if (myQuizzesButton != null) {
+                    myQuizzesButton.setVisible(false);
+                    myQuizzesButton.setManaged(false);
+                    myQuizzesButton.setDisable(true);
+                }
+                if (myExamsButton != null) {
+                    myExamsButton.setVisible(false);
+                    myExamsButton.setManaged(false);
+                    myExamsButton.setDisable(true);
+                }
+                if (manageQuizzesButton != null) {
+                    manageQuizzesButton.setVisible(false);
+                    manageQuizzesButton.setManaged(false);
+                    manageQuizzesButton.setDisable(true);
+                }
+                if (manageExamsButton != null) {
+                    manageExamsButton.setVisible(false);
+                    manageExamsButton.setManaged(false);
+                    manageExamsButton.setDisable(true);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
@@ -326,6 +347,53 @@ public class dashboardcontroller {
                         viewGradebookButton.setDisable(true);
                     }
                 }
+                // Show quiz/exam buttons based on role
+                if ("STUDENT".equals(userType)) {
+                    if (myQuizzesButton != null) {
+                        myQuizzesButton.setVisible(true);
+                        myQuizzesButton.setManaged(true);
+                        myQuizzesButton.setDisable(false);
+                    }
+                    if (myExamsButton != null) {
+                        myExamsButton.setVisible(true);
+                        myExamsButton.setManaged(true);
+                        myExamsButton.setDisable(false);
+                    }
+                } else {
+                    if (myQuizzesButton != null) {
+                        myQuizzesButton.setVisible(false);
+                        myQuizzesButton.setManaged(false);
+                        myQuizzesButton.setDisable(true);
+                    }
+                    if (myExamsButton != null) {
+                        myExamsButton.setVisible(false);
+                        myExamsButton.setManaged(false);
+                        myExamsButton.setDisable(true);
+                    }
+                }
+                if ("PROFESSOR".equals(userType)) {
+                    if (manageQuizzesButton != null) {
+                        manageQuizzesButton.setVisible(true);
+                        manageQuizzesButton.setManaged(true);
+                        manageQuizzesButton.setDisable(false);
+                    }
+                    if (manageExamsButton != null) {
+                        manageExamsButton.setVisible(true);
+                        manageExamsButton.setManaged(true);
+                        manageExamsButton.setDisable(false);
+                    }
+                } else {
+                    if (manageQuizzesButton != null) {
+                        manageQuizzesButton.setVisible(false);
+                        manageQuizzesButton.setManaged(false);
+                        manageQuizzesButton.setDisable(true);
+                    }
+                    if (manageExamsButton != null) {
+                        manageExamsButton.setVisible(false);
+                        manageExamsButton.setManaged(false);
+                        manageExamsButton.setDisable(true);
+                    }
+                }
             }
         } else {
             userIdLabel.setText("Guest");
@@ -432,6 +500,26 @@ public class dashboardcontroller {
                 viewGradebookButton.setManaged(false);
                 viewGradebookButton.setDisable(true);
             }
+            if (myQuizzesButton != null) {
+                myQuizzesButton.setVisible(false);
+                myQuizzesButton.setManaged(false);
+                myQuizzesButton.setDisable(true);
+            }
+            if (myExamsButton != null) {
+                myExamsButton.setVisible(false);
+                myExamsButton.setManaged(false);
+                myExamsButton.setDisable(true);
+            }
+            if (manageQuizzesButton != null) {
+                manageQuizzesButton.setVisible(false);
+                manageQuizzesButton.setManaged(false);
+                manageQuizzesButton.setDisable(true);
+            }
+            if (manageExamsButton != null) {
+                manageExamsButton.setVisible(false);
+                manageExamsButton.setManaged(false);
+                manageExamsButton.setDisable(true);
+            }
         }
     }
     
@@ -521,6 +609,14 @@ public class dashboardcontroller {
     private Button manageAssignmentsButton;   // Professor - Manage Assignments (US 2.7)
     @FXML
     private Button viewGradebookButton;        // Professor - View Gradebook (US 2.9)
+    @FXML
+    private Button myQuizzesButton;            // Student - My Quizzes (US 2.11)
+    @FXML
+    private Button myExamsButton;              // Student - My Exams
+    @FXML
+    private Button manageQuizzesButton;        // Professor - Manage Quizzes (US 2.10)
+    @FXML
+    private Button manageExamsButton;          // Professor - Manage Exams (US 2.12, 2.13)
 
     @FXML
     private Button logoutButton;
@@ -1009,6 +1105,102 @@ public class dashboardcontroller {
         }
         
         navigateTo("/fxml/student_my_courses.fxml", event, "My Enrolled Courses");
+    }
+
+    @FXML
+    void handleMyQuizzes(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your quizzes.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can view their quizzes.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_quizzes.fxml", event, "My Quizzes");
+    }
+
+    @FXML
+    void handleManageQuizzes(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage quizzes.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors can manage quizzes.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/professor_quizzes.fxml", event, "Quiz Management");
+    }
+
+    @FXML
+    void handleManageExams(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage exams.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only professors can manage exams.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/professor_exams.fxml", event, "Exam Management");
+    }
+
+    @FXML
+    void handleMyExams(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your exams.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only students can view their exams.");
+            alert.showAndWait();
+            return;
+        }
+        
+        navigateTo("/fxml/student_exams.fxml", event, "My Exams");
     }
 
     private void navigateTo(String fxmlPath, ActionEvent event, String title) {

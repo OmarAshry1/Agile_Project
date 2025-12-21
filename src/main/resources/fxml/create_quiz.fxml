@@ -85,7 +85,22 @@
                            visible="false" wrapText="true"/>
                 </VBox>
 
-                <!-- Row 6: Additional Options -->
+                <!-- Row 6: Number of Questions -->
+                <VBox spacing="5">
+                    <Label text="Number of Questions *" styleClass="form-label"/>
+                    <Spinner fx:id="numberOfQuestionsSpinner" editable="true" min="1" max="15" prefWidth="150"/>
+                    <Label fx:id="questionsError" text=""
+                           style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                           visible="false" wrapText="true"/>
+                </VBox>
+
+                <!-- Row 7: Questions Container -->
+                <VBox spacing="10">
+                    <Label text="Questions *" styleClass="form-label" style="-fx-font-weight: bold;"/>
+                    <VBox fx:id="questionsContainer" spacing="15" VBox.vgrow="ALWAYS"/>
+                </VBox>
+
+                <!-- Row 8: Additional Options -->
                 <VBox spacing="10" styleClass="card">
                     <padding>
                         <Insets bottom="10" left="10" right="10" top="10"/>

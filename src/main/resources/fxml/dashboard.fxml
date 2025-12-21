@@ -40,6 +40,10 @@
             <Button fx:id="myAssignmentsButton" onAction="#handleMyAssignments" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Assignments" visible="false" managed="false" />
             <Button fx:id="manageAssignmentsButton" onAction="#handleManageAssignments" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Assignments" visible="false" managed="false" />
             <Button fx:id="viewGradebookButton" onAction="#handleViewGradebook" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Gradebook" visible="false" managed="false" />
+            <Button fx:id="myQuizzesButton" onAction="#handleMyQuizzes" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Quizzes" visible="false" managed="false" />
+            <Button fx:id="myExamsButton" onAction="#handleMyExams" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Exams" visible="false" managed="false" />
+            <Button fx:id="manageQuizzesButton" onAction="#handleManageQuizzes" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Quizzes" visible="false" managed="false" />
+            <Button fx:id="manageExamsButton" onAction="#handleManageExams" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Exams" visible="false" managed="false" />
             <Button fx:id="logoutButton" onAction="#handleLogout" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-secondary" text="Logout" />
             <Button fx:id="loginButton" onAction="#handleLogin" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Login" />
             <Button fx:id="registerButton" onAction="#handleRegister" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Register" />

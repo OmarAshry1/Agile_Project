@@ -40,6 +40,32 @@ public class LoginController {
     private TextField usernameField;
 
     @FXML
+    void initialize() {
+        // Show demo credentials if demo mode is enabled
+        // Check if demo mode is enabled by trying to access the constant via reflection
+        try {
+            java.lang.reflect.Field demoModeField = edu.facilities.service.AuthService.class.getDeclaredField("DEMO_MODE");
+            demoModeField.setAccessible(true);
+            boolean demoMode = demoModeField.getBoolean(null);
+            
+            if (demoMode) {
+                // Print demo credentials to console
+                System.out.println("========================================");
+                System.out.println("DEMO MODE ENABLED");
+                System.out.println("Demo Credentials:");
+                System.out.println("  Student:    student / student123");
+                System.out.println("  Professor:  professor / professor123");
+                System.out.println("  Admin:      admin / admin123");
+                System.out.println("  Staff:      staff / staff123");
+                System.out.println("========================================");
+            }
+        } catch (Exception e) {
+            // If reflection fails, just continue normally
+            System.out.println("Could not check demo mode status");
+        }
+    }
+
+    @FXML
     void handleLogin(ActionEvent event) {
         clearErrors();
 
@@ -102,10 +128,13 @@ public class LoginController {
                 passwordError.setVisible(true);
             }
         } catch (SQLException e) {
+            // Only show database error if not in demo mode
+            // In demo mode, SQLException shouldn't occur, but handle it gracefully
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Database Error");
             alert.setHeaderText("Failed to connect to database");
-            alert.setContentText("Please check your database connection: " + e.getMessage());
+            alert.setContentText("Please check your database connection: " + e.getMessage() + 
+                                "\n\nNote: If you're using demo mode, this error shouldn't occur.");
             alert.showAndWait();
             e.printStackTrace();
         }

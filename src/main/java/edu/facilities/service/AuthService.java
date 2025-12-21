@@ -19,6 +19,13 @@ import java.security.NoSuchAlgorithmException;
  */
 public class AuthService {
 
+    // ============================================================================
+    // DEMO MODE - Set to true to bypass database connection
+    // Set to false to use normal database authentication
+    // ============================================================================
+    private static final boolean DEMO_MODE = false;
+    // ============================================================================
+
     private static AuthService instance;
     private User currentUser;
     private String currentUserType;
@@ -44,13 +51,61 @@ public class AuthService {
      * @param username Username
      * @param password Plain text password
      * @return User object if successful, null otherwise
-     * @throws SQLException if database error occurs
+     * @throws SQLException if database error occurs (only in non-demo mode)
      */
     public User login(String username, String password) throws SQLException {
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
             return null;
         }
 
+        // ============================================================================
+        // DEMO MODE - Bypass database authentication
+        // ============================================================================
+        if (DEMO_MODE) {
+            System.out.println("=== DEMO MODE ENABLED - Bypassing database authentication ===");
+            
+            // Demo user credentials
+            if ("student".equalsIgnoreCase(username) && "student123".equals(password)) {
+                User user = createUser("1001", username, "STUDENT");
+                this.currentUser = user;
+                this.currentUserType = "STUDENT";
+                System.out.println("DEMO: User logged in: " + username + " (STUDENT)");
+                return user;
+            }
+            
+            if ("professor".equalsIgnoreCase(username) && "professor123".equals(password)) {
+                User user = createUser("1003", username, "PROFESSOR");
+                this.currentUser = user;
+                this.currentUserType = "PROFESSOR";
+                System.out.println("DEMO: User logged in: " + username + " (PROFESSOR)");
+                return user;
+            }
+            
+            if ("admin".equalsIgnoreCase(username) && "admin123".equals(password)) {
+                User user = createUser("1002", username, "ADMIN");
+                this.currentUser = user;
+                this.currentUserType = "ADMIN";
+                System.out.println("DEMO: User logged in: " + username + " (ADMIN)");
+                return user;
+            }
+            
+            if ("staff".equalsIgnoreCase(username) && "staff123".equals(password)) {
+                User user = createUser("1004", username, "STAFF");
+                this.currentUser = user;
+                this.currentUserType = "STAFF";
+                System.out.println("DEMO: User logged in: " + username + " (STAFF)");
+                return user;
+            }
+            
+            // Demo mode login failed
+            System.out.println("DEMO: Login failed - Invalid credentials");
+            this.currentUser = null;
+            this.currentUserType = null;
+            return null;
+        }
+        // ============================================================================
+
+        // Normal database authentication
         String hashedPassword = hashPassword(password);
 
         String sql = "SELECT UserID, USERNAME, Email, UserType FROM Users WHERE USERNAME = ? AND [Password] = ?";

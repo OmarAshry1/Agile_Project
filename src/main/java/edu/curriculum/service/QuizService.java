@@ -4,6 +4,9 @@ import edu.curriculum.model.Course;
 import edu.curriculum.model.Quiz;
 import edu.curriculum.model.QuizAttempt;
 import edu.curriculum.model.QuizAttemptStatus;
+import edu.curriculum.model.QuizQuestion;
+import edu.curriculum.model.QuizQuestionOption;
+import edu.curriculum.model.QuestionType;
 import edu.facilities.service.DatabaseConnection;
 
 import java.sql.*;
@@ -468,6 +471,79 @@ public class QuizService {
     private Course getCourseById(Connection conn, int courseId) throws SQLException {
         edu.curriculum.service.CourseService courseService = new edu.curriculum.service.CourseService();
         return courseService.getCourseById(String.valueOf(courseId));
+    }
+
+    /**
+     * Save quiz questions to database
+     */
+    public void saveQuizQuestions(String quizId, List<QuizQuestion> questions) throws SQLException {
+        if (quizId == null || quizId.isBlank() || questions == null || questions.isEmpty()) {
+            return;
+        }
+
+        int quizIdInt;
+        try {
+            quizIdInt = Integer.parseInt(quizId);
+        } catch (NumberFormatException e) {
+            return;
+        }
+
+        Connection conn = DatabaseConnection.getConnection();
+        boolean originalAutoCommit = conn.getAutoCommit();
+        
+        try {
+            conn.setAutoCommit(false);
+            
+            for (QuizQuestion question : questions) {
+                // Insert question
+                String questionSql = "INSERT INTO QuizQuestions (QuizID, QuestionNumber, QuestionText, QuestionType, Points) " +
+                                    "VALUES (?, ?, ?, ?, ?)";
+                
+                int questionId;
+                try (PreparedStatement qStmt = conn.prepareStatement(questionSql, Statement.RETURN_GENERATED_KEYS)) {
+                    qStmt.setInt(1, quizIdInt);
+                    qStmt.setInt(2, question.getQuestionNumber());
+                    qStmt.setString(3, question.getQuestionText());
+                    qStmt.setString(4, question.getQuestionType().toString());
+                    qStmt.setInt(5, question.getPoints());
+                    
+                    qStmt.executeUpdate();
+                    
+                    try (ResultSet keys = qStmt.getGeneratedKeys()) {
+                        if (keys.next()) {
+                            questionId = keys.getInt(1);
+                        } else {
+                            continue; // Skip if question wasn't inserted
+                        }
+                    }
+                }
+                
+                // Insert options for MCQ questions
+                if (question.getQuestionType() == QuestionType.MCQ && question.getOptions() != null) {
+                    String optionSql = "INSERT INTO QuizQuestionOptions (QuestionID, OptionText, IsCorrect, OptionOrder) " +
+                                      "VALUES (?, ?, ?, ?)";
+                    
+                    try (PreparedStatement optStmt = conn.prepareStatement(optionSql)) {
+                        for (QuizQuestionOption option : question.getOptions()) {
+                            optStmt.setInt(1, questionId);
+                            optStmt.setString(2, option.getOptionText());
+                            optStmt.setBoolean(3, option.isCorrect());
+                            optStmt.setInt(4, option.getOptionOrder());
+                            optStmt.addBatch();
+                        }
+                        optStmt.executeBatch();
+                    }
+                }
+            }
+            
+            conn.commit();
+            System.out.println("Saved " + questions.size() + " questions for quiz " + quizId);
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(originalAutoCommit);
+        }
     }
 
     /**

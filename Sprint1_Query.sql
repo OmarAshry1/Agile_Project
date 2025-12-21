@@ -663,6 +663,36 @@ GO
 CREATE INDEX IX_QuizAttributes_QuizID ON QuizAttributes(QuizID);
 GO
 
+-- QuizQuestions table (Questions for quizzes)
+CREATE TABLE QuizQuestions (
+    QuestionID INT PRIMARY KEY IDENTITY(1,1),
+    QuizID INT NOT NULL,
+    QuestionNumber INT NOT NULL,
+    QuestionText VARCHAR(MAX) NOT NULL,
+    QuestionType VARCHAR(20) NOT NULL CHECK (QuestionType IN ('MCQ', 'WRITTEN')),
+    Points INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID) ON DELETE CASCADE,
+    UNIQUE(QuizID, QuestionNumber)
+);
+GO
+
+CREATE INDEX IX_QuizQuestions_QuizID ON QuizQuestions(QuizID);
+GO
+
+-- QuizQuestionOptions table (Answer options for MCQ questions)
+CREATE TABLE QuizQuestionOptions (
+    OptionID INT PRIMARY KEY IDENTITY(1,1),
+    QuestionID INT NOT NULL,
+    OptionText VARCHAR(MAX) NOT NULL,
+    IsCorrect BIT NOT NULL DEFAULT 0,
+    OptionOrder INT NOT NULL,
+    FOREIGN KEY (QuestionID) REFERENCES QuizQuestions(QuestionID) ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX IX_QuizQuestionOptions_QuestionID ON QuizQuestionOptions(QuestionID);
+GO
+
 -- QuizAttempts table (US 2.11 - Take Quiz)
 CREATE TABLE QuizAttempts (
     AttemptID INT PRIMARY KEY IDENTITY(1,1),
