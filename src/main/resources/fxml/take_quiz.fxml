@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.curriculum.ui.TakeQuizController"
+            prefHeight="500.0" prefWidth="700.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label fx:id="quizTitleLabel" text="Quiz Title" styleClass="page-title"/>
+            <HBox spacing="20">
+                <Label fx:id="courseLabel" text="Course: " styleClass="form-label"/>
+                <Label fx:id="dueDateLabel" text="Due: " styleClass="form-label"/>
+                <Label fx:id="totalPointsLabel" text="Total Points: " styleClass="form-label"/>
+            </HBox>
+        </VBox>
+
+        <!-- Instructions -->
+        <VBox spacing="10" styleClass="card">
+            <Label text="Instructions" styleClass="form-label" style="-fx-font-weight: bold;"/>
+            <Label fx:id="instructionsLabel" text="No instructions." wrapText="true"/>
+        </VBox>
+
+        <!-- Timer and Status -->
+        <HBox spacing="20" styleClass="card">
+            <Label fx:id="timerLabel" text="No time limit" styleClass="form-label"/>
+            <Label fx:id="statusLabel" text="Ready to start" styleClass="form-label" style="-fx-font-weight: bold;"/>
+        </HBox>
+
+        <!-- Quiz Content Area (Placeholder for questions) -->
+        <VBox spacing="10" styleClass="card" VBox.vgrow="ALWAYS">
+            <Label text="Quiz Questions" styleClass="form-label" style="-fx-font-weight: bold;"/>
+            <Label text="Quiz questions would appear here. This is a placeholder for the quiz interface." 
+                   wrapText="true" style="-fx-text-fill: #666;"/>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="startButton" text="Start Quiz" styleClass="btn-success"
+                    onAction="#handleStart" prefWidth="120" prefHeight="35"/>
+            <Button fx:id="submitButton" text="Submit Quiz" styleClass="btn-primary"
+                    onAction="#handleSubmit" prefWidth="120" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+

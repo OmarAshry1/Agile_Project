@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.curriculum.ui.RecordExamGradesController"
+            prefHeight="600.0" prefWidth="900.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label fx:id="examTitleLabel" text="Exam Title" styleClass="page-title"/>
+            <HBox spacing="20">
+                <Label fx:id="courseLabel" text="Course: " styleClass="form-label"/>
+                <Label fx:id="totalPointsLabel" text="Total Points: " styleClass="form-label"/>
+            </HBox>
+        </VBox>
+
+        <!-- Students Table -->
+        <VBox spacing="10" styleClass="card" VBox.vgrow="ALWAYS">
+            <Label text="Student Grades" styleClass="form-label" style="-fx-font-weight: bold;"/>
+            <TableView fx:id="studentsTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="studentIdColumn" text="Student ID" prefWidth="100"/>
+                    <TableColumn fx:id="studentNameColumn" text="Student Name" prefWidth="200"/>
+                    <TableColumn fx:id="pointsEarnedColumn" text="Points Earned" prefWidth="120"/>
+                    <TableColumn fx:id="percentageColumn" text="Percentage" prefWidth="100"/>
+                    <TableColumn fx:id="commentsColumn" text="Comments" prefWidth="300"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="saveButton" text="💾 Save Grades" styleClass="btn-success"
+                    onAction="#handleSave" prefWidth="140" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+

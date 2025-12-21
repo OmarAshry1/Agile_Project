@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.curriculum.ui.ProfessorExamsController"
+            prefHeight="600.0" prefWidth="900.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label text="Exam Management" styleClass="page-title"/>
+            <Label text="Create exams and record grades for your courses" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Exams Table -->
+        <VBox spacing="10" styleClass="card" VBox.vgrow="ALWAYS">
+            <TableView fx:id="examsTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="examIdColumn" text="Exam ID" prefWidth="80"/>
+                    <TableColumn fx:id="courseNameColumn" text="Course" prefWidth="200"/>
+                    <TableColumn fx:id="titleColumn" text="Title" prefWidth="200"/>
+                    <TableColumn fx:id="examDateColumn" text="Exam Date" prefWidth="150"/>
+                    <TableColumn fx:id="locationColumn" text="Location" prefWidth="150"/>
+                    <TableColumn fx:id="totalPointsColumn" text="Points" prefWidth="80"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="recordGradesButton" text="📝 Record Grades" styleClass="btn-primary"
+                    onAction="#handleRecordGrades" prefWidth="150" prefHeight="35"/>
+            <Button fx:id="createButton" text="➕ Create Exam" styleClass="btn-success"
+                    onAction="#handleCreateExam" prefWidth="140" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+

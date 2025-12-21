@@ -630,6 +630,111 @@ ON CourseMaterials(UploadedByUserID);
 GO
 
 -- ============================================================================
+-- QUIZZES & EXAMS TABLES (US 2.10, 2.11, 2.12, 2.13)
+-- ============================================================================
+
+-- Quizzes table (US 2.10 - Create Quiz)
+CREATE TABLE Quizzes (
+    QuizID INT PRIMARY KEY IDENTITY(1,1),
+    CourseID INT NOT NULL,
+    Title VARCHAR(200) NOT NULL,
+    Instructions VARCHAR(MAX) NULL,
+    TotalPoints INT NOT NULL,
+    DueDate DATETIME2 NOT NULL,
+    CreatedDate DATETIME2 DEFAULT GETDATE(),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX IX_Quizzes_CourseID ON Quizzes(CourseID);
+CREATE INDEX IX_Quizzes_DueDate ON Quizzes(DueDate);
+GO
+
+-- QuizAttributes table (EAV pattern for quiz metadata)
+CREATE TABLE QuizAttributes (
+    AttributeID INT PRIMARY KEY IDENTITY(1,1),
+    QuizID INT NOT NULL,
+    AttributeName VARCHAR(100) NOT NULL,
+    AttributeValue VARCHAR(MAX),
+    FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID) ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX IX_QuizAttributes_QuizID ON QuizAttributes(QuizID);
+GO
+
+-- QuizAttempts table (US 2.11 - Take Quiz)
+CREATE TABLE QuizAttempts (
+    AttemptID INT PRIMARY KEY IDENTITY(1,1),
+    QuizID INT NOT NULL,
+    StudentUserID INT NOT NULL,
+    AttemptNumber INT NOT NULL DEFAULT 1,
+    StartedDate DATETIME2 DEFAULT GETDATE(),
+    CompletedDate DATETIME2 NULL,
+    Score INT NULL,
+    Status VARCHAR(50) DEFAULT 'IN_PROGRESS' CHECK (Status IN ('IN_PROGRESS', 'COMPLETED', 'TIMED_OUT')),
+    FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID) ON DELETE CASCADE,
+    FOREIGN KEY (StudentUserID) REFERENCES Users(UserID),
+    UNIQUE(QuizID, StudentUserID, AttemptNumber)
+);
+GO
+
+CREATE INDEX IX_QuizAttempts_QuizID ON QuizAttempts(QuizID);
+CREATE INDEX IX_QuizAttempts_StudentUserID ON QuizAttempts(StudentUserID);
+CREATE INDEX IX_QuizAttempts_Status ON QuizAttempts(Status);
+GO
+
+-- Exams table (US 2.12 - Create Exam)
+CREATE TABLE Exams (
+    ExamID INT PRIMARY KEY IDENTITY(1,1),
+    CourseID INT NOT NULL,
+    Title VARCHAR(200) NOT NULL,
+    ExamDate DATETIME2 NOT NULL,
+    DurationMinutes INT NOT NULL,
+    Location VARCHAR(200) NULL,
+    TotalPoints INT NOT NULL,
+    Instructions VARCHAR(MAX) NULL,
+    CreatedDate DATETIME2 DEFAULT GETDATE(),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX IX_Exams_CourseID ON Exams(CourseID);
+CREATE INDEX IX_Exams_ExamDate ON Exams(ExamDate);
+GO
+
+-- ExamAttributes table (EAV pattern for exam metadata)
+CREATE TABLE ExamAttributes (
+    AttributeID INT PRIMARY KEY IDENTITY(1,1),
+    ExamID INT NOT NULL,
+    AttributeName VARCHAR(100) NOT NULL,
+    AttributeValue VARCHAR(MAX),
+    FOREIGN KEY (ExamID) REFERENCES Exams(ExamID) ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX IX_ExamAttributes_ExamID ON ExamAttributes(ExamID);
+GO
+
+-- ExamGrades table (US 2.13 - Record Exam Grades)
+CREATE TABLE ExamGrades (
+    ExamGradeID INT PRIMARY KEY IDENTITY(1,1),
+    ExamID INT NOT NULL,
+    StudentUserID INT NOT NULL,
+    PointsEarned INT NULL,
+    Comments VARCHAR(MAX) NULL,
+    GradedDate DATETIME2 DEFAULT GETDATE(),
+    FOREIGN KEY (ExamID) REFERENCES Exams(ExamID) ON DELETE CASCADE,
+    FOREIGN KEY (StudentUserID) REFERENCES Users(UserID),
+    UNIQUE(ExamID, StudentUserID)
+);
+GO
+
+CREATE INDEX IX_ExamGrades_ExamID ON ExamGrades(ExamID);
+CREATE INDEX IX_ExamGrades_StudentUserID ON ExamGrades(StudentUserID);
+GO
+
+-- ============================================================================
 -- TEST DATA SECTION
 -- ============================================================================
 -- Sample data for testing the Curriculum Module

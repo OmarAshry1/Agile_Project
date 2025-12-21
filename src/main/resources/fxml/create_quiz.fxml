@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.curriculum.ui.CreateQuizController"
+            prefHeight="650.0" prefWidth="700.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label text="Create New Quiz" styleClass="page-title"/>
+            <Label text="Fill in the details to create a new quiz" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Form Container -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+            <VBox spacing="15" styleClass="card">
+
+                <!-- Row 1: Course -->
+                <VBox spacing="5">
+                    <Label text="Course *" styleClass="form-label"/>
+                    <ComboBox fx:id="courseComboBox"
+                              promptText="Select a course"
+                              maxWidth="Infinity" prefHeight="35"/>
+                    <Label fx:id="courseError" text=""
+                           style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                           visible="false" wrapText="true"/>
+                </VBox>
+
+                <!-- Row 2: Title -->
+                <VBox spacing="5">
+                    <Label text="Title *" styleClass="form-label"/>
+                    <TextField fx:id="titleField"
+                               promptText="e.g., Chapter 5 Quiz, Midterm Quiz"
+                               prefHeight="35"/>
+                    <Label fx:id="titleError" text=""
+                           style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                           visible="false" wrapText="true"/>
+                </VBox>
+
+                <!-- Row 3: Instructions -->
+                <VBox spacing="5">
+                    <Label text="Instructions" styleClass="form-label"/>
+                    <TextArea fx:id="instructionsArea"
+                              promptText="Enter quiz instructions..."
+                              prefRowCount="4"
+                              wrapText="true"/>
+                </VBox>
+
+                <!-- Row 4: Due Date and Time -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Due Date *" styleClass="form-label"/>
+                        <DatePicker fx:id="dueDatePicker" prefHeight="35"/>
+                        <Label fx:id="dueDateError" text=""
+                               style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                               visible="false" wrapText="true"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Hour" styleClass="form-label"/>
+                        <Spinner fx:id="hourSpinner" editable="true" min="0" max="23" prefWidth="80"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Minute" styleClass="form-label"/>
+                        <Spinner fx:id="minuteSpinner" editable="true" min="0" max="59" amountToStepBy="15" prefWidth="80"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Row 5: Total Points -->
+                <VBox spacing="5">
+                    <Label text="Total Points *" styleClass="form-label"/>
+                    <Spinner fx:id="totalPointsSpinner" editable="true" min="1" max="1000" prefWidth="150"/>
+                    <Label fx:id="pointsError" text=""
+                           style="-fx-text-fill: #E53935; -fx-font-size: 11px;"
+                           visible="false" wrapText="true"/>
+                </VBox>
+
+                <!-- Row 6: Additional Options -->
+                <VBox spacing="10" styleClass="card">
+                    <padding>
+                        <Insets bottom="10" left="10" right="10" top="10"/>
+                    </padding>
+                    <Label text="Additional Options" styleClass="form-label" style="-fx-font-weight: bold;"/>
+                    
+                    <HBox spacing="15">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Time Limit (minutes)" styleClass="form-label"/>
+                            <Spinner fx:id="timeLimitSpinner" editable="true" min="5" max="300" amountToStepBy="5" prefWidth="120"/>
+                        </VBox>
+
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Attempts Allowed" styleClass="form-label"/>
+                            <Spinner fx:id="attemptsAllowedSpinner" editable="true" min="1" max="10" prefWidth="120"/>
+                        </VBox>
+                    </HBox>
+                    
+                    <CheckBox fx:id="autoGradingCheckBox" text="Enable Auto-Grading"/>
+                    <CheckBox fx:id="shuffleQuestionsCheckBox" text="Shuffle Questions"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Label text="* Required fields" styleClass="form-label"
+                   style="-fx-font-style: italic;" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35"/>
+            <Button text="Cancel" styleClass="btn-secondary"
+                    onAction="#handleCancel" prefWidth="110" prefHeight="35"/>
+            <Button text="💾 Create Quiz" styleClass="btn-success"
+                    onAction="#handleCreate" prefWidth="140" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+

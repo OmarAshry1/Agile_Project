@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.curriculum.ui.ProfessorQuizzesController"
+            prefHeight="600.0" prefWidth="900.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label text="Quiz Management" styleClass="page-title"/>
+            <Label text="Create and manage quizzes for your courses" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Quizzes Table -->
+        <VBox spacing="10" styleClass="card" VBox.vgrow="ALWAYS">
+            <TableView fx:id="quizzesTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="quizIdColumn" text="Quiz ID" prefWidth="80"/>
+                    <TableColumn fx:id="courseNameColumn" text="Course" prefWidth="200"/>
+                    <TableColumn fx:id="titleColumn" text="Title" prefWidth="250"/>
+                    <TableColumn fx:id="dueDateColumn" text="Due Date" prefWidth="150"/>
+                    <TableColumn fx:id="totalPointsColumn" text="Points" prefWidth="80"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="createButton" text="➕ Create Quiz" styleClass="btn-success"
+                    onAction="#handleCreateQuiz" prefWidth="140" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+
