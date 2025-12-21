@@ -55,7 +55,7 @@ public class LoginController {
                 System.out.println("Demo Credentials:");
                 System.out.println("  Student:    student / student123");
                 System.out.println("  Professor:  professor / professor123");
-                System.out.println("  Admin:      admin / admin123");
+                System.out.println("  Admin:      admin / admin");
                 System.out.println("  Staff:      staff / staff123");
                 System.out.println("========================================");
             }

@@ -629,6 +629,7 @@ CREATE INDEX IX_CourseMaterials_UploadedBy
 ON CourseMaterials(UploadedByUserID);
 GO
 
+<<<<<<< Updated upstream
 -- ============================================================================
 -- QUIZZES & EXAMS TABLES (US 2.10, 2.11, 2.12, 2.13)
 -- ============================================================================

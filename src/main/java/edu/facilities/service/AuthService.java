@@ -23,7 +23,7 @@ public class AuthService {
     // DEMO MODE - Set to true to bypass database connection
     // Set to false to use normal database authentication
     // ============================================================================
-    private static final boolean DEMO_MODE = false;
+    private static final boolean DEMO_MODE = true;  // TEMPORARY: Enabled for testing without DB
     // ============================================================================
 
     private static AuthService instance;
@@ -81,7 +81,7 @@ public class AuthService {
                 return user;
             }
             
-            if ("admin".equalsIgnoreCase(username) && "admin123".equals(password)) {
+            if ("admin".equalsIgnoreCase(username) && "admin".equals(password)) {
                 User user = createUser("1002", username, "ADMIN");
                 this.currentUser = user;
                 this.currentUserType = "ADMIN";

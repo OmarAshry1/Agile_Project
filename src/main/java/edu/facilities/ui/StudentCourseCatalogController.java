@@ -2,8 +2,10 @@ package edu.facilities.ui;
 
 import edu.facilities.model.Course;
 import edu.facilities.model.CourseType;
+import edu.facilities.model.User;
 import edu.facilities.service.AuthService;
 import edu.facilities.service.CourseService;
+import edu.facilities.service.EnrollmentService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -238,16 +240,39 @@ public class StudentCourseCatalogController {
             return;
         }
 
-        // Navigate to enrollment page (or handle enrollment here)
+        // Handle enrollment directly
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/student_enrollment.fxml"));
-            Stage stage = (Stage) enrollButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Enroll in Courses");
-            stage.show();
-        } catch (IOException e) {
-            showError("Navigation Error", "Could not open enrollment page: " + e.getMessage());
+            EnrollmentService enrollmentService = new EnrollmentService();
+            User student = authService.getCurrentUser();
+            
+            if (student == null) {
+                showError("Authentication Error", "User session expired. Please login again.");
+                return;
+            }
+            
+            // Attempt enrollment
+            edu.facilities.model.Enrollment enrollment = enrollmentService.enrollStudent(student, selectedCourse);
+            
+            if (enrollment != null) {
+                showInfo("Success", "Successfully enrolled in " + selectedCourse.getCode() + " - " + selectedCourse.getName());
+                // Refresh the course list to update seat counts
+                loadCourses();
+            } else {
+                showError("Enrollment Failed", "Failed to enroll in the course. Please try again.");
+            }
+        } catch (IllegalArgumentException e) {
+            showError("Enrollment Error", e.getMessage());
+        } catch (SQLException e) {
+            showError("Database Error", "Failed to enroll: " + e.getMessage());
         }
+    }
+    
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     @FXML
