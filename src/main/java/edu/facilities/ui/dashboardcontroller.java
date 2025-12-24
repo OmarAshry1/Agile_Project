@@ -122,6 +122,18 @@ public class dashboardcontroller {
                     manageCoursesButton.setManaged(true);
                     manageCoursesButton.setDisable(false);
                 }
+                // Show assign courses button for admins (US 3.3)
+                if (assignCoursesButton != null) {
+                    assignCoursesButton.setVisible(true);
+                    assignCoursesButton.setManaged(true);
+                    assignCoursesButton.setDisable(false);
+                }
+                // Show announcements button for admins
+                if (viewAnnouncementsButton != null) {
+                    viewAnnouncementsButton.setVisible(true);
+                    viewAnnouncementsButton.setManaged(true);
+                    viewAnnouncementsButton.setDisable(false);
+                }
                 // Hide student transcript buttons for admins
                 if (myTranscriptsButton != null) {
                     myTranscriptsButton.setVisible(false);
@@ -477,6 +489,20 @@ public class dashboardcontroller {
                 messagesButton.setManaged(true);
                 messagesButton.setDisable(false);
             }
+            // Announcements button is visible for all logged-in users (US 4.4)
+            if (viewAnnouncementsButton != null) {
+                viewAnnouncementsButton.setVisible(true);
+                viewAnnouncementsButton.setManaged(true);
+                viewAnnouncementsButton.setDisable(false);
+            }
+            // Create Announcement button is visible for Admin/Staff (US 3.1)
+            String userType = authService.getCurrentUserType();
+            if (createAnnouncementButton != null) {
+                boolean isAdminOrStaff = "ADMIN".equals(userType) || "STAFF".equals(userType);
+                createAnnouncementButton.setVisible(isAdminOrStaff);
+                createAnnouncementButton.setManaged(isAdminOrStaff);
+                createAnnouncementButton.setDisable(!isAdminOrStaff);
+            }
         } else {
             userIdLabel.setText("Guest");
 
@@ -561,6 +587,21 @@ public class dashboardcontroller {
                 manageCoursesButton.setVisible(false);
                 manageCoursesButton.setManaged(false);
                 manageCoursesButton.setDisable(true);
+            }
+            if (assignCoursesButton != null) {
+                assignCoursesButton.setVisible(false);
+                assignCoursesButton.setManaged(false);
+                assignCoursesButton.setDisable(true);
+            }
+            if (viewAnnouncementsButton != null) {
+                viewAnnouncementsButton.setVisible(false);
+                viewAnnouncementsButton.setManaged(false);
+                viewAnnouncementsButton.setDisable(true);
+            }
+            if (createAnnouncementButton != null) {
+                createAnnouncementButton.setVisible(false);
+                createAnnouncementButton.setManaged(false);
+                createAnnouncementButton.setDisable(true);
             }
             if (viewCourseCatalogButton != null) {
                 viewCourseCatalogButton.setVisible(false);
@@ -693,6 +734,12 @@ public class dashboardcontroller {
 
     @FXML
     private Button roomsButton;
+
+    @FXML
+    private Button assignCoursesButton;
+
+    @FXML
+    private Button viewAnnouncementsButton;
 
     @FXML
     private Button viewMyTicketsButton;
@@ -1335,6 +1382,68 @@ public class dashboardcontroller {
         }
 
         navigateTo("/fxml/student_my_courses.fxml", event, "My Enrolled Courses");
+    }
+
+    @FXML
+    void handleAssignCourses(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to assign courses.");
+            alert.showAndWait();
+            return;
+        }
+
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can assign courses to professors.");
+            alert.showAndWait();
+            return;
+        }
+
+        navigateTo("/fxml/assign_courses.fxml", event, "Assign Courses to Professors");
+    }
+
+    @FXML
+    void handleViewAnnouncements(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view announcements.");
+            alert.showAndWait();
+            return;
+        }
+
+        navigateTo("/fxml/view_announcements.fxml", event, "Announcements");
+    }
+    
+    @FXML
+    void handleCreateAnnouncement(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to create announcements.");
+            alert.showAndWait();
+            return;
+        }
+
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType) && !"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators and staff can create announcements.");
+            alert.showAndWait();
+            return;
+        }
+
+        navigateTo("/fxml/create_announcement.fxml", event, "Create Announcement");
     }
 
     @FXML

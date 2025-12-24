@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="800.0" prefWidth="1000.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.EditAnnouncementController">
+   <children>
+      <VBox alignment="TOP_CENTER" spacing="20" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="20">
+         <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+         </padding>
+         
+         <!-- Header -->
+         <VBox alignment="CENTER" spacing="10">
+            <Label styleClass="page-title" text="Edit Announcement" />
+            <Label styleClass="form-label" text="Update announcement details" textAlignment="CENTER" />
+         </VBox>
+
+         <!-- Main Form -->
+         <VBox spacing="15" styleClass="card" VBox.vgrow="ALWAYS">
+            <padding>
+               <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+            
+            <!-- Required Fields -->
+            <VBox spacing="10">
+               <Label text="Required Fields" styleClass="section-header"/>
+               <VBox spacing="8">
+                  <Label text="Title *" styleClass="form-label"/>
+                  <TextField fx:id="titleField" promptText="Enter announcement title" />
+               </VBox>
+               <VBox spacing="8">
+                  <Label text="Content *" styleClass="form-label"/>
+                  <TextArea fx:id="contentArea" prefHeight="150" promptText="Enter announcement content" wrapText="true" />
+               </VBox>
+            </VBox>
+            
+            <!-- Optional Fields -->
+            <VBox spacing="10">
+               <Label text="Optional Fields" styleClass="section-header"/>
+               <HBox spacing="15">
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Label text="Target Audience" styleClass="form-label"/>
+                     <ComboBox fx:id="targetRoleComboBox" prefWidth="200.0" />
+                  </VBox>
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Label text="Priority" styleClass="form-label"/>
+                     <ComboBox fx:id="priorityComboBox" prefWidth="200.0" />
+                  </VBox>
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Label text="Status" styleClass="form-label"/>
+                     <ComboBox fx:id="statusComboBox" prefWidth="200.0" />
+                  </VBox>
+               </HBox>
+               <HBox spacing="15">
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Label text="Publish Date" styleClass="form-label"/>
+                     <DatePicker fx:id="publishDatePicker" />
+                  </VBox>
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Label text="Expiry Date (Optional)" styleClass="form-label"/>
+                     <DatePicker fx:id="expiryDatePicker" />
+                  </VBox>
+               </HBox>
+            </VBox>
+            
+            <!-- Attachments -->
+            <VBox spacing="10">
+               <Label text="File Attachments (Optional)" styleClass="section-header"/>
+               <HBox spacing="10">
+                  <TextField fx:id="attachmentNameField" promptText="File Name" prefWidth="200" />
+                  <TextField fx:id="attachmentPathField" promptText="File Path" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="addAttachmentButton" onAction="#handleAddAttachment" text="Add" />
+               </HBox>
+               <TableView fx:id="attachmentsTable" prefHeight="100">
+                  <columns>
+                     <TableColumn fx:id="fileNameColumn" prefWidth="200" text="File Name" />
+                     <TableColumn fx:id="filePathColumn" prefWidth="400" text="File Path" />
+                  </columns>
+               </TableView>
+               <Button fx:id="removeAttachmentButton" onAction="#handleRemoveAttachment" text="Remove Selected" styleClass="btn-secondary" />
+            </VBox>
+            
+            <!-- Links -->
+            <VBox spacing="10">
+               <Label text="External Links (Optional)" styleClass="section-header"/>
+               <HBox spacing="10">
+                  <TextField fx:id="linkTextField" promptText="Link Text" prefWidth="200" />
+                  <TextField fx:id="linkUrlField" promptText="URL" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="addLinkButton" onAction="#handleAddLink" text="Add" />
+               </HBox>
+               <TableView fx:id="linksTable" prefHeight="100">
+                  <columns>
+                     <TableColumn fx:id="linkTextColumn" prefWidth="200" text="Link Text" />
+                     <TableColumn fx:id="linkUrlColumn" prefWidth="400" text="URL" />
+                  </columns>
+               </TableView>
+               <Button fx:id="removeLinkButton" onAction="#handleRemoveLink" text="Remove Selected" styleClass="btn-secondary" />
+            </VBox>
+         </VBox>
+
+         <!-- Action Buttons -->
+         <HBox spacing="15" alignment="CENTER">
+            <Button fx:id="viewHistoryButton" onAction="#handleViewHistory" minWidth="140" prefHeight="40" prefWidth="140" styleClass="btn-secondary" text="View Edit History" />
+            <Button fx:id="saveButton" onAction="#handleSave" minWidth="140" prefHeight="40" prefWidth="140" styleClass="btn-primary" text="Save Changes" />
+            <Button fx:id="cancelButton" onAction="#handleCancel" minWidth="120" prefHeight="40" prefWidth="120" styleClass="btn-secondary" text="Cancel" />
+         </HBox>
+
+         <!-- Status Message -->
+         <Label fx:id="statusLabel" alignment="CENTER" style="-fx-text-fill: #4CAF50; -fx-font-size: 12px;" text="" textAlignment="CENTER" wrapText="true" />
+      </VBox>
+   </children>
+</AnchorPane>
+
