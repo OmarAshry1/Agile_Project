@@ -496,7 +496,6 @@ public class dashboardcontroller {
                 viewAnnouncementsButton.setDisable(false);
             }
             // Create Announcement button is visible for Admin/Staff (US 3.1)
-            String userType = authService.getCurrentUserType();
             if (createAnnouncementButton != null) {
                 boolean isAdminOrStaff = "ADMIN".equals(userType) || "STAFF".equals(userType);
                 createAnnouncementButton.setVisible(isAdminOrStaff);
@@ -740,6 +739,9 @@ public class dashboardcontroller {
 
     @FXML
     private Button viewAnnouncementsButton;
+
+    @FXML
+    private Button createAnnouncementButton;
 
     @FXML
     private Button viewMyTicketsButton;
