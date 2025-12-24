@@ -51,6 +51,8 @@
             <Button fx:id="courseGradesButton" onAction="#handleCourseGrades" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Course Grades" visible="false" managed="false" />
             <Button fx:id="manageQuizzesButton" onAction="#handleManageQuizzes" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Quizzes" visible="false" managed="false" />
             <Button fx:id="manageExamsButton" onAction="#handleManageExams" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Exams" visible="false" managed="false" />
+            <Button fx:id="staffDirectoryButton" onAction="#handleStaffDirectory" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Staff Directory" />
+            <Button fx:id="manageStaffButton" onAction="#handleManageStaff" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Staff Profiles" visible="false" managed="false" />
             <Button fx:id="logoutButton" onAction="#handleLogout" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-secondary" text="Logout" />
             <Button fx:id="loginButton" onAction="#handleLogin" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Login" />
             <Button fx:id="registerButton" onAction="#handleRegister" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Register" />

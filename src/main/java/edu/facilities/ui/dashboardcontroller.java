@@ -30,21 +30,27 @@ public class dashboardcontroller {
         if (authService.isLoggedIn()) {
             User currentUser = authService.getCurrentUser();
             userIdLabel.setText(currentUser.getUsername() + " / " + currentUser.getId());
-            
+
             // Show logout button, hide login/register
-            if (logoutButton != null) logoutButton.setVisible(true);
-            if (loginButton != null) loginButton.setVisible(false);
-            if (registerButton != null) registerButton.setVisible(false);
-            
+            if (logoutButton != null)
+                logoutButton.setVisible(true);
+            if (loginButton != null)
+                loginButton.setVisible(false);
+            if (registerButton != null)
+                registerButton.setVisible(false);
+
             // Enable buttons
-            if (roomsButton != null) roomsButton.setDisable(false);
-            if (reportButton != null) reportButton.setDisable(false);
-            
+            if (roomsButton != null)
+                roomsButton.setDisable(false);
+            if (reportButton != null)
+                reportButton.setDisable(false);
+
             // Update button text and behavior based on user role
             String userType = authService.getCurrentUserType();
             if ("ADMIN".equals(userType)) {
                 // Admins can view all tickets and assign them
-                if (reportButton != null) reportButton.setText("View All Tickets");
+                if (reportButton != null)
+                    reportButton.setText("View All Tickets");
                 // Hide and disable "View My Tickets" button for admins
                 if (viewMyTicketsButton != null) {
                     viewMyTicketsButton.setVisible(false);
@@ -174,17 +180,32 @@ public class dashboardcontroller {
                     manageExamsButton.setManaged(false);
                     manageExamsButton.setDisable(true);
                 }
+
+                // Show Staff Management for Admin
+                if (manageStaffButton != null) {
+                    manageStaffButton.setVisible(true);
+                    manageStaffButton.setManaged(true);
+                    manageStaffButton.setDisable(false);
+                }
+                // Show Staff Directory for Admin
+                if (staffDirectoryButton != null) {
+                    staffDirectoryButton.setVisible(true);
+                    staffDirectoryButton.setManaged(true);
+                    staffDirectoryButton.setDisable(false);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
-                if (reportButton != null) reportButton.setText("Report Maintenance Issue");
-                // Show and enable "View My Tickets" button for Students, Professors, and Staff only
+                if (reportButton != null)
+                    reportButton.setText("Report Maintenance Issue");
+                // Show and enable "View My Tickets" button for Students, Professors, and Staff
+                // only
                 if (viewMyTicketsButton != null) {
                     viewMyTicketsButton.setVisible(true);
                     viewMyTicketsButton.setManaged(true);
                     viewMyTicketsButton.setDisable(false);
                 }
-                
+
                 // Show booking buttons only for PROFESSOR and STAFF
                 if ("PROFESSOR".equals(userType) || "STAFF".equals(userType)) {
                     if (bookRoomButton != null) {
@@ -429,18 +450,36 @@ public class dashboardcontroller {
                         manageExamsButton.setDisable(true);
                     }
                 }
+
+                // Show Staff Directory for all logged-in users
+                if (staffDirectoryButton != null) {
+                    staffDirectoryButton.setVisible(true);
+                    staffDirectoryButton.setManaged(true);
+                    staffDirectoryButton.setDisable(false);
+                }
+                // Hide Staff Management for non-admins
+                if (manageStaffButton != null) {
+                    manageStaffButton.setVisible(false);
+                    manageStaffButton.setManaged(false);
+                    manageStaffButton.setDisable(true);
+                }
             }
         } else {
             userIdLabel.setText("Guest");
-            
+
             // Show login/register buttons, hide logout
-            if (logoutButton != null) logoutButton.setVisible(false);
-            if (loginButton != null) loginButton.setVisible(true);
-            if (registerButton != null) registerButton.setVisible(true);
-            
+            if (logoutButton != null)
+                logoutButton.setVisible(false);
+            if (loginButton != null)
+                loginButton.setVisible(true);
+            if (registerButton != null)
+                registerButton.setVisible(true);
+
             // Disable feature buttons
-            if (roomsButton != null) roomsButton.setDisable(true);
-            if (reportButton != null) reportButton.setDisable(true);
+            if (roomsButton != null)
+                roomsButton.setDisable(true);
+            if (reportButton != null)
+                reportButton.setDisable(true);
             if (viewMyTicketsButton != null) {
                 viewMyTicketsButton.setVisible(false);
                 viewMyTicketsButton.setManaged(false);
@@ -570,9 +609,20 @@ public class dashboardcontroller {
                 manageExamsButton.setManaged(false);
                 manageExamsButton.setDisable(true);
             }
+            // Hide Staff buttons for Guests
+            if (staffDirectoryButton != null) {
+                staffDirectoryButton.setVisible(false);
+                staffDirectoryButton.setManaged(false);
+                staffDirectoryButton.setDisable(true);
+            }
+            if (manageStaffButton != null) {
+                manageStaffButton.setVisible(false);
+                manageStaffButton.setManaged(false);
+                manageStaffButton.setDisable(true);
+            }
         }
     }
-    
+
     @FXML
     void handleViewMyTickets(ActionEvent event) {
         if (!authService.isLoggedIn()) {
@@ -583,7 +633,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         // Only allow Students, Professors, and Staff to view their tickets
         // Admins should use "View All Tickets" instead
         String userType = authService.getCurrentUserType();
@@ -591,11 +641,12 @@ public class dashboardcontroller {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Access Denied");
             alert.setHeaderText(null);
-            alert.setContentText("Administrators cannot view individual tickets. Please use 'View All Tickets' to see all tickets.");
+            alert.setContentText(
+                    "Administrators cannot view individual tickets. Please use 'View All Tickets' to see all tickets.");
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/tickets_view.fxml", event, "My Tickets");
     }
 
@@ -607,7 +658,7 @@ public class dashboardcontroller {
 
     @FXML
     private Button roomsButton;
-    
+
     @FXML
     private Button viewMyTicketsButton;
 
@@ -645,34 +696,39 @@ public class dashboardcontroller {
     private Button transcriptRequestsButton;
 
     @FXML
-    private Button manageCoursesButton;        // Admin - Manage Course Catalog (US 2.1)
+    private Button manageCoursesButton; // Admin - Manage Course Catalog (US 2.1)
     @FXML
-    private Button viewCourseCatalogButton;    // Student - View Course Catalog (US 2.2)
+    private Button viewCourseCatalogButton; // Student - View Course Catalog (US 2.2)
     @FXML
-    private Button enrollInCoursesButton;      // Student - Enroll in Courses (US 2.3)
+    private Button enrollInCoursesButton; // Student - Enroll in Courses (US 2.3)
     @FXML
-    private Button myEnrolledCoursesButton;    // Student - View My Enrolled Courses (US 2.4)
+    private Button myEnrolledCoursesButton; // Student - View My Enrolled Courses (US 2.4)
 
     @FXML
-    private Button myAssignmentsButton;        // Student - My Assignments (US 2.8)
+    private Button myAssignmentsButton; // Student - My Assignments (US 2.8)
     @FXML
-    private Button manageAssignmentsButton;   // Professor - Manage Assignments (US 2.7)
+    private Button manageAssignmentsButton; // Professor - Manage Assignments (US 2.7)
     @FXML
-    private Button viewGradebookButton;        // Professor - View Gradebook (US 2.9)
+    private Button viewGradebookButton; // Professor - View Gradebook (US 2.9)
     @FXML
     private Button calculateFinalGradesButton; // Professor - Calculate Final Grades
     @FXML
-    private Button requestTranscriptButton;    // Student - Request Transcript
+    private Button requestTranscriptButton; // Student - Request Transcript
     @FXML
-    private Button myQuizzesButton;            // Student - My Quizzes (US 2.11)
+    private Button myQuizzesButton; // Student - My Quizzes (US 2.11)
     @FXML
-    private Button myExamsButton;              // Student - My Exams
+    private Button myExamsButton; // Student - My Exams
     @FXML
-    private Button courseGradesButton;          // Student - View Course Grades
+    private Button courseGradesButton; // Student - View Course Grades
     @FXML
-    private Button manageQuizzesButton;        // Professor - Manage Quizzes (US 2.10)
+    private Button manageQuizzesButton; // Professor - Manage Quizzes (US 2.10)
     @FXML
-    private Button manageExamsButton;          // Professor - Manage Exams (US 2.12, 2.13)
+    private Button manageExamsButton; // Professor - Manage Exams (US 2.12, 2.13)
+
+    @FXML
+    private Button staffDirectoryButton;
+    @FXML
+    private Button manageStaffButton;
 
     @FXML
     private Button logoutButton;
@@ -696,7 +752,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if ("ADMIN".equals(userType)) {
             // Admins can only view and assign tickets
@@ -722,7 +778,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -732,7 +788,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/booking.fxml", event, "Book a Room");
     }
 
@@ -746,7 +802,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -756,7 +812,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/my_bookings.fxml", event, "My Bookings");
     }
 
@@ -770,7 +826,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -780,8 +836,34 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/view_equipment.fxml", event, "View Equipment");
+    }
+
+    @FXML
+    void handleStaffDirectory(ActionEvent event) {
+        navigateTo("/edu/staff/ui/staff_directory.fxml", event, "Staff Directory");
+    }
+
+    @FXML
+    void handleManageStaff(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to access this feature.");
+            alert.showAndWait();
+            return;
+        }
+        if (!"ADMIN".equals(authService.getCurrentUserType())) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can manage staff profiles.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/edu/staff/ui/manage_staff_profiles.fxml", event, "Manage Staff Profiles");
     }
 
     @FXML
@@ -794,7 +876,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType) && !"STAFF".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -804,7 +886,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/my_allocated_equipment.fxml", event, "My Allocated Equipment");
     }
 
@@ -818,7 +900,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"ADMIN".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -828,7 +910,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/allocate_equipment.fxml", event, "Allocate Equipment");
     }
 
@@ -842,7 +924,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"ADMIN".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -852,7 +934,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/add_equipment.fxml", event, "Add Equipment");
     }
 
@@ -866,7 +948,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"ADMIN".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -876,7 +958,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/software_licenses.fxml", event, "Software Licenses");
     }
 
@@ -890,7 +972,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"ADMIN".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -900,7 +982,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/admission_applications.fxml", event, "Admission Applications");
     }
 
@@ -914,7 +996,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"ADMIN".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -924,7 +1006,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_records.fxml", event, "Student Records");
     }
 
@@ -938,7 +1020,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -948,7 +1030,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         // Navigate to transcript view (academic record)
         navigateTo("/fxml/view_transcript.fxml", event, "View Transcript");
     }
@@ -963,7 +1045,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -973,7 +1055,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         // Navigate to transcript request page
         navigateTo("/fxml/student_transcript.fxml", event, "Request Transcript");
     }
@@ -988,7 +1070,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"ADMIN".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -998,7 +1080,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/admin_transcript.fxml", event, "Transcript Request Management");
     }
 
@@ -1012,7 +1094,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1022,7 +1104,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_assignments.fxml", event, "My Assignments");
     }
 
@@ -1036,7 +1118,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1046,7 +1128,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/professor_assignments.fxml", event, "Assignment Management");
     }
 
@@ -1060,7 +1142,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1070,7 +1152,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         // Navigate to dedicated gradebook page
         System.out.println("Navigating to Gradebook page");
         navigateTo("/fxml/gradebook.fxml", event, "Gradebook");
@@ -1086,7 +1168,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1096,7 +1178,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/calculate_final_grades.fxml", event, "Calculate Final Grades");
     }
 
@@ -1127,7 +1209,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"ADMIN".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1137,7 +1219,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/admin_courses.fxml", event, "Manage Course Catalog");
     }
 
@@ -1151,7 +1233,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1161,7 +1243,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_course_catalog.fxml", event, "Course Catalog");
     }
 
@@ -1175,7 +1257,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1185,7 +1267,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_enrollment.fxml", event, "Enroll in Courses");
     }
 
@@ -1199,7 +1281,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1209,7 +1291,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_my_courses.fxml", event, "My Enrolled Courses");
     }
 
@@ -1223,7 +1305,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1233,7 +1315,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_quizzes.fxml", event, "My Quizzes");
     }
 
@@ -1247,7 +1329,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1257,7 +1339,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/professor_quizzes.fxml", event, "Quiz Management");
     }
 
@@ -1271,7 +1353,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"PROFESSOR".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1281,7 +1363,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/professor_exams.fxml", event, "Exam Management");
     }
 
@@ -1295,7 +1377,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1305,7 +1387,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_exams.fxml", event, "My Exams");
     }
 
@@ -1319,7 +1401,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         String userType = authService.getCurrentUserType();
         if (!"STUDENT".equals(userType)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -1329,7 +1411,7 @@ public class dashboardcontroller {
             alert.showAndWait();
             return;
         }
-        
+
         navigateTo("/fxml/student_course_grades.fxml", event, "Course Grades");
     }
 

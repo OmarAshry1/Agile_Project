@@ -983,3 +983,66 @@ PRINT '=========================================================================
 PRINT 'Test Data Insertion Complete';
 PRINT '============================================================================';
 GO
+-- ============================================================================
+-- StaffProfiles Table for Sprint 3
+-- ============================================================================
+-- Check if table exists before creating to prevent errors on re-run
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[StaffProfiles]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE StaffProfiles (
+        StaffID INT PRIMARY KEY IDENTITY(1,1),
+        UserID INT NULL,
+        Name VARCHAR(100) NOT NULL,
+        Role VARCHAR(100) NOT NULL,
+        Department VARCHAR(100) NOT NULL,
+        Email VARCHAR(100) UNIQUE NOT NULL,
+        OfficeHours VARCHAR(50),
+        OfficeLocation VARCHAR(100),
+        Phone VARCHAR(20),
+        HireDate DATE,
+        Bio VARCHAR(MAX),
+        IsActive BIT DEFAULT 1,
+        CreatedDate DATETIME2 DEFAULT GETDATE(),
+        UpdatedDate DATETIME2 DEFAULT GETDATE(),
+        FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE SET NULL
+    );
+    PRINT 'StaffProfiles table created successfully.';
+END
+ELSE
+BEGIN
+    PRINT 'StaffProfiles table already exists.';
+END
+GO
+
+-- Indexes for performance
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_staff_department' AND object_id = OBJECT_ID('StaffProfiles'))
+    CREATE INDEX idx_staff_department ON StaffProfiles(Department);
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_staff_name' AND object_id = OBJECT_ID('StaffProfiles'))
+    CREATE INDEX idx_staff_name ON StaffProfiles(Name);
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_staff_active' AND object_id = OBJECT_ID('StaffProfiles'))
+    CREATE INDEX idx_staff_active ON StaffProfiles(IsActive);
+GO
+
+-- Sample Data for Testing (10 records)
+-- Using IF NOT EXISTS to prevent duplicates if script is run multiple times
+IF NOT EXISTS (SELECT 1 FROM StaffProfiles WHERE Email = 'john.smith@edu.com')
+BEGIN
+    INSERT INTO StaffProfiles (Name, Role, Department, Email, OfficeHours, OfficeLocation, Phone, HireDate, Bio) VALUES 
+    ('Dr. John Smith', 'Professor', 'Computer Science', 'john.smith@edu.com', 'MWF 10-12', 'CS Building Room 301', '555-0101', '2018-08-15', 'Expert in Algorithms and Data Structures. PhD from MIT.'),
+    ('Dr. Sarah Johnson', 'Associate Professor', 'Mathematics', 'sarah.johnson@edu.com', 'TTh 2-4', 'Math Building Room 205', '555-0102', '2015-03-20', 'Specializes in Calculus and Linear Algebra.'),
+    ('Prof. Michael Chen', 'Assistant Professor', 'Physics', 'michael.chen@edu.com', 'MW 1-3', 'Physics Building Room 101', '555-0103', '2020-01-10', 'Quantum Mechanics researcher.'),
+    ('Dr. Emily Williams', 'Department Chair', 'Computer Science', 'emily.williams@edu.com', 'By Appointment', 'CS Building Room 401', '555-0104', '2010-09-01', 'Head of Computer Science Department.'),
+    ('Mr. Robert Brown', 'Lab Technician', 'Engineering', 'robert.brown@edu.com', 'M-F 9-5', 'Engineering Lab B', '555-0105', '2019-11-15', 'Manages engineering laboratory equipment.'),
+    ('Dr. Maria Garcia', 'Professor', 'Biology', 'maria.garcia@edu.com', 'TTh 11-1', 'Biology Building Room 150', '555-0106', '2012-07-22', 'Molecular biology expert.'),
+    ('Ms. Lisa Wong', 'Administrator', 'Administration', 'lisa.wong@edu.com', 'M-F 8-4', 'Admin Building Room 100', '555-0107', '2018-04-30', 'Student services coordinator.'),
+    ('Dr. James Wilson', 'Professor', 'Chemistry', 'james.wilson@edu.com', 'MWF 9-11', 'Chemistry Building Room 210', '555-0108', '2009-12-05', 'Organic chemistry specialist.'),
+    ('Mr. David Miller', 'IT Support', 'Information Technology', 'david.miller@edu.com', 'M-F 10-6', 'IT Center Room 15', '555-0109', '2021-03-18', 'Technical support for faculty and students.'),
+    ('Dr. Jennifer Lee', 'Associate Professor', 'Psychology', 'jennifer.lee@edu.com', 'TTh 3-5', 'Psychology Building Room 320', '555-0110', '2017-06-12', 'Clinical psychology and counseling.');
+    PRINT 'StaffProfiles sample data inserted.';
+END
+GO
+
