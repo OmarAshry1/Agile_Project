@@ -2,6 +2,7 @@ package edu.facilities.ui;
 
 import edu.facilities.model.User;
 import edu.facilities.service.AuthService;
+import edu.community.service.MessageService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -15,14 +16,17 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class dashboardcontroller {
 
     private AuthService authService;
+    private MessageService messageService;
 
     @FXML
     public void initialize() {
         authService = AuthService.getInstance();
+        messageService = new MessageService();
         updateUI();
     }
 
@@ -30,6 +34,8 @@ public class dashboardcontroller {
         if (authService.isLoggedIn()) {
             User currentUser = authService.getCurrentUser();
             userIdLabel.setText(currentUser.getUsername() + " / " + currentUser.getId());
+
+            updateUnreadCount();
 
             // Show logout button, hide login/register
             if (logoutButton != null)
@@ -464,6 +470,13 @@ public class dashboardcontroller {
                     manageStaffButton.setDisable(true);
                 }
             }
+
+            // Messages button is visible for all logged-in users
+            if (messagesButton != null) {
+                messagesButton.setVisible(true);
+                messagesButton.setManaged(true);
+                messagesButton.setDisable(false);
+            }
         } else {
             userIdLabel.setText("Guest");
 
@@ -620,6 +633,28 @@ public class dashboardcontroller {
                 manageStaffButton.setManaged(false);
                 manageStaffButton.setDisable(true);
             }
+
+            // Hide messages button for guest
+            if (messagesButton != null) {
+                messagesButton.setVisible(false);
+                messagesButton.setManaged(false);
+                messagesButton.setDisable(true);
+            }
+        }
+    }
+
+    private void updateUnreadCount() {
+        if (authService.isLoggedIn() && messagesButton != null) {
+            try {
+                int count = messageService.getUnreadCount(Integer.parseInt(authService.getCurrentUser().getId()));
+                if (count > 0) {
+                    messagesButton.setText("Messages (" + count + ")");
+                } else {
+                    messagesButton.setText("Messages");
+                }
+            } catch (SQLException | NumberFormatException e) {
+                messagesButton.setText("Messages");
+            }
         }
     }
 
@@ -729,6 +764,8 @@ public class dashboardcontroller {
     private Button staffDirectoryButton;
     @FXML
     private Button manageStaffButton;
+    @FXML
+    private Button messagesButton;
 
     @FXML
     private Button logoutButton;
@@ -790,6 +827,11 @@ public class dashboardcontroller {
         }
 
         navigateTo("/fxml/booking.fxml", event, "Book a Room");
+    }
+
+    @FXML
+    void handleMessages(ActionEvent event) {
+        navigateTo("/fxml/messages-inbox.fxml", event, "Messages Inbox");
     }
 
     @FXML
@@ -1429,5 +1471,28 @@ public class dashboardcontroller {
             alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
+    }
+
+    @FXML
+    private void handleMessagesButton(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/messages-inbox.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Messages");
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not open Messages window.");
+        }
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

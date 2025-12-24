@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.community.ui.ComposeMessageController">
+    <VBox spacing="20" styleClass="padding-large" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="card">
+            <padding>
+                <Insets bottom="15" left="20" right="20" top="15" />
+            </padding>
+            <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="btn-secondary" text="Cancel" />
+            <Label styleClass="page-title" text="Compose Message" />
+        </HBox>
+
+        <VBox spacing="15" styleClass="card" VBox.vgrow="ALWAYS">
+            <VBox spacing="5">
+                <Label styleClass="form-label" text="To:" />
+                <ComboBox fx:id="recipientComboBox" maxWidth="Infinity" promptText="Select a staff member" />
+            </VBox>
+
+            <VBox spacing="5">
+                <Label styleClass="form-label" text="Subject:" />
+                <TextField fx:id="subjectField" promptText="Enter subject" />
+            </VBox>
+
+            <VBox spacing="5" VBox.vgrow="ALWAYS">
+                <Label styleClass="form-label" text="Message:" />
+                <TextArea fx:id="messageBodyArea" promptText="Type your message here..." VBox.vgrow="ALWAYS" wrapText="true" />
+            </VBox>
+
+            <HBox alignment="CENTER_RIGHT" spacing="10">
+                <Button fx:id="sendButton" onAction="#handleSend" styleClass="btn-primary" text="Send" />
+            </HBox>
+        </VBox>
+    </VBox>
+</AnchorPane>

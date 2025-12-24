@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.community.ui.MessagesInboxController">
+    <VBox spacing="20" styleClass="padding-large" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="card">
+            <padding>
+                <Insets bottom="15" left="20" right="20" top="15" />
+            </padding>
+            <Button fx:id="backButton" onAction="#handleBack" styleClass="btn-secondary" text="Back to Dashboard" />
+            <Label styleClass="page-title" text="Messages" />
+        </HBox>
+
+        <HBox spacing="10">
+            <Button fx:id="composeButton" onAction="#handleCompose" styleClass="btn-primary" text="Compose New Message" />
+            <Button fx:id="refreshButton" onAction="#handleRefresh" styleClass="btn-secondary" text="Refresh" />
+        </HBox>
+
+        <TabPane fx:id="messageTabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab text="Inbox">
+                    <VBox styleClass="card" VBox.vgrow="ALWAYS">
+                        <TableView fx:id="inboxTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="inboxStatusColumn" prefWidth="80" text="Status" />
+                                <TableColumn fx:id="inboxFromColumn" prefWidth="150" text="From" />
+                                <TableColumn fx:id="inboxSubjectColumn" prefWidth="300" text="Subject" />
+                                <TableColumn fx:id="inboxDateColumn" prefWidth="150" text="Date" />
+                            </columns>
+                            <placeholder>
+                                <Label text="No messages in inbox." />
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </Tab>
+                <Tab text="Sent">
+                    <VBox styleClass="card" VBox.vgrow="ALWAYS">
+                        <TableView fx:id="sentTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="sentToColumn" prefWidth="150" text="To" />
+                                <TableColumn fx:id="sentSubjectColumn" prefWidth="300" text="Subject" />
+                                <TableColumn fx:id="sentDateColumn" prefWidth="150" text="Date" />
+                            </columns>
+                            <placeholder>
+                                <Label text="No sent messages." />
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+
+        <HBox alignment="CENTER_RIGHT" spacing="10">
+            <Button fx:id="viewButton" onAction="#handleViewMessage" styleClass="btn-primary" text="View Message" />
+        </HBox>
+    </VBox>
+</AnchorPane>

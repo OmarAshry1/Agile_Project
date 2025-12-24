@@ -1046,3 +1046,41 @@ BEGIN
 END
 GO
 
+USE agile;
+GO
+
+-- Create Messages table
+CREATE TABLE Messages (
+    MessageID INT PRIMARY KEY IDENTITY(1,1),
+    SenderUserID INT NOT NULL,
+    ReceiverUserID INT NOT NULL,
+    Subject VARCHAR(200) NOT NULL,
+    MessageBody VARCHAR(MAX) NOT NULL,
+    SentDate DATETIME2 DEFAULT GETDATE(),
+    IsRead BIT DEFAULT 0,
+    ParentMessageID INT NULL,
+    FOREIGN KEY (SenderUserID) REFERENCES Users(UserID),
+    FOREIGN KEY (ReceiverUserID) REFERENCES Users(UserID),
+    FOREIGN KEY (ParentMessageID) REFERENCES Messages(MessageID)
+);
+GO
+
+CREATE INDEX IX_Messages_Receiver ON Messages(ReceiverUserID);
+CREATE INDEX IX_Messages_Sender ON Messages(SenderUserID);
+GO
+
+PRINT 'Messages table created!';
+GO
+```
+
+### To Run This:
+1. Open SQL Server Management Studio (SSMS)
+2. Connect to your database
+3. Make sure you're using the `agile` database
+4. Paste the script above
+5. Click **Execute** (or press F5)
+
+You should see:
+```
+Messages table created!
+
