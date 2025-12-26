@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.RecordPerformanceEvaluationController"
+            prefHeight="600.0" prefWidth="700.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label text="Record Performance Evaluation" styleClass="page-title"/>
+            <Label text="Record a performance evaluation for a staff member" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Form Container -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+            <VBox spacing="15" styleClass="card">
+
+                <!-- Staff Selection -->
+                <VBox spacing="5">
+                    <Label text="Staff Member *" styleClass="form-label"/>
+                    <ComboBox fx:id="staffUserIDComboBox"
+                              promptText="Select staff member"
+                              maxWidth="Infinity" prefHeight="35"/>
+                </VBox>
+
+                <!-- Evaluation Period -->
+                <VBox spacing="5">
+                    <Label text="Evaluation Period *" styleClass="form-label"/>
+                    <TextField fx:id="evaluationPeriodField"
+                               promptText="e.g., Q1 2024, Annual 2024"
+                               prefHeight="35"/>
+                </VBox>
+
+                <!-- Score and Date -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Score (0-100) *" styleClass="form-label"/>
+                        <TextField fx:id="scoreField"
+                                   promptText="e.g., 85.5"
+                                   prefHeight="35"/>
+                    </VBox>
+
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Evaluation Date" styleClass="form-label"/>
+                        <DatePicker fx:id="evaluationDatePicker"
+                                    prefHeight="35"
+                                    maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Notes -->
+                <VBox spacing="5">
+                    <Label text="Notes" styleClass="form-label"/>
+                    <TextArea fx:id="notesArea"
+                              promptText="Additional comments or notes..."
+                              prefHeight="100"
+                              wrapText="true"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Label text="* Required fields" styleClass="form-label"
+                   style="-fx-font-style: italic;" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35"/>
+            <Button fx:id="saveButton" text="💾 Save Evaluation" styleClass="btn-success"
+                    onAction="#handleSave" prefWidth="150" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+

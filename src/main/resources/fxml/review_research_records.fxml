@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane prefHeight="600.0" prefWidth="1000.0" stylesheets="@../css/style.css" 
+            xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="edu.staff.ui.ReviewResearchRecordsController">
+   <children>
+      <VBox alignment="TOP_CENTER" spacing="20" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="20">
+         <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+         </padding>
+         
+         <!-- Header -->
+         <VBox alignment="CENTER" spacing="10">
+            <Label styleClass="page-title" text="Review Research Records" />
+            <Label styleClass="form-label" text="View and filter research activities by staff member and department" textAlignment="CENTER" />
+         </VBox>
+
+         <!-- Filter Section -->
+         <VBox spacing="10" styleClass="card">
+            <padding>
+               <Insets bottom="15" left="15" right="15" top="15" />
+            </padding>
+            <Label styleClass="form-label" text="Filter by Department" style="-fx-font-weight: bold;" />
+            <HBox spacing="10">
+               <VBox spacing="5" HBox.hgrow="ALWAYS">
+                  <ComboBox fx:id="departmentFilterComboBox"
+                            promptText="Select department"
+                            maxWidth="Infinity" prefHeight="35"/>
+               </VBox>
+               <VBox spacing="5">
+                  <Button fx:id="filterButton" onAction="#handleFilter" styleClass="button-primary" text="Filter" />
+               </VBox>
+            </HBox>
+         </VBox>
+
+         <!-- Table -->
+         <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <TableView fx:id="researchTable" prefHeight="350.0" prefWidth="960.0">
+               <columns>
+                  <TableColumn fx:id="titleColumn" prefWidth="250.0" text="Title" />
+                  <TableColumn fx:id="typeColumn" prefWidth="120.0" text="Type" />
+                  <TableColumn fx:id="staffNameColumn" prefWidth="150.0" text="Staff Member" />
+                  <TableColumn fx:id="departmentColumn" prefWidth="150.0" text="Department" />
+                  <TableColumn fx:id="publicationDateColumn" prefWidth="150.0" text="Publication Date" />
+               </columns>
+            </TableView>
+         </VBox>
+
+         <!-- Action Buttons -->
+         <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="backButton" onAction="#handleBack" styleClass="button-secondary" text="Back to Dashboard" />
+         </HBox>
+      </VBox>
+   </children>
+</AnchorPane>
+

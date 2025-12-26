@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.AddResearchActivityController"
+            prefHeight="700.0" prefWidth="800.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Main Container -->
+    <VBox spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="padding-large">
+
+        <!-- Header -->
+        <VBox spacing="5" styleClass="card">
+            <Label text="Add Research Activity" styleClass="page-title"/>
+            <Label text="Record your research work and publications" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Form Container -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+            <VBox spacing="15" styleClass="card">
+
+                <!-- Title -->
+                <VBox spacing="5">
+                    <Label text="Title *" styleClass="form-label"/>
+                    <TextField fx:id="titleField"
+                               promptText="Research title"
+                               prefHeight="35"/>
+                </VBox>
+
+                <!-- Type and Publication Date -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Type *" styleClass="form-label"/>
+                        <ComboBox fx:id="typeComboBox"
+                                  promptText="Select research type"
+                                  maxWidth="Infinity" prefHeight="35"/>
+                    </VBox>
+
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Publication Date *" styleClass="form-label"/>
+                        <DatePicker fx:id="publicationDatePicker"
+                                    prefHeight="35"
+                                    maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Description -->
+                <VBox spacing="5">
+                    <Label text="Description" styleClass="form-label"/>
+                    <TextArea fx:id="descriptionArea"
+                              promptText="Brief description of the research..."
+                              prefHeight="80"
+                              wrapText="true"/>
+                </VBox>
+
+                <!-- Journal and Conference -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Journal Name" styleClass="form-label"/>
+                        <TextField fx:id="journalNameField"
+                                   promptText="Journal name (if applicable)"
+                                   prefHeight="35"/>
+                    </VBox>
+
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Conference Name" styleClass="form-label"/>
+                        <TextField fx:id="conferenceNameField"
+                                   promptText="Conference name (if applicable)"
+                                   prefHeight="35"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Publisher -->
+                <VBox spacing="5">
+                    <Label text="Publisher" styleClass="form-label"/>
+                    <TextField fx:id="publisherField"
+                               promptText="Publisher name"
+                               prefHeight="35"/>
+                </VBox>
+
+                <!-- DOI and URL -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="DOI" styleClass="form-label"/>
+                        <TextField fx:id="doiField"
+                                   promptText="Digital Object Identifier"
+                                   prefHeight="35"/>
+                    </VBox>
+
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="URL" styleClass="form-label"/>
+                        <TextField fx:id="urlField"
+                                   promptText="Link to research"
+                                   prefHeight="35"/>
+                    </VBox>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+
+        <!-- Action Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="card">
+            <Label text="* Required fields" styleClass="form-label"
+                   style="-fx-font-style: italic;" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="backButton" text="Back" styleClass="btn-secondary"
+                    onAction="#handleBack" prefWidth="110" prefHeight="35"/>
+            <Button fx:id="saveButton" text="💾 Save Research" styleClass="btn-success"
+                    onAction="#handleSave" prefWidth="140" prefHeight="35"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+

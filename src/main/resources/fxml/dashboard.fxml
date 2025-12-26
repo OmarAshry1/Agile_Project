@@ -57,6 +57,10 @@
             <Button fx:id="staffDirectoryButton" onAction="#handleStaffDirectory" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Staff Directory" />
             <Button fx:id="messagesButton" onAction="#handleMessagesButton" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Messages" visible="false" managed="false" />
             <Button fx:id="manageStaffButton" onAction="#handleManageStaff" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Staff Profiles" visible="false" managed="false" />
+            <Button fx:id="recordPerformanceButton" onAction="#handleRecordPerformanceEvaluation" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Record Performance" visible="false" managed="false" />
+            <Button fx:id="viewPerformanceButton" onAction="#handleViewPerformanceEvaluation" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Evaluations" visible="false" managed="false" />
+            <Button fx:id="addResearchButton" onAction="#handleAddResearchActivity" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Add Research" visible="false" managed="false" />
+            <Button fx:id="reviewResearchButton" onAction="#handleReviewResearchRecords" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Review Research" visible="false" managed="false" />
             <Button fx:id="logoutButton" onAction="#handleLogout" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-secondary" text="Logout" />
             <Button fx:id="loginButton" onAction="#handleLogin" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Login" />
             <Button fx:id="registerButton" onAction="#handleRegister" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Register" />

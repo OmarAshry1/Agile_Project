@@ -211,6 +211,28 @@ public class dashboardcontroller {
                     staffDirectoryButton.setManaged(true);
                     staffDirectoryButton.setDisable(false);
                 }
+                // Show performance and research management buttons for Admin
+                if (recordPerformanceButton != null) {
+                    recordPerformanceButton.setVisible(true);
+                    recordPerformanceButton.setManaged(true);
+                    recordPerformanceButton.setDisable(false);
+                }
+                if (reviewResearchButton != null) {
+                    reviewResearchButton.setVisible(true);
+                    reviewResearchButton.setManaged(true);
+                    reviewResearchButton.setDisable(false);
+                }
+                // Hide staff-only buttons for Admin
+                if (viewPerformanceButton != null) {
+                    viewPerformanceButton.setVisible(false);
+                    viewPerformanceButton.setManaged(false);
+                    viewPerformanceButton.setDisable(true);
+                }
+                if (addResearchButton != null) {
+                    addResearchButton.setVisible(false);
+                    addResearchButton.setManaged(false);
+                    addResearchButton.setDisable(true);
+                }
             } else {
                 // Students, Staff, and Professors can create tickets and view their own
                 // Staff can also view their assigned tickets from the tickets view
@@ -481,6 +503,41 @@ public class dashboardcontroller {
                     manageStaffButton.setManaged(false);
                     manageStaffButton.setDisable(true);
                 }
+                // Show performance and research buttons for STAFF
+                if ("STAFF".equals(userType)) {
+                    if (viewPerformanceButton != null) {
+                        viewPerformanceButton.setVisible(true);
+                        viewPerformanceButton.setManaged(true);
+                        viewPerformanceButton.setDisable(false);
+                    }
+                    if (addResearchButton != null) {
+                        addResearchButton.setVisible(true);
+                        addResearchButton.setManaged(true);
+                        addResearchButton.setDisable(false);
+                    }
+                } else {
+                    if (viewPerformanceButton != null) {
+                        viewPerformanceButton.setVisible(false);
+                        viewPerformanceButton.setManaged(false);
+                        viewPerformanceButton.setDisable(true);
+                    }
+                    if (addResearchButton != null) {
+                        addResearchButton.setVisible(false);
+                        addResearchButton.setManaged(false);
+                        addResearchButton.setDisable(true);
+                    }
+                }
+                // Hide admin-only buttons for non-admins
+                if (recordPerformanceButton != null) {
+                    recordPerformanceButton.setVisible(false);
+                    recordPerformanceButton.setManaged(false);
+                    recordPerformanceButton.setDisable(true);
+                }
+                if (reviewResearchButton != null) {
+                    reviewResearchButton.setVisible(false);
+                    reviewResearchButton.setManaged(false);
+                    reviewResearchButton.setDisable(true);
+                }
             }
 
             // Messages button is visible for all logged-in users
@@ -673,6 +730,27 @@ public class dashboardcontroller {
                 manageStaffButton.setManaged(false);
                 manageStaffButton.setDisable(true);
             }
+            // Hide performance and research buttons for Guests
+            if (recordPerformanceButton != null) {
+                recordPerformanceButton.setVisible(false);
+                recordPerformanceButton.setManaged(false);
+                recordPerformanceButton.setDisable(true);
+            }
+            if (viewPerformanceButton != null) {
+                viewPerformanceButton.setVisible(false);
+                viewPerformanceButton.setManaged(false);
+                viewPerformanceButton.setDisable(true);
+            }
+            if (addResearchButton != null) {
+                addResearchButton.setVisible(false);
+                addResearchButton.setManaged(false);
+                addResearchButton.setDisable(true);
+            }
+            if (reviewResearchButton != null) {
+                reviewResearchButton.setVisible(false);
+                reviewResearchButton.setManaged(false);
+                reviewResearchButton.setDisable(true);
+            }
 
             // Hide messages button for guest
             if (messagesButton != null) {
@@ -815,6 +893,14 @@ public class dashboardcontroller {
     private Button manageStaffButton;
     @FXML
     private Button messagesButton;
+    @FXML
+    private Button recordPerformanceButton; // Admin - Record Performance Evaluation (US 3.7)
+    @FXML
+    private Button viewPerformanceButton; // Staff - View Performance Evaluation (US 3.8)
+    @FXML
+    private Button addResearchButton; // Staff - Add Research Activity (US 3.9)
+    @FXML
+    private Button reviewResearchButton; // Admin - Review Research Records (US 3.10)
 
     @FXML
     private Button logoutButton;
@@ -1423,7 +1509,7 @@ public class dashboardcontroller {
 
         navigateTo("/fxml/view_announcements.fxml", event, "Announcements");
     }
-    
+
     @FXML
     void handleCreateAnnouncement(ActionEvent event) {
         if (!authService.isLoggedIn()) {
@@ -1597,6 +1683,92 @@ public class dashboardcontroller {
             e.printStackTrace();
             showAlert("Error", "Could not open Messages window.");
         }
+    }
+
+    @FXML
+    void handleRecordPerformanceEvaluation(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to access this feature.");
+            alert.showAndWait();
+            return;
+        }
+        if (!"ADMIN".equals(authService.getCurrentUserType())) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can record performance evaluations.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/record_performance_evaluation.fxml", event, "Record Performance Evaluation");
+    }
+
+    @FXML
+    void handleViewPerformanceEvaluation(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your performance evaluations.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only staff members can view their performance evaluations.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/view_performance_evaluation.fxml", event, "My Performance Evaluations");
+    }
+
+    @FXML
+    void handleAddResearchActivity(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to add research activities.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only staff members can add research activities.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/add_research_activity.fxml", event, "Add Research Activity");
+    }
+
+    @FXML
+    void handleReviewResearchRecords(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to review research records.");
+            alert.showAndWait();
+            return;
+        }
+        if (!"ADMIN".equals(authService.getCurrentUserType())) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only administrators can review research records.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/review_research_records.fxml", event, "Review Research Records");
     }
 
     private void showAlert(String title, String content) {
