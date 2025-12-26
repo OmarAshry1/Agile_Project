@@ -1,5 +1,5 @@
 # University Management System – Phase 1 (Facilities Module)
-#ezz was here
+
 ## 1. Overview
 
 This repository contains **Phase 1** of the *University Management System* developed as part of the **Agile Software Engineering Project**.  
