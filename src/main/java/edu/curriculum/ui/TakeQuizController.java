@@ -220,7 +220,8 @@ public class TakeQuizController {
                 stage = (Stage) backButton.getScene().getWindow();
             }
             stage.setScene(new Scene(root));
-            stage.setTitle("My Quizzes");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Error", "Unable to return to quizzes page: " + e.getMessage());

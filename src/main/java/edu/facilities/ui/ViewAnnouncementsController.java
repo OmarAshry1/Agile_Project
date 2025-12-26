@@ -248,6 +248,7 @@ public class ViewAnnouncementsController {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Create Announcement");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not open create announcement page: " + e.getMessage());
@@ -271,6 +272,7 @@ public class ViewAnnouncementsController {
             Stage stage = (Stage) editButton.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Edit Announcement");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not open edit announcement page: " + e.getMessage());
@@ -384,6 +386,7 @@ public class ViewAnnouncementsController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Dashboard");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not return to dashboard: " + e.getMessage());

@@ -462,8 +462,7 @@ public class CalculateFinalGradesController {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
+            stage.setScene(new Scene(root));        stage.setMaximized(true);stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Unable to return to dashboard: " + e.getMessage());
         }

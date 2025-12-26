@@ -25,7 +25,6 @@ public class AllocateEquipmentController {
     @FXML
     private ComboBox<String> equipmentComboBox;
 
-    @FXML
     private ToggleGroup allocationTypeGroup;
 
     @FXML
@@ -73,6 +72,12 @@ public class AllocateEquipmentController {
 
     @FXML
     public void initialize() {
+        // Initialize ToggleGroup and set it for radio buttons
+        allocationTypeGroup = new ToggleGroup();
+        userRadio.setToggleGroup(allocationTypeGroup);
+        departmentRadio.setToggleGroup(allocationTypeGroup);
+        userRadio.setSelected(true); // Set default selection
+        
         // Check if user is logged in and is admin
         if (!authService.isLoggedIn()) {
             showError("Access Denied", "Please login to allocate equipment.");
@@ -281,6 +286,7 @@ public class AllocateEquipmentController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Dashboard");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Unable to return to dashboard: " + e.getMessage());

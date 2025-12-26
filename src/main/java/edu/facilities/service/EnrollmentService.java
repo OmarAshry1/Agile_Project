@@ -194,13 +194,19 @@ public class EnrollmentService {
      * Get enrollment by ID
      */
     public Enrollment getEnrollmentById(String enrollmentId) throws SQLException {
-        String sql = "SELECT e.EnrollmentID, e.StudentUserID, e.CourseID, e.EnrollmentDate, e.Status, e.Grade, " +
-                    "c.CourseID, c.Code, c.Name, c.Description, c.Credits, c.Department, c.Semester, c.Type, " +
+        String sql = "SELECT e.EnrollmentID, e.StudentUserID, e.CourseID, e.EnrollmentDate, st.StatusCode as Status, e.Grade, " +
+                    "c.CourseID, c.Code, c.Name, c.Description, c.Credits, d.Name as Department, sem.Code as Semester, ct.TypeCode as Type, " +
                     "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate, " +
-                    "u.UserID, u.Username, u.Email, u.UserType " +
+                    "u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
                     "FROM Enrollments e " +
                     "INNER JOIN Courses c ON e.CourseID = c.CourseID " +
+                    "LEFT JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                    "LEFT JOIN Semesters sem ON c.SemesterID = sem.SemesterID " +
+                    "LEFT JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                    "LEFT JOIN StatusTypes st ON e.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ENROLLMENT' " +
                     "INNER JOIN Users u ON e.StudentUserID = u.UserID " +
+                    "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                    "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                     "WHERE e.EnrollmentID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -365,9 +371,11 @@ public class EnrollmentService {
      */
     private void loadCourseRelations(Course course, Connection conn) throws SQLException {
         // Load professors
-        String professorsSql = "SELECT u.UserID, u.Username, u.Email, u.UserType " +
+        String professorsSql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
                                "FROM CourseProfessors cp " +
                                "INNER JOIN Users u ON cp.ProfessorUserID = u.UserID " +
+                               "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                               "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                                "WHERE cp.CourseID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(professorsSql)) {

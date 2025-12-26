@@ -13,6 +13,8 @@ public class Message {
     private LocalDateTime sentDate;
     private boolean isRead;
     private Integer parentMessageID;
+    private Integer threadID;
+    private String messageType; // GENERAL, PARENT_TEACHER, STUDENT_STAFF, SYSTEM
 
     public Message(int senderUserID, int receiverUserID, String subject, String messageBody) {
         this.senderUserID = senderUserID;
@@ -103,5 +105,21 @@ public class Message {
 
     public void setParentMessageID(Integer parentMessageID) {
         this.parentMessageID = parentMessageID;
+    }
+
+    public Integer getThreadID() {
+        return threadID;
+    }
+
+    public void setThreadID(Integer threadID) {
+        this.threadID = threadID;
+    }
+
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
     }
 }

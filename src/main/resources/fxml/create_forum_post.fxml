@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.community.ui.CreateForumPostController"
+            prefHeight="600.0" prefWidth="800.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <Label text="Create Forum Post" styleClass="page-title"/>
+
+        <VBox spacing="10">
+            <Label text="Title *" styleClass="form-label"/>
+            <TextField fx:id="titleField" prefHeight="35"/>
+
+            <Label text="Topic" styleClass="form-label"/>
+            <TextField fx:id="topicField" prefHeight="35"/>
+
+            <Label text="Content *" styleClass="form-label"/>
+            <TextArea fx:id="contentArea" prefRowCount="15" wrapText="true"/>
+        </VBox>
+
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" 
+                    styleClass="button-secondary" prefWidth="100"/>
+            <Button fx:id="createButton" text="Create Post" onAction="#handleCreate" 
+                    styleClass="button-primary" prefWidth="150"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+

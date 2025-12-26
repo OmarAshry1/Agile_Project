@@ -74,6 +74,8 @@ public class ViewMessageController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Reply to Message - " + currentMessage.getSubject());
+            stage.setMaximized(true);
+            stage.show();
         } catch (IOException e) {
             showAlert("Error", "Could not open compose screen: " + e.getMessage());
         }
@@ -86,6 +88,8 @@ public class ViewMessageController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Messages");
+            stage.setMaximized(true);
+            stage.show();
         } catch (IOException e) {
             showAlert("Error", "Navigation Error: " + e.getMessage());
         }

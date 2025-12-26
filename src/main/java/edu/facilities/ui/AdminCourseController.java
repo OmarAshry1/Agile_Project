@@ -152,10 +152,19 @@ public class AdminCourseController {
             List<Course> courses = courseService.searchCourses(keyword, false);
             coursesList.clear();
             coursesList.addAll(courses);
-            statusLabel.setText("Found " + courses.size() + " course(s)");
         } catch (SQLException e) {
             showError("Database Error", "Failed to search courses: " + e.getMessage());
         }
+    }
+    
+    @FXML
+    private void handleFilterDepartment() {
+        handleFilter();
+    }
+    
+    @FXML
+    private void handleFilterSemester() {
+        handleFilter();
     }
 
     @FXML
@@ -304,7 +313,8 @@ public class AdminCourseController {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("Dashboard");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not return to dashboard: " + e.getMessage());

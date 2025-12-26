@@ -247,7 +247,8 @@ public class CreateAssignmentController {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/professor_assignments.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("Assignment Management");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Error", "Unable to return to assignments page: " + e.getMessage());

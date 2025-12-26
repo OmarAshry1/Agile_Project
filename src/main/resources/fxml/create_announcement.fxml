@@ -13,17 +13,18 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.ScrollPane?>
+
 <AnchorPane prefHeight="800.0" prefWidth="1000.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.CreateAnnouncementController">
-   <children>
-      <VBox alignment="TOP_CENTER" spacing="20" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="20">
-         <padding>
-            <Insets bottom="20" left="20" right="20" top="20" />
-         </padding>
-         
+   <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+      <VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 20;">
          <!-- Header -->
          <VBox alignment="CENTER" spacing="10">
             <Label styleClass="page-title" text="Create Announcement" />
             <Label styleClass="form-label" text="Fill in the required fields and optional attachments/links" textAlignment="CENTER" />
+            <HBox spacing="12" alignment="CENTER">
+               <Button fx:id="backButton" text="Back to Dashboard" styleClass="btn-secondary" onAction="#handleBack" prefWidth="150"/>
+            </HBox>
          </VBox>
 
          <!-- Main Form -->
@@ -119,7 +120,7 @@
          <!-- Status Message -->
          <Label fx:id="statusLabel" alignment="CENTER" style="-fx-text-fill: #4CAF50; -fx-font-size: 12px;" text="" textAlignment="CENTER" wrapText="true" />
       </VBox>
-   </children>
+   </ScrollPane>
 </AnchorPane>
 
 

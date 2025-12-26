@@ -111,7 +111,12 @@ public class PerformanceEvaluationService {
      */
     public List<Integer> getAllStaffUserIDs() throws SQLException {
         List<Integer> staffIDs = new ArrayList<>();
-        String sql = "SELECT DISTINCT UserID FROM Users WHERE UserType = 'STAFF' ORDER BY UserID";
+        String sql = "SELECT DISTINCT u.UserID " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE ut.TypeCode = 'STAFF' " +
+                     "ORDER BY u.UserID";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);

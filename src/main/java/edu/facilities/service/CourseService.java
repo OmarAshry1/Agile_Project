@@ -21,19 +21,23 @@ public class CourseService {
      */
     public Course createCourse(String code, String name, String description, int credits,
                               String department, String semester, CourseType type, int maxSeats) throws SQLException {
-        String sql = "INSERT INTO Courses (Code, Name, Description, Credits, Department, Semester, Type, MaxSeats, CurrentSeats, IsActive, CreatedDate, UpdatedDate) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1, GETDATE(), GETDATE())";
+        String sql = "INSERT INTO Courses (Code, Name, Description, Credits, DepartmentID, SemesterID, CourseTypeID, MaxSeats, CurrentSeats, IsActive, CreatedDate, UpdatedDate) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            int departmentId = getDepartmentIdByName(department);
+            int semesterId = getSemesterIdByCode(semester);
+            int courseTypeId = getCourseTypeIdByCode(type.toString());
             
             pstmt.setString(1, code);
             pstmt.setString(2, name);
             pstmt.setString(3, description);
             pstmt.setInt(4, credits);
-            pstmt.setString(5, department);
-            pstmt.setString(6, semester);
-            pstmt.setString(7, type.toString());
+            pstmt.setInt(5, departmentId);
+            pstmt.setInt(6, semesterId);
+            pstmt.setInt(7, courseTypeId);
             pstmt.setInt(8, maxSeats);
             
             int rowsAffected = pstmt.executeUpdate();
@@ -57,19 +61,23 @@ public class CourseService {
     public boolean updateCourse(String courseId, String code, String name, String description, int credits,
                                String department, String semester, CourseType type, int maxSeats) throws SQLException {
         String sql = "UPDATE Courses SET Code = ?, Name = ?, Description = ?, Credits = ?, " +
-                    "Department = ?, Semester = ?, Type = ?, MaxSeats = ?, UpdatedDate = GETDATE() " +
+                    "DepartmentID = ?, SemesterID = ?, CourseTypeID = ?, MaxSeats = ?, UpdatedDate = CURRENT_TIMESTAMP " +
                     "WHERE CourseID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
+            int departmentId = getDepartmentIdByName(department);
+            int semesterId = getSemesterIdByCode(semester);
+            int courseTypeId = getCourseTypeIdByCode(type.toString());
+            
             pstmt.setString(1, code);
             pstmt.setString(2, name);
             pstmt.setString(3, description);
             pstmt.setInt(4, credits);
-            pstmt.setString(5, department);
-            pstmt.setString(6, semester);
-            pstmt.setString(7, type.toString());
+            pstmt.setInt(5, departmentId);
+            pstmt.setInt(6, semesterId);
+            pstmt.setInt(7, courseTypeId);
             pstmt.setInt(8, maxSeats);
             pstmt.setInt(9, Integer.parseInt(courseId));
             
@@ -84,8 +92,9 @@ public class CourseService {
      */
     public boolean deleteCourse(String courseId) throws SQLException {
         // Check if students are enrolled
-        String checkEnrollmentsSql = "SELECT COUNT(*) AS EnrollmentCount FROM Enrollments " +
-                                    "WHERE CourseID = ? AND Status = 'ENROLLED'";
+        String checkEnrollmentsSql = "SELECT COUNT(*) AS EnrollmentCount FROM Enrollments e " +
+                                    "INNER JOIN StatusTypes st ON e.StatusTypeID = st.StatusTypeID " +
+                                    "WHERE e.CourseID = ? AND st.EntityType = 'ENROLLMENT' AND st.StatusCode = 'ENROLLED'";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(checkEnrollmentsSql)) {
@@ -104,8 +113,8 @@ public class CourseService {
             }
         }
         
-        // Soft delete by setting IsActive = 0
-        String sql = "UPDATE Courses SET IsActive = 0, UpdatedDate = GETDATE() WHERE CourseID = ?";
+        // Soft delete by setting IsActive = false
+        String sql = "UPDATE Courses SET IsActive = false, UpdatedDate = CURRENT_TIMESTAMP WHERE CourseID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -121,9 +130,14 @@ public class CourseService {
      * Get course by ID
      */
     public Course getCourseById(String courseId) throws SQLException {
-        String sql = "SELECT CourseID, Code, Name, Description, Credits, Department, Semester, Type, " +
-                    "MaxSeats, CurrentSeats, IsActive, CreatedDate, UpdatedDate " +
-                    "FROM Courses WHERE CourseID = ?";
+        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                    "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                    "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                    "FROM Courses c " +
+                    "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                    "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                    "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                    "WHERE c.CourseID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -147,9 +161,14 @@ public class CourseService {
      * Get course by code
      */
     public Course getCourseByCode(String code) throws SQLException {
-        String sql = "SELECT CourseID, Code, Name, Description, Credits, Department, Semester, Type, " +
-                    "MaxSeats, CurrentSeats, IsActive, CreatedDate, UpdatedDate " +
-                    "FROM Courses WHERE Code = ?";
+        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                    "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                    "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                    "FROM Courses c " +
+                    "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                    "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                    "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                    "WHERE c.Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -172,11 +191,15 @@ public class CourseService {
      * Get all courses (optionally filter by active status)
      */
     public List<Course> getAllCourses(boolean activeOnly) throws SQLException {
-        String sql = "SELECT CourseID, Code, Name, Description, Credits, Department, Semester, Type, " +
-                    "MaxSeats, CurrentSeats, IsActive, CreatedDate, UpdatedDate " +
-                    "FROM Courses " +
-                    (activeOnly ? "WHERE IsActive = 1 " : "") +
-                    "ORDER BY Code";
+        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                    "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                    "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                    "FROM Courses c " +
+                    "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                    "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                    "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                    (activeOnly ? "WHERE c.IsActive = TRUE " : "") +
+                    "ORDER BY c.Code";
         
         List<Course> courses = new ArrayList<>();
         
@@ -198,12 +221,16 @@ public class CourseService {
      * Search courses by keyword (searches code, name, description, department)
      */
     public List<Course> searchCourses(String keyword, boolean activeOnly) throws SQLException {
-        String sql = "SELECT CourseID, Code, Name, Description, Credits, Department, Semester, Type, " +
-                    "MaxSeats, CurrentSeats, IsActive, CreatedDate, UpdatedDate " +
-                    "FROM Courses " +
-                    "WHERE (Code LIKE ? OR Name LIKE ? OR Description LIKE ? OR Department LIKE ?) " +
-                    (activeOnly ? "AND IsActive = 1 " : "") +
-                    "ORDER BY Code";
+        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                    "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                    "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                    "FROM Courses c " +
+                    "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                    "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                    "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                    "WHERE (c.Code LIKE ? OR c.Name LIKE ? OR c.Description LIKE ? OR d.Name LIKE ?) " +
+                    (activeOnly ? "AND c.IsActive = TRUE " : "") +
+                    "ORDER BY c.Code";
         
         List<Course> courses = new ArrayList<>();
         String searchPattern = "%" + keyword + "%";
@@ -233,30 +260,35 @@ public class CourseService {
      */
     public List<Course> filterCourses(String department, String semester, CourseType type, boolean activeOnly) throws SQLException {
         StringBuilder sql = new StringBuilder(
-            "SELECT CourseID, Code, Name, Description, Credits, Department, Semester, Type, " +
-            "MaxSeats, CurrentSeats, IsActive, CreatedDate, UpdatedDate " +
-            "FROM Courses WHERE 1=1 "
+            "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+            "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+            "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate " +
+            "FROM Courses c " +
+            "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+            "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+            "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+            "WHERE 1=1 "
         );
         
-        List<String> params = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
         
         if (activeOnly) {
-            sql.append("AND IsActive = 1 ");
+            sql.append("AND c.IsActive = TRUE ");
         }
         if (department != null && !department.isEmpty()) {
-            sql.append("AND Department = ? ");
+            sql.append("AND d.Name = ? ");
             params.add(department);
         }
         if (semester != null && !semester.isEmpty()) {
-            sql.append("AND Semester = ? ");
+            sql.append("AND s.Code = ? ");
             params.add(semester);
         }
         if (type != null) {
-            sql.append("AND Type = ? ");
+            sql.append("AND ct.TypeCode = ? ");
             params.add(type.toString());
         }
         
-        sql.append("ORDER BY Code");
+        sql.append("ORDER BY c.Code");
         
         List<Course> courses = new ArrayList<>();
         
@@ -264,7 +296,7 @@ public class CourseService {
              PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
             
             for (int i = 0; i < params.size(); i++) {
-                pstmt.setString(i + 1, params.get(i));
+                pstmt.setObject(i + 1, params.get(i));
             }
             
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -377,7 +409,7 @@ public class CourseService {
                 if (rs.next()) {
                     // Update existing attribute
                     String updateSql = "UPDATE CourseAttributes SET AttributeValue = ?, AttributeType = ?, " +
-                                     "UpdatedDate = GETDATE() WHERE CourseID = ? AND AttributeName = ?";
+                                     "UpdatedDate = CURRENT_TIMESTAMP WHERE CourseID = ? AND AttributeName = ?";
                     
                     try (PreparedStatement updatePstmt = conn.prepareStatement(updateSql)) {
                         updatePstmt.setString(1, attributeValue);
@@ -390,7 +422,7 @@ public class CourseService {
                 } else {
                     // Insert new attribute
                     String insertSql = "INSERT INTO CourseAttributes (CourseID, AttributeName, AttributeValue, " +
-                                     "AttributeType, CreatedDate, UpdatedDate) VALUES (?, ?, ?, ?, GETDATE(), GETDATE())";
+                                     "AttributeType, CreatedDate, UpdatedDate) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
                     
                     try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
                         insertPstmt.setInt(1, Integer.parseInt(courseId));
@@ -449,7 +481,11 @@ public class CourseService {
      * Get all departments
      */
     public List<String> getAllDepartments() throws SQLException {
-        String sql = "SELECT DISTINCT Department FROM Courses WHERE IsActive = 1 ORDER BY Department";
+        String sql = "SELECT DISTINCT d.Name as Department " +
+                     "FROM Courses c " +
+                     "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                     "WHERE c.IsActive = TRUE " +
+                     "ORDER BY d.Name";
         List<String> departments = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -468,7 +504,11 @@ public class CourseService {
      * Get all semesters
      */
     public List<String> getAllSemesters() throws SQLException {
-        String sql = "SELECT DISTINCT Semester FROM Courses WHERE IsActive = 1 ORDER BY Semester DESC";
+        String sql = "SELECT DISTINCT s.Code as Semester " +
+                     "FROM Semesters s " +
+                     "INNER JOIN Courses c ON s.SemesterID = c.SemesterID " +
+                     "WHERE c.IsActive = true " +
+                     "ORDER BY s.Code DESC";
         List<String> semesters = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -504,11 +544,14 @@ public class CourseService {
         List<Course> courses = new ArrayList<>();
         // Use CourseProfessors junction table
         String sql = "SELECT DISTINCT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
-                    "c.Department, c.Semester, c.Type, c.MaxSeats, c.CurrentSeats, " +
-                    "c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                    "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                    "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate " +
                     "FROM Courses c " +
                     "INNER JOIN CourseProfessors cp ON c.CourseID = cp.CourseID " +
-                    "WHERE cp.ProfessorUserID = ? AND (c.IsActive = 1 OR c.IsActive IS NULL) " +
+                    "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                    "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                    "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                    "WHERE cp.ProfessorUserID = ? AND (c.IsActive = TRUE OR c.IsActive IS NULL) " +
                     "ORDER BY c.Code";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -559,9 +602,11 @@ public class CourseService {
     
     private void loadCourseRelations(Course course, Connection conn) throws SQLException {
         // Load professors
-        String professorsSql = "SELECT u.UserID, u.Username, u.Email, u.UserType " +
+        String professorsSql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
                                "FROM CourseProfessors cp " +
                                "INNER JOIN Users u ON cp.ProfessorUserID = u.UserID " +
+                               "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                               "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                                "WHERE cp.CourseID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(professorsSql)) {
@@ -584,10 +629,13 @@ public class CourseService {
         
         // Load prerequisites
         String prerequisitesSql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
-                                  "c.Department, c.Semester, c.Type, c.MaxSeats, c.CurrentSeats, " +
-                                  "c.IsActive, c.CreatedDate, c.UpdatedDate " +
+                                  "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                                  "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate " +
                                   "FROM Prerequisites p " +
                                   "INNER JOIN Courses c ON p.PrerequisiteCourseID = c.CourseID " +
+                                  "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                                  "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                                  "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
                                   "WHERE p.CourseID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(prerequisitesSql)) {
@@ -640,6 +688,69 @@ public class CourseService {
         }
         
         return attr;
+    }
+    
+    /**
+     * Get DepartmentID by department name
+     */
+    private int getDepartmentIdByName(String departmentName) throws SQLException {
+        String sql = "SELECT DepartmentID FROM Departments WHERE Name = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, departmentName);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("DepartmentID");
+                }
+            }
+        }
+        
+        throw new SQLException("Department not found: " + departmentName);
+    }
+    
+    /**
+     * Get SemesterID by semester code
+     */
+    private int getSemesterIdByCode(String semesterCode) throws SQLException {
+        String sql = "SELECT SemesterID FROM Semesters WHERE Code = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, semesterCode);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("SemesterID");
+                }
+            }
+        }
+        
+        throw new SQLException("Semester not found: " + semesterCode);
+    }
+    
+    /**
+     * Get CourseTypeID by type code
+     */
+    private int getCourseTypeIdByCode(String typeCode) throws SQLException {
+        String sql = "SELECT CourseTypeID FROM CourseTypes WHERE TypeCode = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, typeCode);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("CourseTypeID");
+                }
+            }
+        }
+        
+        throw new SQLException("CourseType not found: " + typeCode);
     }
 }
 

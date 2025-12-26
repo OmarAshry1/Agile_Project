@@ -11,6 +11,8 @@ module edu.facilities {
     opens edu.facilities to javafx.fxml, javafx.graphics;
     opens edu.curriculum.ui to javafx.fxml, javafx.graphics;
     opens edu.staff.ui to javafx.fxml, javafx.graphics;
+    opens edu.community.ui to javafx.fxml, javafx.graphics;
+    opens edu.community.model to javafx.base;
 
     exports edu.facilities;
     exports edu.facilities.ui;
@@ -22,4 +24,7 @@ module edu.facilities {
     exports edu.staff.model;
     exports edu.staff.service;
     exports edu.staff.ui;
+    exports edu.community.model;
+    exports edu.community.service;
+    exports edu.community.ui;
 }

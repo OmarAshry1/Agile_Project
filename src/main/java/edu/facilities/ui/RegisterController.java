@@ -42,7 +42,7 @@ public class RegisterController {
     @FXML
     private void initialize() {
         if (roleComboBox != null && roleComboBox.getItems().isEmpty()) {
-            roleComboBox.getItems().addAll("Student", "Professor", "Staff", "Admin");
+            roleComboBox.getItems().addAll("Student", "Professor", "Staff", "Admin", "Parent");
         }
     }
 
@@ -100,13 +100,8 @@ public class RegisterController {
                 alert.setContentText("Your account has been created successfully. Please login.");
                 alert.showAndWait();
                 
-
-                try {
-                    login(null);
-                } catch (IOException ioException) {
-                    // Should not happen, but handle it
-                    ioException.printStackTrace();
-                }
+                // Redirect to login page
+                navigateToLogin();
             } else {
                 showFieldError(usernameError, "Username already exists");
             }
@@ -129,11 +124,38 @@ public class RegisterController {
 
     @FXML
     private void login(ActionEvent event) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        navigateToLogin();
+    }
+    
+    /**
+     * Navigate to the login page
+     */
+    private void navigateToLogin() {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
+            Stage stage = (Stage) emailField.getScene().getWindow();
+            // Preserve maximized state
+            boolean wasMaximized = stage.isMaximized();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Login");
+            // Always keep window maximized
+            stage.setMaximized(true);
+            stage.show();
+            // Double-check maximized state after showing to prevent resize
+            javafx.application.Platform.runLater(() -> {
+                if (wasMaximized) {
+                    stage.setMaximized(true);
+                }
+            });
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to navigate to login page");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+            e.printStackTrace();
+        }
     }
 
     private boolean isBlank(TextField field) {
@@ -165,26 +187,14 @@ public class RegisterController {
             case "professor": return "PROFESSOR";
             case "staff": return "STAFF";
             case "admin": return "ADMIN";
+            case "parent": return "PARENT";
             default: return "STUDENT";
         }
     }
 
     @FXML
     private void handleBack(ActionEvent event) {
-        try {
-            // Use Main.class to ensure consistent resource loading from classpath root
-            FXMLLoader loader = new FXMLLoader(edu.facilities.Main.class.getResource("/fxml/dashboard.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Dashboard");
-            stage.show();
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Navigation Error");
-            alert.setHeaderText("Unable to return to dashboard");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
-        }
+        // Navigate back to login form
+        navigateToLogin();
     }
 }

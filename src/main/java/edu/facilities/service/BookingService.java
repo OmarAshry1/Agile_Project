@@ -26,7 +26,10 @@ public class BookingService {
      */
     public boolean isRoomAvailable(int roomId, LocalDateTime startTime, LocalDateTime endTime) throws SQLException {
         // Check if room exists and is in AVAILABLE status
-        String roomCheckSql = "SELECT Status FROM Rooms WHERE RoomID = ?";
+        String roomCheckSql = "SELECT st.StatusCode as Status " +
+                              "FROM Rooms r " +
+                              "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM' " +
+                              "WHERE r.RoomID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(roomCheckSql)) {
             
@@ -47,11 +50,12 @@ public class BookingService {
         // - New start time is between existing booking start and end
         // - New end time is between existing booking start and end
         // - New booking completely encompasses an existing booking
-        String conflictSql = "SELECT COUNT(*) AS ConflictCount FROM Bookings " +
-                            "WHERE RoomID = ? AND Status = 'CONFIRMED' " +
-                            "AND ((BookingDate <= ? AND EndDate > ?) OR " +
-                            "     (BookingDate < ? AND EndDate >= ?) OR " +
-                            "     (BookingDate >= ? AND EndDate <= ?))";
+        String conflictSql = "SELECT COUNT(*) AS ConflictCount FROM Bookings b " +
+                            "INNER JOIN StatusTypes st ON b.StatusTypeID = st.StatusTypeID AND st.EntityType = 'BOOKING' " +
+                            "WHERE b.RoomID = ? AND st.StatusCode = 'CONFIRMED' " +
+                            "AND ((b.BookingDate <= ? AND b.EndDate > ?) OR " +
+                            "     (b.BookingDate < ? AND b.EndDate >= ?) OR " +
+                            "     (b.BookingDate >= ? AND b.EndDate <= ?))";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(conflictSql)) {
@@ -145,17 +149,19 @@ public class BookingService {
         }
         
         // Insert booking
-        String sql = "INSERT INTO Bookings (RoomID, UserID, BookingDate, EndDate, Purpose, Status) " +
-                    "VALUES (?, ?, ?, ?, ?, 'CONFIRMED')";
+        Connection conn = DatabaseConnection.getConnection();
+        int statusTypeId = getStatusTypeId(conn, "BOOKING", "CONFIRMED");
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+        String sql = "INSERT INTO Bookings (RoomID, UserID, BookingDate, EndDate, Purpose, StatusTypeID) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setInt(1, roomId);
             pstmt.setInt(2, userId);
             pstmt.setTimestamp(3, Timestamp.valueOf(startTime));
             pstmt.setTimestamp(4, Timestamp.valueOf(endTime));
             pstmt.setString(5, purpose != null ? purpose : "");
+            pstmt.setInt(6, statusTypeId);
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -210,12 +216,15 @@ public class BookingService {
         }
         
         String sql = "SELECT b.BookingID, b.RoomID, b.UserID, b.BookingDate, b.EndDate, " +
-                    "b.Purpose, b.Status, b.CreatedDate, " +
-                    "r.Code as RoomCode, r.Name as RoomName, r.Type as RoomType, " +
-                    "r.Capacity, r.Location, r.Status as RoomStatus " +
+                    "b.Purpose, st.StatusCode as Status, b.CreatedDate, " +
+                    "r.Code as RoomCode, r.Name as RoomName, rt.TypeCode as RoomType, " +
+                    "r.Capacity, r.Location, rst.StatusCode as RoomStatus " +
                     "FROM Bookings b " +
+                    "INNER JOIN StatusTypes st ON b.StatusTypeID = st.StatusTypeID AND st.EntityType = 'BOOKING' " +
                     "INNER JOIN Rooms r ON b.RoomID = r.RoomID " +
-                    "WHERE b.UserID = ? AND b.Status = 'CONFIRMED' " +
+                    "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                    "LEFT JOIN StatusTypes rst ON r.StatusTypeID = rst.StatusTypeID AND rst.EntityType = 'ROOM' " +
+                    "WHERE b.UserID = ? AND st.StatusCode = 'CONFIRMED' " +
                     "ORDER BY b.BookingDate DESC";
         
         Connection conn = DatabaseConnection.getConnection();
@@ -283,12 +292,16 @@ public class BookingService {
             throw new IllegalArgumentException("Invalid booking ID format");
         }
         
-        String sql = "UPDATE Bookings SET Status = 'CANCELLED' WHERE BookingID = ? AND Status = 'CONFIRMED'";
+        Connection conn = DatabaseConnection.getConnection();
+        int cancelledStatusTypeId = getStatusTypeId(conn, "BOOKING", "CANCELLED");
+        int confirmedStatusTypeId = getStatusTypeId(conn, "BOOKING", "CONFIRMED");
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, bookingIdInt);
+        String sql = "UPDATE Bookings SET StatusTypeID = ? WHERE BookingID = ? AND StatusTypeID = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, cancelledStatusTypeId);
+            pstmt.setInt(2, bookingIdInt);
+            pstmt.setInt(3, confirmedStatusTypeId);
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
         }
@@ -354,17 +367,18 @@ public class BookingService {
         }
         
         // Update the booking
+        Connection conn = DatabaseConnection.getConnection();
+        int confirmedStatusTypeId = getStatusTypeId(conn, "BOOKING", "CONFIRMED");
         String sql = "UPDATE Bookings SET RoomID = ?, BookingDate = ?, EndDate = ?, Purpose = ? " +
-                    "WHERE BookingID = ? AND Status = 'CONFIRMED'";
+                    "WHERE BookingID = ? AND StatusTypeID = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, newRoomId);
             pstmt.setTimestamp(2, Timestamp.valueOf(newStartTime));
             pstmt.setTimestamp(3, Timestamp.valueOf(newEndTime));
             pstmt.setString(4, newPurpose != null ? newPurpose : "");
             pstmt.setInt(5, bookingIdInt);
+            pstmt.setInt(6, confirmedStatusTypeId);
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -400,11 +414,14 @@ public class BookingService {
      */
     private Booking getBookingById(int bookingId) throws SQLException {
         String sql = "SELECT b.BookingID, b.RoomID, b.UserID, b.BookingDate, b.EndDate, " +
-                    "b.Purpose, b.Status, b.CreatedDate, " +
-                    "r.Code as RoomCode, r.Name as RoomName, r.Type as RoomType, " +
-                    "r.Capacity, r.Location, r.Status as RoomStatus " +
+                    "b.Purpose, st.StatusCode as Status, b.CreatedDate, " +
+                    "r.Code as RoomCode, r.Name as RoomName, rt.TypeCode as RoomType, " +
+                    "r.Capacity, r.Location, rst.StatusCode as RoomStatus " +
                     "FROM Bookings b " +
+                    "INNER JOIN StatusTypes st ON b.StatusTypeID = st.StatusTypeID AND st.EntityType = 'BOOKING' " +
                     "INNER JOIN Rooms r ON b.RoomID = r.RoomID " +
+                    "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                    "LEFT JOIN StatusTypes rst ON r.StatusTypeID = rst.StatusTypeID AND rst.EntityType = 'ROOM' " +
                     "WHERE b.BookingID = ?";
         
         Connection conn = DatabaseConnection.getConnection();
@@ -452,7 +469,10 @@ public class BookingService {
     private boolean isRoomAvailableExcludingBooking(int roomId, LocalDateTime startTime, 
                                                     LocalDateTime endTime, int excludeBookingId) throws SQLException {
         // Check if room exists and is in AVAILABLE status
-        String roomCheckSql = "SELECT Status FROM Rooms WHERE RoomID = ?";
+        String roomCheckSql = "SELECT st.StatusCode as Status " +
+                              "FROM Rooms r " +
+                              "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM' " +
+                              "WHERE r.RoomID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(roomCheckSql)) {
             
@@ -469,25 +489,25 @@ public class BookingService {
         }
         
         // Check for overlapping bookings, excluding the current booking
-        String conflictSql = "SELECT COUNT(*) AS ConflictCount FROM Bookings " +
-                            "WHERE RoomID = ? AND Status = 'CONFIRMED' AND BookingID != ? " +
-                            "AND ((BookingDate <= ? AND EndDate > ?) OR " +
-                            "     (BookingDate < ? AND EndDate >= ?) OR " +
-                            "     (BookingDate >= ? AND EndDate <= ?))";
+        Connection conn2 = DatabaseConnection.getConnection();
+        String conflictSql = "SELECT COUNT(*) AS ConflictCount FROM Bookings b " +
+                            "INNER JOIN StatusTypes st ON b.StatusTypeID = st.StatusTypeID AND st.EntityType = 'BOOKING' " +
+                            "WHERE b.RoomID = ? AND st.StatusCode = 'CONFIRMED' AND b.BookingID != ? " +
+                            "AND ((b.BookingDate <= ? AND b.EndDate > ?) OR " +
+                            "     (b.BookingDate < ? AND b.EndDate >= ?) OR " +
+                            "     (b.BookingDate >= ? AND b.EndDate <= ?))";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(conflictSql)) {
+        try (PreparedStatement conflictPstmt = conn2.prepareStatement(conflictSql)) {
+            conflictPstmt.setInt(1, roomId);
+            conflictPstmt.setInt(2, excludeBookingId);
+            conflictPstmt.setTimestamp(3, Timestamp.valueOf(startTime));
+            conflictPstmt.setTimestamp(4, Timestamp.valueOf(startTime));
+            conflictPstmt.setTimestamp(5, Timestamp.valueOf(endTime));
+            conflictPstmt.setTimestamp(6, Timestamp.valueOf(endTime));
+            conflictPstmt.setTimestamp(7, Timestamp.valueOf(startTime));
+            conflictPstmt.setTimestamp(8, Timestamp.valueOf(endTime));
             
-            pstmt.setInt(1, roomId);
-            pstmt.setInt(2, excludeBookingId);
-            pstmt.setTimestamp(3, Timestamp.valueOf(startTime));
-            pstmt.setTimestamp(4, Timestamp.valueOf(startTime));
-            pstmt.setTimestamp(5, Timestamp.valueOf(endTime));
-            pstmt.setTimestamp(6, Timestamp.valueOf(endTime));
-            pstmt.setTimestamp(7, Timestamp.valueOf(startTime));
-            pstmt.setTimestamp(8, Timestamp.valueOf(endTime));
-            
-            try (ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = conflictPstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("ConflictCount") == 0;
                 }
@@ -590,7 +610,11 @@ public class BookingService {
             throw new SQLException("Connection is closed or invalid");
         }
         
-        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE RoomID = ?";
+        String sql = "SELECT r.RoomID, r.Code, r.Name, rt.TypeCode as Type, r.Capacity, r.Location, st.StatusCode as Status " +
+                     "FROM Rooms r " +
+                     "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                     "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM' " +
+                     "WHERE r.RoomID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, roomId);
@@ -634,7 +658,11 @@ public class BookingService {
         
         try {
             int userId = Integer.parseInt(user.getId());
-            String sql = "SELECT UserType FROM Users WHERE UserID = ?";
+            String sql = "SELECT ut.TypeCode as UserType " +
+                         "FROM Users u " +
+                         "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                         "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                         "WHERE u.UserID = ?";
             
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -728,7 +756,11 @@ public class BookingService {
     }
     
     private User getUserById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT UserID, Username, Email, UserType FROM Users WHERE UserID = ?";
+        String sql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -796,10 +828,12 @@ public class BookingService {
             return false;
         }
         
-        String sql = "SELECT COUNT(*) AS BookingCount FROM Bookings WHERE RoomID = ? AND BookingDate >= GETDATE() AND Status = 'CONFIRMED'";
+        Connection conn = DatabaseConnection.getConnection();
+        String sql = "SELECT COUNT(*) AS BookingCount FROM Bookings b " +
+                    "INNER JOIN StatusTypes st ON b.StatusTypeID = st.StatusTypeID AND st.EntityType = 'BOOKING' " +
+                    "WHERE b.RoomID = ? AND b.BookingDate >= CURRENT_TIMESTAMP AND st.StatusCode = 'CONFIRMED'";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, roomIdInt);
             
@@ -813,6 +847,23 @@ public class BookingService {
     }
     
     /**
+     * Get StatusTypeID from StatusTypes table by EntityType and StatusCode
+     */
+    private int getStatusTypeId(Connection conn, String entityType, String statusCode) throws SQLException {
+        String sql = "SELECT StatusTypeID FROM StatusTypes WHERE EntityType = ? AND StatusCode = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, entityType);
+            pstmt.setString(2, statusCode.toUpperCase());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("StatusTypeID");
+                }
+            }
+        }
+        throw new SQLException("StatusType with EntityType '" + entityType + "' and StatusCode '" + statusCode + "' not found");
+    }
+    
+    /**
      * Get count of future bookings for a room (legacy method)
      * @param roomId The room code
      * @return Number of future bookings
@@ -823,10 +874,13 @@ public class BookingService {
             return 0;
         }
         
-        String sql = "SELECT COUNT(*) AS BookingCount FROM Bookings WHERE RoomID = ? AND BookingDate >= GETDATE() AND Status = 'CONFIRMED'";
+        Connection conn = DatabaseConnection.getConnection();
+        int confirmedStatusTypeId = getStatusTypeId(conn, "BOOKING", "CONFIRMED");
+        String sql = "SELECT COUNT(*) AS BookingCount FROM Bookings b " +
+                    "INNER JOIN StatusTypes st ON b.StatusTypeID = st.StatusTypeID AND st.EntityType = 'BOOKING' " +
+                    "WHERE b.RoomID = ? AND b.BookingDate >= CURRENT_TIMESTAMP AND st.StatusCode = 'CONFIRMED'";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, roomIdInt);
             
@@ -851,10 +905,14 @@ public class BookingService {
             return bookingDates;
         }
         
-        String sql = "SELECT BookingDate FROM Bookings WHERE RoomID = ? AND BookingDate >= GETDATE() AND Status = 'CONFIRMED' ORDER BY BookingDate";
+        Connection conn = DatabaseConnection.getConnection();
+        int confirmedStatusTypeId = getStatusTypeId(conn, "BOOKING", "CONFIRMED");
+        String sql = "SELECT b.BookingDate FROM Bookings b " +
+                    "INNER JOIN StatusTypes st ON b.StatusTypeID = st.StatusTypeID AND st.EntityType = 'BOOKING' " +
+                    "WHERE b.RoomID = ? AND b.BookingDate >= CURRENT_TIMESTAMP AND st.StatusCode = 'CONFIRMED' " +
+                    "ORDER BY b.BookingDate";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, roomIdInt);
             

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.community.ui.MessageThreadHistoryController"
+            prefHeight="700.0" prefWidth="1000.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <Label text="Message Thread History" styleClass="page-title"/>
+
+        <HBox spacing="10">
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+            <Button fx:id="backButton" text="Back" onAction="#handleBack" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <Label text="Conversations" styleClass="form-label"/>
+            <TableView fx:id="threadsTable" prefHeight="200.0">
+                <columns>
+                    <TableColumn fx:id="subjectColumn" text="Subject" prefWidth="200"/>
+                    <TableColumn fx:id="teacherColumn" text="Teacher" prefWidth="150"/>
+                    <TableColumn fx:id="studentColumn" text="Student" prefWidth="150"/>
+                    <TableColumn fx:id="lastMessageColumn" text="Last Message" prefWidth="150"/>
+                    <TableColumn fx:id="messageCountColumn" text="Messages" prefWidth="80"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <Label fx:id="threadSubjectLabel" text="Select a conversation to view messages" styleClass="form-label"/>
+            <Label fx:id="threadParticipantsLabel" text="" styleClass="form-label"/>
+            <Label text="Messages" styleClass="form-label"/>
+            <ListView fx:id="messagesList" prefHeight="200.0"/>
+        </VBox>
+    </VBox>
+</AnchorPane>
+

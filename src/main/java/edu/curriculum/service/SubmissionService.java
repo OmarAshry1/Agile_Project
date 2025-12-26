@@ -369,7 +369,11 @@ public class SubmissionService {
      * Get student by ID (helper method)
      */
     private Student getStudentById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT UserID, USERNAME, Email, UserType FROM Users WHERE UserID = ?";
+        String sql = "SELECT u.UserID, u.USERNAME, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);

@@ -12,99 +12,93 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="600.0" prefWidth="700.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.BookingController">
+<AnchorPane prefHeight="700.0" prefWidth="1000.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.BookingController">
 
-    <!-- Center the content -->
-    <StackPane alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-
-        <!-- Main VBox -->
-        <VBox alignment="CENTER" maxWidth="500" spacing="20" styleClass="padding-large">
-
-            <!-- Header -->
-            <VBox alignment="CENTER" maxWidth="500" spacing="10" styleClass="card">
-                <padding>
-                    <Insets bottom="20" left="20" right="20" top="20" />
-                </padding>
-                <Label styleClass="page-title" text="Book a Room" />
-                <Label styleClass="form-label" text="Select a room and time slot for your booking" textAlignment="CENTER" wrapText="true" />
+    <VBox spacing="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" styleClass="content-area">
+        
+        <!-- Top Bar -->
+        <HBox styleClass="top-bar" spacing="16" alignment="CENTER_LEFT">
+            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                <Label styleClass="top-bar-title" text="Book a Room" />
+                <Label styleClass="top-bar-subtitle" text="Select a room and time slot for your booking" />
             </VBox>
-
-            <!-- Form Card -->
-            <VBox maxWidth="500" spacing="15" styleClass="card">
-                <padding>
-                    <Insets bottom="20" left="20" right="20" top="20" />
-                </padding>
-
-                <!-- Filter Section -->
-                <VBox spacing="10" styleClass="card">
-                    <padding>
-                        <Insets bottom="15" left="15" right="15" top="15" />
-                    </padding>
-                    <Label styleClass="form-label" text="Filter Rooms" style="-fx-font-weight: bold;" />
-                    <HBox spacing="10">
-                        <VBox spacing="5" HBox.hgrow="ALWAYS">
-                            <Label styleClass="form-label" text="Min Capacity" />
-                            <ComboBox fx:id="capacityFilter" promptText="Any Capacity" prefWidth="150" />
+        </HBox>
+        
+        <!-- Main Content -->
+        <VBox spacing="24" styleClass="padding-lg">
+            
+            <!-- Filter Section Card -->
+            <VBox styleClass="card" spacing="16">
+                <Label styleClass="section-header" text="Filter Rooms" />
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Min Capacity" />
+                        <ComboBox fx:id="capacityFilter" promptText="Any Capacity" prefHeight="40" prefWidth="200" />
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Equipment" />
+                        <TextField fx:id="equipmentFilter" promptText="e.g., Projector, Whiteboard..." prefHeight="40" prefWidth="300" />
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <!-- Booking Form Card -->
+            <VBox styleClass="card" spacing="20">
+                <Label styleClass="section-header" text="Booking Details" />
+                
+                <!-- Room Selection -->
+                <VBox spacing="8" styleClass="form-group">
+                    <Label styleClass="form-label" text="Select Room *" />
+                    <ComboBox fx:id="roomComboBox" prefHeight="44" promptText="Select an available room" />
+                    <Label fx:id="roomError" styleClass="error-message" text="" visible="false" />
+                </VBox>
+                
+                <!-- Date Selection -->
+                <VBox spacing="8" styleClass="form-group">
+                    <Label styleClass="form-label" text="Booking Date *" />
+                    <DatePicker fx:id="datePicker" prefHeight="44" />
+                    <Label fx:id="dateError" styleClass="error-message" text="" visible="false" />
+                </VBox>
+                
+                <!-- Time Selection -->
+                <VBox spacing="8" styleClass="form-group">
+                    <Label styleClass="form-label" text="Time Slot *" />
+                    <HBox spacing="16" alignment="CENTER_LEFT">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label styleClass="form-label" text="Start Time" />
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Spinner fx:id="startHourSpinner" editable="true" max="23" min="0" prefWidth="80" />
+                                <Label text=":" style="-fx-font-size: 18px; -fx-font-weight: 600;" />
+                                <Spinner fx:id="startMinuteSpinner" editable="true" max="59" min="0" prefWidth="80" />
+                            </HBox>
                         </VBox>
-                        <VBox spacing="5" HBox.hgrow="ALWAYS">
-                            <Label styleClass="form-label" text="Equipment" />
-                            <TextField fx:id="equipmentFilter" promptText="e.g., Projector, Whiteboard..." prefWidth="200" />
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label styleClass="form-label" text="End Time" />
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Spinner fx:id="endHourSpinner" editable="true" max="23" min="0" prefWidth="80" />
+                                <Label text=":" style="-fx-font-size: 18px; -fx-font-weight: 600;" />
+                                <Spinner fx:id="endMinuteSpinner" editable="true" max="59" min="0" prefWidth="80" />
+                            </HBox>
                         </VBox>
                     </HBox>
+                    <Label fx:id="timeError" styleClass="error-message" text="" visible="false" />
                 </VBox>
-
-                <!-- Room Selection -->
-                <VBox spacing="5">
-                    <Label styleClass="form-label" text="Select Room *" />
-                    <ComboBox fx:id="roomComboBox" prefHeight="40" promptText="Select an available room" />
-                    <Label fx:id="roomError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
-                </VBox>
-
-                <!-- Date Selection -->
-                <VBox spacing="5">
-                    <Label styleClass="form-label" text="Booking Date *" />
-                    <DatePicker fx:id="datePicker" prefHeight="40" />
-                    <Label fx:id="dateError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
-                </VBox>
-
-                <!-- Time Selection -->
-                <HBox spacing="10">
-                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label styleClass="form-label" text="Start Time *" />
-                        <HBox spacing="5">
-                            <Spinner fx:id="startHourSpinner" editable="true" max="23" min="0" prefWidth="80" />
-                            <Label text=":" />
-                            <Spinner fx:id="startMinuteSpinner" editable="true" max="59" min="0" prefWidth="80" />
-                        </HBox>
-                    </VBox>
-                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label styleClass="form-label" text="End Time *" />
-                        <HBox spacing="5">
-                            <Spinner fx:id="endHourSpinner" editable="true" max="23" min="0" prefWidth="80" />
-                            <Label text=":" />
-                            <Spinner fx:id="endMinuteSpinner" editable="true" max="59" min="0" prefWidth="80" />
-                        </HBox>
-                    </VBox>
-                </HBox>
-                <Label fx:id="timeError" style="-fx-text-fill: #E53935; -fx-font-size: 11px;" text="" visible="false" />
-
+                
                 <!-- Purpose/Description -->
-                <VBox spacing="5">
+                <VBox spacing="8" styleClass="form-group">
                     <Label styleClass="form-label" text="Purpose (Optional)" />
-                    <TextArea fx:id="purposeTextArea" prefHeight="80" promptText="e.g., Class lecture, Meeting, Event..." wrapText="true" />
+                    <TextArea fx:id="purposeTextArea" prefHeight="100" promptText="e.g., Class lecture, Meeting, Event..." wrapText="true" />
                 </VBox>
-
+                
                 <!-- Action Buttons -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Button fx:id="submitButton" onAction="#handleSubmit" styleClass="button-primary" text="Book Room" />
-                    <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="button-secondary" text="Cancel" />
+                <HBox spacing="12" alignment="CENTER_RIGHT">
+                    <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="btn-secondary" text="Cancel" />
+                    <Button fx:id="submitButton" onAction="#handleSubmit" styleClass="btn-primary" text="Book Room" />
                 </HBox>
-
+                
                 <!-- Status Message -->
-                <Label fx:id="statusLabel" alignment="CENTER" style="-fx-text-fill: #4CAF50; -fx-font-size: 12px;" text="" textAlignment="CENTER" visible="false" wrapText="true" />
-
+                <Label fx:id="statusLabel" alignment="CENTER" styleClass="success-message" text="" textAlignment="CENTER" visible="false" wrapText="true" />
             </VBox>
         </VBox>
-    </StackPane>
+    </VBox>
 </AnchorPane>
-

@@ -5,6 +5,7 @@ import edu.facilities.model.Student;
 import edu.facilities.model.Staff;
 import edu.facilities.model.Professor;
 import edu.facilities.model.Admin;
+import edu.facilities.model.Parent;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -107,7 +108,11 @@ public class AuthService {
         // Normal database authentication
         String hashedPassword = hashPassword(password);
 
-        String sql = "SELECT UserID, USERNAME, Email, UserType FROM Users WHERE USERNAME = ? AND Password = ?";
+        String sql = "SELECT u.UserID, u.USERNAME, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.USERNAME = ? AND u.Password = ? AND ur.IsPrimary = true";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -143,7 +148,7 @@ public class AuthService {
      * Register a new user
      * @param username Username (must be unique)
      * @param password Plain text password
-     * @param userType User type (STUDENT, PROFESSOR, STAFF, ADMIN)
+     * @param userType User type (STUDENT, PROFESSOR, STAFF, ADMIN, PARENT)
      * @return true if registration successful, false if username already exists
      * @throws SQLException if database error occurs
      */
@@ -156,7 +161,7 @@ public class AuthService {
      * @param username Username (must be unique)
      * @param password Plain text password
      * @param email Email address (optional)
-     * @param userType User type (STUDENT, PROFESSOR, STAFF, ADMIN)
+     * @param userType User type (STUDENT, PROFESSOR, STAFF, ADMIN, PARENT)
      * @return true if registration successful, false if username already exists
      * @throws SQLException if database error occurs
      */
@@ -185,7 +190,7 @@ public class AuthService {
 
         // Insert new user
         String hashedPassword = hashPassword(password);
-        String insertSql = "INSERT INTO Users (USERNAME, Password, Email, UserType) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO Users (USERNAME, Password, Email) VALUES (?, ?, ?) RETURNING UserID";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(insertSql)) {
@@ -193,13 +198,37 @@ public class AuthService {
             stmt.setString(1, username);
             stmt.setString(2, hashedPassword);
             stmt.setString(3, email != null && !email.isBlank() ? email : null);
-            stmt.setString(4, userType);
 
-            int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("User registered: " + username + " (" + userType + ")");
-                return true;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int userId = rs.getInt("UserID");
+                    
+                    // Get UserTypeID from UserTypes table
+                    String getTypeIdSql = "SELECT UserTypeID FROM UserTypes WHERE TypeCode = ?";
+                    try (PreparedStatement typeStmt = conn.prepareStatement(getTypeIdSql)) {
+                        typeStmt.setString(1, userType.toUpperCase());
+                        try (ResultSet typeRs = typeStmt.executeQuery()) {
+                            if (typeRs.next()) {
+                                int userTypeId = typeRs.getInt("UserTypeID");
+                                
+                                // Insert into UserRoles junction table
+                                String insertRoleSql = "INSERT INTO UserRoles (UserID, UserTypeID, IsPrimary) VALUES (?, ?, ?)";
+                                try (PreparedStatement roleStmt = conn.prepareStatement(insertRoleSql)) {
+                                    roleStmt.setInt(1, userId);
+                                    roleStmt.setInt(2, userTypeId);
+                                    roleStmt.setBoolean(3, true); // Set as primary role
+                                    roleStmt.executeUpdate();
+                                }
+                                
+                                System.out.println("User registered: " + username + " (" + userType + ")");
+                                return true;
+                            } else {
+                                System.err.println("Error: UserType '" + userType + "' not found in UserTypes table");
+                                return false;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -243,7 +272,7 @@ public class AuthService {
      * Create appropriate User instance based on userType
      * @param id User ID
      * @param username Username
-     * @param userType User type (STUDENT, PROFESSOR, STAFF, ADMIN)
+     * @param userType User type (STUDENT, PROFESSOR, STAFF, ADMIN, PARENT)
      * @return User instance of appropriate type
      */
     private User createUser(String id, String username, String userType) {
@@ -261,6 +290,8 @@ public class AuthService {
                 return new Staff(id, username, null);
             case "ADMIN":
                 return new Admin(id, username, null);
+            case "PARENT":
+                return new Parent(id, username, null);
             default:
                 // Default to Student if userType is unknown
                 return new Student(id, username, null);

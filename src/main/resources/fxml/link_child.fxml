@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.community.ui.LinkChildController"
+            prefHeight="400.0" prefWidth="600.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <Label text="Link My Child" styleClass="page-title"/>
+
+        <VBox spacing="10">
+            <Label text="Enter your child's username or student ID:" styleClass="form-label"/>
+            <TextField fx:id="studentUsernameField" prefHeight="35" promptText="Username or Student ID"/>
+            
+            <Label fx:id="errorLabel" text="" styleClass="error-label" visible="false" wrapText="true"/>
+        </VBox>
+
+        <HBox spacing="10">
+            <Button fx:id="linkButton" text="Link Child" onAction="#handleLink" 
+                    styleClass="btn-primary" prefWidth="120" prefHeight="35"/>
+            <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" 
+                    prefWidth="120" prefHeight="35"/>
+        </HBox>
+
+        <VBox spacing="5" style="-fx-padding: 10;">
+            <Label text="Instructions:" styleClass="form-label"/>
+            <Label text="• Enter your child's username (as they use to login)" wrapText="true"/>
+            <Label text="• OR enter their student ID number" wrapText="true"/>
+            <Label text="• Once linked, you can send messages to their teachers" wrapText="true"/>
+        </VBox>
+    </VBox>
+</AnchorPane>
+

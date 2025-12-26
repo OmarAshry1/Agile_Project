@@ -61,7 +61,11 @@ public class TranscriptService {
 
         // Verify student exists in database
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement checkStmt = conn.prepareStatement("SELECT UserID, USERNAME, UserType FROM Users WHERE UserID = ?")) {
+             PreparedStatement checkStmt = conn.prepareStatement("SELECT u.UserID, u.USERNAME, ut.TypeCode as UserType " +
+                                                                  "FROM Users u " +
+                                                                  "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                                                                  "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                                                                  "WHERE u.UserID = ?")) {
             checkStmt.setInt(1, studentId);
             try (ResultSet rs = checkStmt.executeQuery()) {
                 if (!rs.next()) {
@@ -72,9 +76,12 @@ public class TranscriptService {
             }
         }
 
+        // Get StatusTypeID for 'PENDING' status
+        int statusTypeId = getStatusTypeId("PENDING", "TRANSCRIPT");
+        
         String sql = "INSERT INTO TranscriptRequests " +
-                    "(StudentUserID, RequestedByUserID, Status, Purpose, RequestDate) " +
-                    "VALUES (?, ?, 'PENDING', ?, GETDATE())";
+                    "(StudentUserID, RequestedByUserID, StatusTypeID, Purpose, RequestDate) " +
+                    "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
         System.out.println("SQL: " + sql);
         System.out.println("Parameters: StudentUserID=" + studentId + ", RequestedByUserID=" + studentId + ", Purpose=" + (purpose != null ? purpose : "(null)"));
@@ -84,7 +91,8 @@ public class TranscriptService {
             
             pstmt.setInt(1, studentId);
             pstmt.setInt(2, studentId);
-            pstmt.setString(3, purpose != null ? purpose : "");
+            pstmt.setInt(3, statusTypeId);
+            pstmt.setString(4, purpose != null ? purpose : "");
 
             System.out.println("Executing INSERT statement...");
             int rowsAffected = pstmt.executeUpdate();
@@ -193,12 +201,13 @@ public class TranscriptService {
             throw new IllegalArgumentException("Invalid student ID: " + student.getId());
         }
 
-        String sql = "SELECT RequestID, StudentUserID, RequestedByUserID, ProcessedByUserID, " +
-                    "RequestDate, ProcessedDate, CompletedDate, PickupDate, " +
-                    "Status, Purpose, Notes, PDFPath " +
-                    "FROM TranscriptRequests " +
-                    "WHERE StudentUserID = ? " +
-                    "ORDER BY RequestDate DESC";
+        String sql = "SELECT tr.RequestID, tr.StudentUserID, tr.RequestedByUserID, tr.ProcessedByUserID, " +
+                    "tr.RequestDate, tr.ProcessedDate, tr.CompletedDate, tr.PickupDate, " +
+                    "st.StatusCode as Status, tr.Purpose, tr.Notes, tr.PDFPath " +
+                    "FROM TranscriptRequests tr " +
+                    "INNER JOIN StatusTypes st ON tr.StatusTypeID = st.StatusTypeID " +
+                    "WHERE tr.StudentUserID = ? AND st.EntityType = 'TRANSCRIPT' " +
+                    "ORDER BY tr.RequestDate DESC";
 
         Connection conn = DatabaseConnection.getConnection();
         if (conn == null || conn.isClosed()) {
@@ -252,11 +261,13 @@ public class TranscriptService {
      */
     public List<TranscriptRequest> getAllTranscriptRequests() throws SQLException {
         List<TranscriptRequest> requests = new ArrayList<>();
-        String sql = "SELECT RequestID, StudentUserID, RequestedByUserID, ProcessedByUserID, " +
-                    "RequestDate, ProcessedDate, CompletedDate, PickupDate, " +
-                    "Status, Purpose, Notes, PDFPath " +
-                    "FROM TranscriptRequests " +
-                    "ORDER BY RequestDate DESC";
+        String sql = "SELECT tr.RequestID, tr.StudentUserID, tr.RequestedByUserID, tr.ProcessedByUserID, " +
+                    "tr.RequestDate, tr.ProcessedDate, tr.CompletedDate, tr.PickupDate, " +
+                    "st.StatusCode as Status, tr.Purpose, tr.Notes, tr.PDFPath " +
+                    "FROM TranscriptRequests tr " +
+                    "INNER JOIN StatusTypes st ON tr.StatusTypeID = st.StatusTypeID " +
+                    "WHERE st.EntityType = 'TRANSCRIPT' " +
+                    "ORDER BY tr.RequestDate DESC";
 
         Connection conn = DatabaseConnection.getConnection();
         if (conn == null || conn.isClosed()) {
@@ -319,11 +330,12 @@ public class TranscriptService {
             return null;
         }
 
-        String sql = "SELECT RequestID, StudentUserID, RequestedByUserID, ProcessedByUserID, " +
-                    "RequestDate, ProcessedDate, CompletedDate, PickupDate, " +
-                    "Status, Purpose, Notes, PDFPath " +
-                    "FROM TranscriptRequests " +
-                    "WHERE RequestID = ?";
+        String sql = "SELECT tr.RequestID, tr.StudentUserID, tr.RequestedByUserID, tr.ProcessedByUserID, " +
+                    "tr.RequestDate, tr.ProcessedDate, tr.CompletedDate, tr.PickupDate, " +
+                    "st.StatusCode as Status, tr.Purpose, tr.Notes, tr.PDFPath " +
+                    "FROM TranscriptRequests tr " +
+                    "INNER JOIN StatusTypes st ON tr.StatusTypeID = st.StatusTypeID " +
+                    "WHERE tr.RequestID = ? AND st.EntityType = 'TRANSCRIPT'";
 
         Connection conn = DatabaseConnection.getConnection();
         TranscriptRequestData data = null;
@@ -384,15 +396,18 @@ public class TranscriptService {
             throw new IllegalArgumentException("Invalid request ID or processor ID format");
         }
 
+        // Get StatusTypeID for the new status
+        int statusTypeId = getStatusTypeId(statusToString(newStatus), "TRANSCRIPT");
+        
         // Build update SQL based on status
-        String sql = "UPDATE TranscriptRequests SET Status = ?";
+        String sql = "UPDATE TranscriptRequests SET StatusTypeID = ?";
         
         if (newStatus == TranscriptStatus.IN_PROGRESS) {
-            sql += ", ProcessedByUserID = ?, ProcessedDate = GETDATE()";
+            sql += ", ProcessedByUserID = ?, ProcessedDate = CURRENT_TIMESTAMP";
         } else if (newStatus == TranscriptStatus.READY_FOR_PICKUP || newStatus == TranscriptStatus.COMPLETED) {
-            sql += ", ProcessedByUserID = ?, CompletedDate = GETDATE()";
+            sql += ", ProcessedByUserID = ?, CompletedDate = CURRENT_TIMESTAMP";
             if (newStatus == TranscriptStatus.COMPLETED) {
-                sql += ", PickupDate = GETDATE()";
+                sql += ", PickupDate = CURRENT_TIMESTAMP";
             }
         }
 
@@ -409,7 +424,7 @@ public class TranscriptService {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             int paramIndex = 1;
-            pstmt.setString(paramIndex++, statusToString(newStatus));
+            pstmt.setInt(paramIndex++, statusTypeId);
             
             if (newStatus == TranscriptStatus.IN_PROGRESS || 
                 newStatus == TranscriptStatus.READY_FOR_PICKUP || 
@@ -521,8 +536,10 @@ public class TranscriptService {
     }
 
     private Student getStudentById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT u.UserID, u.USERNAME, u.Email, u.UserType " +
+        String sql = "SELECT u.UserID, u.USERNAME, u.Email, ut.TypeCode as UserType " +
                     "FROM Users u " +
+                    "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                    "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                     "INNER JOIN Students s ON u.UserID = s.UserID " +
                     "WHERE u.UserID = ?";
 
@@ -541,7 +558,11 @@ public class TranscriptService {
     }
 
     private User getUserById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT UserID, Username, Email, UserType FROM Users WHERE UserID = ?";
+        String sql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -593,7 +614,11 @@ public class TranscriptService {
         
         try {
             int userId = Integer.parseInt(user.getId());
-            String sql = "SELECT UserType FROM Users WHERE UserID = ?";
+            String sql = "SELECT ut.TypeCode as UserType " +
+                         "FROM Users u " +
+                         "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                         "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                         "WHERE u.UserID = ?";
             
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -623,6 +648,24 @@ public class TranscriptService {
             case CANCELLED: return "CANCELLED";
             default: return "PENDING";
         }
+    }
+
+    /**
+     * Get StatusTypeID from StatusTypes table
+     */
+    private int getStatusTypeId(String statusCode, String entityType) throws SQLException {
+        String sql = "SELECT StatusTypeID FROM StatusTypes WHERE StatusCode = ? AND EntityType = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, statusCode);
+            pstmt.setString(2, entityType);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("StatusTypeID");
+                }
+            }
+        }
+        throw new SQLException("Status type not found: " + statusCode + " for entity: " + entityType);
     }
 
     // Helper class for transcript request data

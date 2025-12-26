@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.community.ui.CreateEventController"
+            prefHeight="700.0" prefWidth="800.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <Label text="Create Event" styleClass="page-title"/>
+
+        <VBox spacing="10">
+            <Label text="Title *" styleClass="form-label"/>
+            <TextField fx:id="titleField" prefHeight="35"/>
+
+            <Label text="Description" styleClass="form-label"/>
+            <TextArea fx:id="descriptionArea" prefRowCount="5" wrapText="true"/>
+
+            <HBox spacing="10">
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label text="Event Date *" styleClass="form-label"/>
+                    <DatePicker fx:id="eventDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label text="Start Time * (HH:mm)" styleClass="form-label"/>
+                    <TextField fx:id="startTimeField" prefHeight="35" promptText="09:00"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label text="End Time (HH:mm)" styleClass="form-label"/>
+                    <TextField fx:id="endTimeField" prefHeight="35" promptText="17:00"/>
+                </VBox>
+            </HBox>
+
+            <Label text="Location *" styleClass="form-label"/>
+            <TextField fx:id="locationField" prefHeight="35"/>
+
+            <Label text="Event Type" styleClass="form-label"/>
+            <ComboBox fx:id="eventTypeComboBox" prefHeight="35"/>
+
+            <CheckBox fx:id="isPublicCheckBox" text="Public Event"/>
+
+            <CheckBox fx:id="isRecurringCheckBox" text="Recurring Event"/>
+
+            <HBox spacing="10">
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label text="Recurrence Pattern" styleClass="form-label"/>
+                    <ComboBox fx:id="recurrencePatternComboBox" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label text="Recurrence End Date" styleClass="form-label"/>
+                    <DatePicker fx:id="recurrenceEndDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" 
+                    styleClass="button-secondary" prefWidth="100"/>
+            <Button fx:id="createButton" text="Create Event" onAction="#handleCreate" 
+                    styleClass="button-primary" prefWidth="150"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+

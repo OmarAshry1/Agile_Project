@@ -211,8 +211,10 @@ public class PayrollService {
      */
     public List<User> getAllStaff() throws SQLException {
         List<User> staffList = new ArrayList<>();
-        String sql = "SELECT u.UserID, u.USERNAME, u.Email, u.UserType " +
+        String sql = "SELECT u.UserID, u.USERNAME, u.Email, ut.TypeCode as UserType " +
                      "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                      "INNER JOIN Staff s ON u.UserID = s.UserID " +
                      "ORDER BY u.USERNAME";
 

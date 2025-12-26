@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+
+<AnchorPane prefHeight="700.0" prefWidth="1200.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.StaffDirectoryController">
+   <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+      <VBox spacing="0" styleClass="content-area">
+         <!-- Top Bar -->
+         <HBox styleClass="top-bar" spacing="16" alignment="CENTER_LEFT">
+            <VBox spacing="4" HBox.hgrow="ALWAYS">
+               <Label text="Staff Directory" styleClass="top-bar-title"/>
+               <Label text="View and search staff members" styleClass="top-bar-subtitle"/>
+            </VBox>
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+               <Button fx:id="backButton" text="Back" styleClass="btn-secondary" onAction="#handleBack" prefWidth="100"/>
+            </HBox>
+         </HBox>
+
+         <!-- Main Content -->
+         <VBox spacing="24" styleClass="padding-lg">
+            <!-- Search and Filter Section -->
+            <VBox styleClass="card" spacing="16">
+               <Label text="Search &amp; Filter" styleClass="section-header"/>
+               <HBox spacing="16" alignment="CENTER_LEFT">
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Label text="Search Staff" styleClass="form-label"/>
+                     <TextField fx:id="searchField" promptText="Search by name, email, or department..." styleClass="search-field" prefHeight="40" onKeyReleased="#handleSearch"/>
+                  </VBox>
+                  <VBox spacing="8">
+                     <Label text="Filter by Department" styleClass="form-label"/>
+                     <ComboBox fx:id="departmentFilter" promptText="All Departments" prefWidth="180" prefHeight="40" onAction="#handleFilterDepartment"/>
+                  </VBox>
+                  <VBox spacing="8">
+                     <Label text="Filter by Role" styleClass="form-label"/>
+                     <ComboBox fx:id="roleFilter" promptText="All Roles" prefWidth="180" prefHeight="40" onAction="#handleFilterRole"/>
+                  </VBox>
+               </HBox>
+            </VBox>
+
+            <!-- Table Section -->
+            <VBox VBox.vgrow="ALWAYS" spacing="12">
+               <Label text="All Staff Members" styleClass="section-header"/>
+               <TableView fx:id="staffTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                  <columns>
+                     <TableColumn fx:id="userIdColumn" text="User ID" prefWidth="100" sortable="true"/>
+                     <TableColumn fx:id="usernameColumn" text="Username" prefWidth="150" sortable="true"/>
+                     <TableColumn fx:id="emailColumn" text="Email" prefWidth="200" sortable="true"/>
+                     <TableColumn fx:id="roleColumn" text="Role" prefWidth="120" sortable="true"/>
+                     <TableColumn fx:id="departmentColumn" text="Department" prefWidth="150" sortable="true"/>
+                     <TableColumn fx:id="phoneColumn" text="Phone" prefWidth="130" sortable="true"/>
+                     <TableColumn fx:id="officeColumn" text="Office" prefWidth="120" sortable="true"/>
+                  </columns>
+                  <placeholder>
+                     <VBox alignment="CENTER" spacing="12" styleClass="padding-xl">
+                        <Label text="No Staff Members Found" styleClass="section-header" style="-fx-text-fill: #64748B;"/>
+                        <Label text="Try adjusting your search filters" styleClass="text-muted"/>
+                     </VBox>
+                  </placeholder>
+               </TableView>
+            </VBox>
+
+            <!-- Footer Stats -->
+            <HBox spacing="32" alignment="CENTER_LEFT" styleClass="card">
+               <VBox spacing="8">
+                  <Label text="Total Staff" styleClass="form-label"/>
+                  <Label fx:id="totalStaffLabel" text="0" styleClass="section-header"/>
+               </VBox>
+               <Separator orientation="VERTICAL" prefHeight="50"/>
+               <VBox spacing="8">
+                  <Label text="Professors" styleClass="form-label"/>
+                  <Label fx:id="professorsLabel" text="0" styleClass="section-header" style="-fx-text-fill: #2563EB;"/>
+               </VBox>
+               <Separator orientation="VERTICAL" prefHeight="50"/>
+               <VBox spacing="8">
+                  <Label text="Staff Members" styleClass="form-label"/>
+                  <Label fx:id="staffMembersLabel" text="0" styleClass="section-header" style="-fx-text-fill: #10B981;"/>
+               </VBox>
+            </HBox>
+         </VBox>
+      </VBox>
+   </ScrollPane>
+</AnchorPane>
+

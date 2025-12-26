@@ -65,8 +65,8 @@ public class StaffCourseAssignmentService {
         }
         
         // Assign the staff member
-        String sql = "INSERT INTO CourseStaff (CourseID, StaffUserID, Role, CreatedByUserID, CreatedDate) " +
-                    "VALUES (?, ?, ?, ?, GETDATE())";
+        String sql = "INSERT INTO CourseStaff (CourseID, StaffUserID, Role, AssignmentDate) " +
+                    "VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -76,12 +76,7 @@ public class StaffCourseAssignmentService {
             if (role != null && !role.isEmpty()) {
                 pstmt.setString(3, role);
             } else {
-                pstmt.setNull(3, Types.VARCHAR);
-            }
-            if (createdByUserId != null) {
-                pstmt.setInt(4, Integer.parseInt(createdByUserId));
-            } else {
-                pstmt.setNull(4, Types.INTEGER);
+                pstmt.setString(3, "TA"); // Default role
             }
             
             int rowsAffected = pstmt.executeUpdate();
@@ -159,7 +154,7 @@ public class StaffCourseAssignmentService {
                     "INNER JOIN Courses c ON cs.CourseID = c.CourseID " +
                     "WHERE cs.StaffUserID = ? " +
                     "AND c.Semester = ? " +
-                    "AND c.IsActive = 1 " +
+                    "AND c.IsActive = TRUE " +
                     "AND c.CourseID != ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -185,14 +180,14 @@ public class StaffCourseAssignmentService {
      * US 3.3.2 - View Assigned Courses
      */
     public List<CourseAssignment> getStaffAssignedCourses(String staffUserId) throws SQLException {
-        String sql = "SELECT cs.CourseStaffID, cs.CourseID, cs.Role, cs.CreatedDate, " +
+        String sql = "SELECT cs.CourseStaffID, cs.CourseID, cs.Role, cs.AssignmentDate, " +
                     "c.Code, c.Name, c.Description, c.Credits, c.Department, c.Semester, " +
                     "c.Type, c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate as CourseCreatedDate, " +
                     "c.UpdatedDate " +
                     "FROM CourseStaff cs " +
                     "INNER JOIN Courses c ON cs.CourseID = c.CourseID " +
                     "WHERE cs.StaffUserID = ? " +
-                    "AND c.IsActive = 1 " +
+                    "AND c.IsActive = TRUE " +
                     "ORDER BY c.Semester, c.Code";
         
         List<CourseAssignment> assignments = new ArrayList<>();
@@ -209,9 +204,9 @@ public class StaffCourseAssignmentService {
                     assignment.setCourseId(String.valueOf(rs.getInt("CourseID")));
                     assignment.setRole(rs.getString("Role"));
                     
-                    Timestamp createdDate = rs.getTimestamp("CreatedDate");
-                    if (createdDate != null) {
-                        assignment.setAssignedDate(createdDate.toLocalDateTime());
+                    Timestamp assignmentDate = rs.getTimestamp("AssignmentDate");
+                    if (assignmentDate != null) {
+                        assignment.setAssignedDate(assignmentDate.toLocalDateTime());
                     }
                     
                     // Load course details
@@ -231,10 +226,13 @@ public class StaffCourseAssignmentService {
      * Get all staff members (for selection in UI)
      */
     public List<User> getAllStaff() throws SQLException {
-        String sql = "SELECT u.UserID, u.Username, u.Email, u.UserType, s.Department " +
+        String sql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType, d.Name as Department " +
                     "FROM Users u " +
+                    "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                    "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                     "INNER JOIN Staff s ON u.UserID = s.UserID " +
-                    "WHERE u.UserType = 'STAFF' " +
+                    "LEFT JOIN Departments d ON s.DepartmentID = d.DepartmentID " +
+                    "WHERE ut.TypeCode = 'STAFF' " +
                     "ORDER BY u.Username";
         
         List<User> staffList = new ArrayList<>();
@@ -304,8 +302,10 @@ public class StaffCourseAssignmentService {
     private boolean isStaff(String userId) throws SQLException {
         String sql = "SELECT COUNT(*) AS StaffCount " +
                     "FROM Users u " +
+                    "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                    "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                     "INNER JOIN Staff s ON u.UserID = s.UserID " +
-                    "WHERE u.UserID = ? AND u.UserType = 'STAFF'";
+                    "WHERE u.UserID = ? AND ut.TypeCode = 'STAFF'";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

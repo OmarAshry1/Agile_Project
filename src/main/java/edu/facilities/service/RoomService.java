@@ -20,7 +20,11 @@ public class RoomService {
      */
     public List<Room> getAllRooms() throws SQLException {
         List<Room> rooms = new ArrayList<>();
-        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms";
+        String sql = "SELECT r.RoomID, r.Code, r.Name, rt.TypeCode as Type, " +
+                     "r.Capacity, r.Location, st.StatusCode as Status " +
+                     "FROM Rooms r " +
+                     "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                     "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM'";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -42,8 +46,13 @@ public class RoomService {
      */
     public List<Room> getAvailableRooms() throws SQLException {
         List<Room> rooms = new ArrayList<>();
-        // Use UPPER() to handle case-insensitive comparison
-        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE UPPER(Status) = 'AVAILABLE' ORDER BY Code";
+        String sql = "SELECT r.RoomID, r.Code, r.Name, rt.TypeCode as Type, " +
+                     "r.Capacity, r.Location, st.StatusCode as Status " +
+                     "FROM Rooms r " +
+                     "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                     "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM' " +
+                     "WHERE UPPER(st.StatusCode) = 'AVAILABLE' " +
+                     "ORDER BY r.Code";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -70,17 +79,21 @@ public class RoomService {
      */
     public void createRoom(String roomCode, String roomName, RoomType type, 
                           int capacity, String location, RoomStatus status) throws SQLException {
-        String sql = "INSERT INTO Rooms (Code, Name, Type, Capacity, Location, Status) VALUES (?, ?, ?, ?, ?, ?)";
+        Connection conn = DatabaseConnection.getConnection();
+        // Get RoomTypeID
+        int roomTypeId = getRoomTypeId(conn, typeToString(type));
+        // Get StatusTypeID for ROOM entity
+        int statusTypeId = getStatusTypeId(conn, "ROOM", statusToString(status));
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+        String sql = "INSERT INTO Rooms (Code, Name, RoomTypeID, Capacity, Location, StatusTypeID) VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, roomCode);
             pstmt.setString(2, roomName);
-            pstmt.setString(3, typeToString(type));
+            pstmt.setInt(3, roomTypeId);
             pstmt.setInt(4, capacity);
             pstmt.setString(5, location);
-            pstmt.setString(6, statusToString(status));
+            pstmt.setInt(6, statusTypeId);
             
             pstmt.executeUpdate();
         }
@@ -185,7 +198,12 @@ public class RoomService {
      * @throws SQLException if database error occurs
      */
     public Room getRoomById(String roomCode) throws SQLException {
-        String sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Code = ?";
+        String sql = "SELECT r.RoomID, r.Code, r.Name, rt.TypeCode as Type, " +
+                     "r.Capacity, r.Location, st.StatusCode as Status " +
+                     "FROM Rooms r " +
+                     "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                     "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM' " +
+                     "WHERE r.Code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -231,12 +249,12 @@ public class RoomService {
      * @throws SQLException if database error occurs
      */
     public void updateRoomType(String roomCode, RoomType type) throws SQLException {
-        String sql = "UPDATE Rooms SET Type = ? WHERE Code = ?";
+        Connection conn = DatabaseConnection.getConnection();
+        int roomTypeId = getRoomTypeId(conn, typeToString(type));
+        String sql = "UPDATE Rooms SET RoomTypeID = ? WHERE Code = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setString(1, typeToString(type));
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, roomTypeId);
             pstmt.setString(2, roomCode);
             
             int rowsAffected = pstmt.executeUpdate();
@@ -277,12 +295,12 @@ public class RoomService {
      * @throws SQLException if database error occurs
      */
     public void updateRoomStatus(String roomCode, RoomStatus status) throws SQLException {
-        String sql = "UPDATE Rooms SET Status = ? WHERE Code = ?";
+        Connection conn = DatabaseConnection.getConnection();
+        int statusTypeId = getStatusTypeId(conn, "ROOM", statusToString(status));
+        String sql = "UPDATE Rooms SET StatusTypeID = ? WHERE Code = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setString(1, statusToString(status));
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, statusTypeId);
             pstmt.setString(2, roomCode);
             
             int rowsAffected = pstmt.executeUpdate();
@@ -366,17 +384,19 @@ public class RoomService {
      */
     public void updateRoom(String originalRoomCode, String newRoomCode, String roomName,
                           RoomType type, int capacity, String location, RoomStatus status) throws SQLException {
-        String sql = "UPDATE Rooms SET Code = ?, Name = ?, Type = ?, Capacity = ?, Location = ?, Status = ? WHERE Code = ?";
+        Connection conn = DatabaseConnection.getConnection();
+        int roomTypeId = getRoomTypeId(conn, typeToString(type));
+        int statusTypeId = getStatusTypeId(conn, "ROOM", statusToString(status));
         
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+        String sql = "UPDATE Rooms SET Code = ?, Name = ?, RoomTypeID = ?, Capacity = ?, Location = ?, StatusTypeID = ? WHERE Code = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, newRoomCode);
             pstmt.setString(2, roomName);
-            pstmt.setString(3, typeToString(type));
+            pstmt.setInt(3, roomTypeId);
             pstmt.setInt(4, capacity);
             pstmt.setString(5, location);
-            pstmt.setString(6, statusToString(status));
+            pstmt.setInt(6, statusTypeId);
             pstmt.setString(7, originalRoomCode);
             
             int rowsAffected = pstmt.executeUpdate();
@@ -439,6 +459,39 @@ public class RoomService {
             case "MAINTENANCE": return RoomStatus.MAINTENANCE;
             default: return RoomStatus.AVAILABLE;
         }
+    }
+    
+    /**
+     * Get RoomTypeID from RoomTypes table by TypeCode
+     */
+    private int getRoomTypeId(Connection conn, String typeCode) throws SQLException {
+        String sql = "SELECT RoomTypeID FROM RoomTypes WHERE TypeCode = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, typeCode.toUpperCase());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("RoomTypeID");
+                }
+            }
+        }
+        throw new SQLException("RoomType with code '" + typeCode + "' not found");
+    }
+    
+    /**
+     * Get StatusTypeID from StatusTypes table by EntityType and StatusCode
+     */
+    private int getStatusTypeId(Connection conn, String entityType, String statusCode) throws SQLException {
+        String sql = "SELECT StatusTypeID FROM StatusTypes WHERE EntityType = ? AND StatusCode = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, entityType);
+            pstmt.setString(2, statusCode.toUpperCase());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("StatusTypeID");
+                }
+            }
+        }
+        throw new SQLException("StatusType with EntityType '" + entityType + "' and StatusCode '" + statusCode + "' not found");
     }
 }
 

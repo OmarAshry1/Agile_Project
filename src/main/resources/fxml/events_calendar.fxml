@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.community.ui.EventsCalendarController"
+            prefHeight="700.0" prefWidth="1000.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Events Calendar" styleClass="page-title"/>
+            <Label text="Select Month:" styleClass="form-label"/>
+            <DatePicker fx:id="monthPicker" onAction="#handleMonthChanged" prefHeight="35"/>
+        </HBox>
+
+        <HBox spacing="10">
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+            <Button fx:id="backButton" text="Back" onAction="#handleBack" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <SplitPane dividerPositions="0.6" VBox.vgrow="ALWAYS">
+            <VBox spacing="10">
+                <Label text="Events" styleClass="form-label"/>
+                <TableView fx:id="eventsTable" prefHeight="400.0">
+                    <columns>
+                        <TableColumn fx:id="titleColumn" text="Title" prefWidth="200"/>
+                        <TableColumn fx:id="dateColumn" text="Date" prefWidth="100"/>
+                        <TableColumn fx:id="timeColumn" text="Time" prefWidth="150"/>
+                        <TableColumn fx:id="locationColumn" text="Location" prefWidth="150"/>
+                        <TableColumn fx:id="typeColumn" text="Type" prefWidth="100"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <VBox spacing="10">
+                <Label text="Event Details" styleClass="form-label"/>
+                <Label fx:id="eventTitleLabel" text="Select an event to view details" styleClass="form-label"/>
+                <Label fx:id="eventDescriptionLabel" text="" styleClass="form-label"/>
+                <Label fx:id="eventDetailsLabel" text="" styleClass="form-label"/>
+            </VBox>
+        </SplitPane>
+    </VBox>
+</AnchorPane>
+

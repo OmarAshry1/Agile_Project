@@ -22,7 +22,13 @@ public class CourseService {
      */
     public List<Course> getAllCourses() throws SQLException {
         List<Course> courses = new ArrayList<>();
-        String sql = "SELECT CourseID, Code, Name, Description, Credits, Department, Semester, Type, ProfessorUserID, CreatedDate FROM Courses";
+        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                     "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                     "c.ProfessorUserID, c.CreatedDate " +
+                     "FROM Courses c " +
+                     "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                     "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                     "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -58,7 +64,14 @@ public class CourseService {
             return null;
         }
 
-        String sql = "SELECT CourseID, Code, Name, Description, Credits, Department, Semester, Type, ProfessorUserID, CreatedDate FROM Courses WHERE CourseID = ?";
+        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                     "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                     "c.ProfessorUserID, c.CreatedDate " +
+                     "FROM Courses c " +
+                     "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                     "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                     "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                     "WHERE c.CourseID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -100,17 +113,23 @@ public class CourseService {
         // Use CourseProfessors junction table (primary method)
         // Also check ProfessorUserID for backward compatibility with existing data
         String sql = "SELECT DISTINCT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
-                     "c.Department, c.Semester, c.Type, c.MaxSeats, c.CurrentSeats, " +
-                     "c.IsActive, c.CreatedDate, c.UpdatedDate, c.ProfessorUserID " +
+                     "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                     "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate, c.ProfessorUserID " +
                      "FROM Courses c " +
+                     "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                     "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                     "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
                      "INNER JOIN CourseProfessors cp ON c.CourseID = cp.CourseID " +
-                     "WHERE cp.ProfessorUserID = ? AND (c.IsActive = 1 OR c.IsActive IS NULL) " +
+                     "WHERE cp.ProfessorUserID = ? AND (c.IsActive = true OR c.IsActive IS NULL) " +
                      "UNION " +
                      "SELECT DISTINCT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
-                     "c.Department, c.Semester, c.Type, c.MaxSeats, c.CurrentSeats, " +
-                     "c.IsActive, c.CreatedDate, c.UpdatedDate, c.ProfessorUserID " +
+                     "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                     "c.MaxSeats, c.CurrentSeats, c.IsActive, c.CreatedDate, c.UpdatedDate, c.ProfessorUserID " +
                      "FROM Courses c " +
-                     "WHERE c.ProfessorUserID = ? AND (c.IsActive = 1 OR c.IsActive IS NULL) " +
+                     "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                     "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                     "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
+                     "WHERE c.ProfessorUserID = ? AND (c.IsActive = true OR c.IsActive IS NULL) " +
                      "AND NOT EXISTS (SELECT 1 FROM CourseProfessors cp2 WHERE cp2.CourseID = c.CourseID) " +
                      "ORDER BY Code";
         
@@ -172,8 +191,13 @@ public class CourseService {
         }
 
         List<Course> courses = new ArrayList<>();
-        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, c.Department, c.Semester, c.Type, c.ProfessorUserID, c.CreatedDate " +
+        String sql = "SELECT c.CourseID, c.Code, c.Name, c.Description, c.Credits, " +
+                     "d.Name as Department, s.Code as Semester, ct.TypeCode as Type, " +
+                     "c.ProfessorUserID, c.CreatedDate " +
                      "FROM Courses c " +
+                     "INNER JOIN Departments d ON c.DepartmentID = d.DepartmentID " +
+                     "INNER JOIN Semesters s ON c.SemesterID = s.SemesterID " +
+                     "INNER JOIN CourseTypes ct ON c.CourseTypeID = ct.CourseTypeID " +
                      "INNER JOIN Enrollments e ON c.CourseID = e.CourseID " +
                      "WHERE e.StudentUserID = ?";
         
@@ -234,19 +258,26 @@ public class CourseService {
         }
 
         // Enroll student
-        String sql = "INSERT INTO Enrollments (StudentUserID, CourseID, EnrollmentDate) VALUES (?, ?, GETDATE())";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // Get StatusTypeID for ENROLLED status
+            int enrolledStatusTypeId = getEnrollmentStatusTypeId(conn, "ENROLLED");
+            if (enrolledStatusTypeId == 0) {
+                throw new SQLException("ENROLLED status type not found");
+            }
             
-            pstmt.setInt(1, studentIdInt);
-            pstmt.setInt(2, courseIdInt);
+            String sql = "INSERT INTO Enrollments (StudentUserID, CourseID, EnrollmentDate, StatusTypeID) VALUES (?, ?, CURRENT_TIMESTAMP, ?)";
             
-            int rowsAffected = pstmt.executeUpdate();
-            
-            if (rowsAffected > 0) {
-                System.out.println("Student " + studentId + " enrolled in course " + courseId);
-                return true;
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, studentIdInt);
+                pstmt.setInt(2, courseIdInt);
+                pstmt.setInt(3, enrolledStatusTypeId);
+                
+                int rowsAffected = pstmt.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    System.out.println("Student " + studentId + " enrolled in course " + courseId);
+                    return true;
+                }
             }
         }
         
@@ -282,33 +313,52 @@ public class CourseService {
             }
         }
 
-        String sql = "INSERT INTO Courses (Code, Name, Description, Credits, Department, Semester, Type, ProfessorUserID, CreatedDate) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            pstmt.setString(1, code);
-            pstmt.setString(2, name);
-            pstmt.setString(3, description);
-            pstmt.setInt(4, credits);
-            pstmt.setString(5, department);
-            pstmt.setString(6, semester);
-            pstmt.setString(7, typeToString(type));
-            if (professorIdInt > 0) {
-                pstmt.setInt(8, professorIdInt);
-            } else {
-                pstmt.setNull(8, Types.INTEGER);
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // Get DepartmentID from department name
+            int departmentId = getDepartmentIdByName(conn, department);
+            if (departmentId == 0) {
+                throw new SQLException("Department not found: " + department);
             }
             
-            int rowsAffected = pstmt.executeUpdate();
+            // Get SemesterID from semester code
+            int semesterId = getSemesterIdByCode(conn, semester);
+            if (semesterId == 0) {
+                throw new SQLException("Semester not found: " + semester);
+            }
             
-            if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int courseId = generatedKeys.getInt(1);
-                        System.out.println("Course created with ID: " + courseId);
-                        return getCourseById(String.valueOf(courseId));
+            // Get CourseTypeID from type code
+            int courseTypeId = getCourseTypeIdByCode(conn, typeToString(type));
+            if (courseTypeId == 0) {
+                throw new SQLException("Course type not found: " + typeToString(type));
+            }
+            
+            String sql = "INSERT INTO Courses (Code, Name, Description, Credits, DepartmentID, SemesterID, CourseTypeID, ProfessorUserID, CreatedDate) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+            
+            try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                
+                pstmt.setString(1, code);
+                pstmt.setString(2, name);
+                pstmt.setString(3, description);
+                pstmt.setInt(4, credits);
+                pstmt.setInt(5, departmentId);
+                pstmt.setInt(6, semesterId);
+                pstmt.setInt(7, courseTypeId);
+                if (professorIdInt > 0) {
+                    pstmt.setInt(8, professorIdInt);
+                } else {
+                    pstmt.setNull(8, Types.INTEGER);
+                }
+                
+                int rowsAffected = pstmt.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            int courseId = generatedKeys.getInt(1);
+                            System.out.println("Course created with ID: " + courseId);
+                            return getCourseById(String.valueOf(courseId));
+                        }
                     }
                 }
             }
@@ -347,10 +397,95 @@ public class CourseService {
     }
 
     /**
+     * Get DepartmentID by department name
+     */
+    private int getDepartmentIdByName(Connection conn, String departmentName) throws SQLException {
+        if (departmentName == null || departmentName.isBlank()) {
+            return 0;
+        }
+        
+        String sql = "SELECT DepartmentID FROM Departments WHERE Name = ? OR Code = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, departmentName);
+            pstmt.setString(2, departmentName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("DepartmentID");
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Get SemesterID by semester code
+     */
+    private int getSemesterIdByCode(Connection conn, String semesterCode) throws SQLException {
+        if (semesterCode == null || semesterCode.isBlank()) {
+            return 0;
+        }
+        
+        String sql = "SELECT SemesterID FROM Semesters WHERE Code = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, semesterCode);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("SemesterID");
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Get CourseTypeID by type code
+     */
+    private int getCourseTypeIdByCode(Connection conn, String typeCode) throws SQLException {
+        if (typeCode == null || typeCode.isBlank()) {
+            return 0;
+        }
+        
+        String sql = "SELECT CourseTypeID FROM CourseTypes WHERE TypeCode = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, typeCode);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("CourseTypeID");
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Get StatusTypeID for enrollment status
+     */
+    private int getEnrollmentStatusTypeId(Connection conn, String statusCode) throws SQLException {
+        if (statusCode == null || statusCode.isBlank()) {
+            return 0;
+        }
+        
+        String sql = "SELECT StatusTypeID FROM StatusTypes WHERE EntityType = 'ENROLLMENT' AND StatusCode = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, statusCode);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("StatusTypeID");
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Get user by ID
      */
     private User getUserById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT UserID, USERNAME, Email, UserType FROM Users WHERE UserID = ?";
+        String sql = "SELECT u.UserID, u.USERNAME, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);

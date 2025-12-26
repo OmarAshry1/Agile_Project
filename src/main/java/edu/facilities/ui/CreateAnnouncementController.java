@@ -48,6 +48,7 @@ public class CreateAnnouncementController {
     @FXML private TextField linkUrlField;
     
     @FXML private Button addAttachmentButton;
+    @FXML private Button backButton;
     @FXML private Button removeAttachmentButton;
     @FXML private Button addLinkButton;
     @FXML private Button removeLinkButton;
@@ -294,9 +295,29 @@ public class CreateAnnouncementController {
             }
             stage.setScene(new Scene(root));
             stage.setTitle("Announcements");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not return to announcements: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    private void handleBack(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
+            Stage stage;
+            if (event != null && event.getSource() instanceof Node) {
+                stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            } else {
+                stage = (Stage) backButton.getScene().getWindow();
+            }
+            stage.setScene(new Scene(root));
+            stage.setTitle("Dashboard");
+            stage.setMaximized(true);
+            stage.show();
+        } catch (IOException e) {
+            showError("Navigation Error", "Could not return to dashboard: " + e.getMessage());
         }
     }
     

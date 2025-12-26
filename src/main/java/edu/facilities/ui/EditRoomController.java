@@ -300,7 +300,8 @@ public class EditRoomController {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/rooms.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("Room Management");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Error", "Unable to return to rooms page: " + e.getMessage());

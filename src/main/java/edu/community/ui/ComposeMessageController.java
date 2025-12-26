@@ -139,6 +139,8 @@ public class ComposeMessageController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Messages");
+            stage.setMaximized(true);
+            stage.show();
         } catch (IOException e) {
             showAlert("Error", "Navigation Error: " + e.getMessage());
         }

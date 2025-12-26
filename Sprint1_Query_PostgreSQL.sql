@@ -21,25 +21,25 @@
 -- ============================================================================
 
 -- Users table
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
     UserID   SERIAL PRIMARY KEY,
     USERNAME VARCHAR(50) NOT NULL UNIQUE,
     Password VARCHAR(255) NOT NULL,
     Email    VARCHAR(100) NULL,              -- Email address (optional)
     UserType VARCHAR(20) NOT NULL
-        CHECK (UserType IN ('STUDENT', 'PROFESSOR', 'STAFF', 'ADMIN'))
+        CHECK (UserType IN ('STUDENT', 'PROFESSOR', 'STAFF', 'ADMIN', 'PARENT', 'HR_ADMIN', 'GUEST'))
 );
 
 -- Create index on Username for faster login lookups
-CREATE INDEX IX_Users_Username 
+CREATE INDEX IF NOT EXISTS IX_Users_Username 
 ON Users(USERNAME);
 
 -- Create index on UserType for filtering users by role
-CREATE INDEX IX_Users_UserType 
+CREATE INDEX IF NOT EXISTS IX_Users_UserType 
 ON Users(UserType);
 
 -- Students table
-CREATE TABLE Students (
+CREATE TABLE IF NOT EXISTS Students (
     UserID        INT PRIMARY KEY,
     StudentNumber VARCHAR(20),
     Major         VARCHAR(100),
@@ -56,15 +56,15 @@ CREATE TABLE Students (
 );
 
 -- Create index on Status for filtering students by status
-CREATE INDEX IX_Students_Status 
+CREATE INDEX IF NOT EXISTS IX_Students_Status 
 ON Students(Status);
 
 -- Create index on StudentNumber for lookups
-CREATE INDEX IX_Students_StudentNumber 
+CREATE INDEX IF NOT EXISTS IX_Students_StudentNumber 
 ON Students(StudentNumber);
 
 -- Professors table
-CREATE TABLE Professors (
+CREATE TABLE IF NOT EXISTS Professors (
     UserID    INT PRIMARY KEY,
     Department VARCHAR(100),
     OfficeRoom VARCHAR(20),
@@ -72,21 +72,21 @@ CREATE TABLE Professors (
 );
 
 -- Staff table
-CREATE TABLE Staff (
+CREATE TABLE IF NOT EXISTS Staff (
     UserID    INT PRIMARY KEY,
     Department VARCHAR(100),
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
 -- Admins table
-CREATE TABLE Admins (
+CREATE TABLE IF NOT EXISTS Admins (
     UserID    INT PRIMARY KEY,
     RoleTitle VARCHAR(100),
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
 -- Rooms table
-CREATE TABLE Rooms (
+CREATE TABLE IF NOT EXISTS Rooms (
     RoomID   SERIAL PRIMARY KEY,
     Code     VARCHAR(20) NOT NULL UNIQUE,      -- e.g. 'R101', 'LAB1' (unique room identifier)
     Name     VARCHAR(100) NOT NULL,
@@ -99,21 +99,21 @@ CREATE TABLE Rooms (
 );
 
 -- Create index on Code for faster room lookups
-CREATE INDEX IX_Rooms_Code 
+CREATE INDEX IF NOT EXISTS IX_Rooms_Code 
 ON Rooms(Code);
 
 -- Create index on Status for filtering rooms by availability
-CREATE INDEX IX_Rooms_Status 
+CREATE INDEX IF NOT EXISTS IX_Rooms_Status 
 ON Rooms(Status);
 
 -- EquipmentType table
-CREATE TABLE EquipmentType (
+CREATE TABLE IF NOT EXISTS EquipmentType (
     EquipmentTypeID SERIAL PRIMARY KEY,
     Name            VARCHAR(100) NOT NULL
 );
 
 -- RoomEquipment table
-CREATE TABLE RoomEquipment (
+CREATE TABLE IF NOT EXISTS RoomEquipment (
     RoomID          INT NOT NULL,
     EquipmentTypeID INT NOT NULL,
     Quantity        INT NOT NULL DEFAULT 1,
@@ -123,7 +123,7 @@ CREATE TABLE RoomEquipment (
 );
 
 -- MaintenanceTickets table
-CREATE TABLE MaintenanceTickets (
+CREATE TABLE IF NOT EXISTS MaintenanceTickets (
     TicketID            SERIAL PRIMARY KEY,
     RoomID              INT NOT NULL,
     ReporterUserID      INT NOT NULL,
@@ -139,23 +139,23 @@ CREATE TABLE MaintenanceTickets (
 );
 
 -- Create index on AssignedToUserID for better query performance when filtering by assigned staff
-CREATE INDEX IX_MaintenanceTickets_AssignedToUserID 
+CREATE INDEX IF NOT EXISTS IX_MaintenanceTickets_AssignedToUserID 
 ON MaintenanceTickets(AssignedToUserID);
 
 -- Create index on RoomID for better query performance
-CREATE INDEX IX_MaintenanceTickets_RoomID 
+CREATE INDEX IF NOT EXISTS IX_MaintenanceTickets_RoomID 
 ON MaintenanceTickets(RoomID);
 
 -- Create index on ReporterUserID for better query performance
-CREATE INDEX IX_MaintenanceTickets_ReporterUserID 
+CREATE INDEX IF NOT EXISTS IX_MaintenanceTickets_ReporterUserID 
 ON MaintenanceTickets(ReporterUserID);
 
 -- Create index on Status for filtering tickets by status
-CREATE INDEX IX_MaintenanceTickets_Status 
+CREATE INDEX IF NOT EXISTS IX_MaintenanceTickets_Status 
 ON MaintenanceTickets(Status);
 
 -- Bookings table
-CREATE TABLE Bookings (
+CREATE TABLE IF NOT EXISTS Bookings (
     BookingID     SERIAL PRIMARY KEY,
     RoomID         INT NOT NULL,
     UserID         INT NOT NULL,
@@ -170,23 +170,23 @@ CREATE TABLE Bookings (
 );
 
 -- Create index on RoomID for faster room booking lookups
-CREATE INDEX IX_Bookings_RoomID 
+CREATE INDEX IF NOT EXISTS IX_Bookings_RoomID 
 ON Bookings(RoomID);
 
 -- Create index on UserID for faster user booking lookups
-CREATE INDEX IX_Bookings_UserID 
+CREATE INDEX IF NOT EXISTS IX_Bookings_UserID 
 ON Bookings(UserID);
 
 -- Create index on BookingDate for faster date range queries
-CREATE INDEX IX_Bookings_BookingDate 
+CREATE INDEX IF NOT EXISTS IX_Bookings_BookingDate 
 ON Bookings(BookingDate);
 
 -- Create index on Status for filtering bookings by status
-CREATE INDEX IX_Bookings_Status 
+CREATE INDEX IF NOT EXISTS IX_Bookings_Status 
 ON Bookings(Status);
 
 -- Equipment table (standalone equipment items)
-CREATE TABLE Equipment (
+CREATE TABLE IF NOT EXISTS Equipment (
     EquipmentID      SERIAL PRIMARY KEY,
     EquipmentTypeID INT NOT NULL,
     SerialNumber    VARCHAR(100) NULL,              -- Optional serial number
@@ -199,15 +199,15 @@ CREATE TABLE Equipment (
 );
 
 -- Create index on EquipmentTypeID for faster lookups
-CREATE INDEX IX_Equipment_EquipmentTypeID 
+CREATE INDEX IF NOT EXISTS IX_Equipment_EquipmentTypeID 
 ON Equipment(EquipmentTypeID);
 
 -- Create index on Status for filtering equipment by availability
-CREATE INDEX IX_Equipment_Status 
+CREATE INDEX IF NOT EXISTS IX_Equipment_Status 
 ON Equipment(Status);
 
 -- EquipmentAllocation table (tracks equipment allocated to staff/departments)
-CREATE TABLE EquipmentAllocation (
+CREATE TABLE IF NOT EXISTS EquipmentAllocation (
     AllocationID    SERIAL PRIMARY KEY,
     EquipmentID     INT NOT NULL,
     AllocatedToUserID INT NULL,                    -- NULL if allocated to department
@@ -224,23 +224,23 @@ CREATE TABLE EquipmentAllocation (
 );
 
 -- Create index on EquipmentID for faster lookups
-CREATE INDEX IX_EquipmentAllocation_EquipmentID 
+CREATE INDEX IF NOT EXISTS IX_EquipmentAllocation_EquipmentID 
 ON EquipmentAllocation(EquipmentID);
 
 -- Create index on AllocatedToUserID for faster user lookups
-CREATE INDEX IX_EquipmentAllocation_AllocatedToUserID 
+CREATE INDEX IF NOT EXISTS IX_EquipmentAllocation_AllocatedToUserID 
 ON EquipmentAllocation(AllocatedToUserID);
 
 -- Create index on Department for faster department lookups
-CREATE INDEX IX_EquipmentAllocation_Department 
+CREATE INDEX IF NOT EXISTS IX_EquipmentAllocation_Department 
 ON EquipmentAllocation(Department);
 
 -- Create index on Status for filtering active allocations
-CREATE INDEX IX_EquipmentAllocation_Status 
+CREATE INDEX IF NOT EXISTS IX_EquipmentAllocation_Status 
 ON EquipmentAllocation(Status);
 
 -- SoftwareLicenses table
-CREATE TABLE SoftwareLicenses (
+CREATE TABLE IF NOT EXISTS SoftwareLicenses (
     LicenseID       SERIAL PRIMARY KEY,
     SoftwareName   VARCHAR(200) NOT NULL,
     LicenseKey      VARCHAR(500) NULL,             -- Optional license key
@@ -258,17 +258,17 @@ CREATE TABLE SoftwareLicenses (
 );
 
 -- Create index on ExpiryDate for finding near-expiring licenses
-CREATE INDEX IX_SoftwareLicenses_ExpiryDate 
+CREATE INDEX IF NOT EXISTS IX_SoftwareLicenses_ExpiryDate 
 ON SoftwareLicenses(ExpiryDate);
 
 -- Create index on Status for filtering active licenses
-CREATE INDEX IX_SoftwareLicenses_Status 
+CREATE INDEX IF NOT EXISTS IX_SoftwareLicenses_Status 
 ON SoftwareLicenses(Status);
 
 -- ============================================================================
 -- Admission Applications Table (US 2.5 - Admission Application Management)
 -- ============================================================================
-CREATE TABLE AdmissionApplications (
+CREATE TABLE IF NOT EXISTS AdmissionApplications (
     ApplicationID    SERIAL PRIMARY KEY,
     FirstName        VARCHAR(100) NOT NULL,
     LastName         VARCHAR(100) NOT NULL,
@@ -293,21 +293,21 @@ CREATE TABLE AdmissionApplications (
 );
 
 -- Create index on Status for faster filtering
-CREATE INDEX IX_AdmissionApplications_Status 
+CREATE INDEX IF NOT EXISTS IX_AdmissionApplications_Status 
 ON AdmissionApplications(Status);
 
 -- Create index on SubmittedDate for sorting
-CREATE INDEX IX_AdmissionApplications_SubmittedDate 
+CREATE INDEX IF NOT EXISTS IX_AdmissionApplications_SubmittedDate 
 ON AdmissionApplications(SubmittedDate);
 
 -- Create index on Email for lookups
-CREATE INDEX IX_AdmissionApplications_Email 
+CREATE INDEX IF NOT EXISTS IX_AdmissionApplications_Email 
 ON AdmissionApplications(Email);
 
 -- ============================================================================
 -- Transcript Requests Table (US 2.2, 2.3, 2.4 - Transcript Management)
 -- ============================================================================
-CREATE TABLE TranscriptRequests (
+CREATE TABLE IF NOT EXISTS TranscriptRequests (
     RequestID       SERIAL PRIMARY KEY,
     StudentUserID   INT NOT NULL,                    -- Student requesting transcript
     RequestDate     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -327,15 +327,15 @@ CREATE TABLE TranscriptRequests (
 );
 
 -- Create index on StudentUserID for faster student lookups
-CREATE INDEX IX_TranscriptRequests_StudentUserID 
+CREATE INDEX IF NOT EXISTS IX_TranscriptRequests_StudentUserID 
 ON TranscriptRequests(StudentUserID);
 
 -- Create index on Status for faster filtering
-CREATE INDEX IX_TranscriptRequests_Status 
+CREATE INDEX IF NOT EXISTS IX_TranscriptRequests_Status 
 ON TranscriptRequests(Status);
 
 -- Create index on RequestDate for sorting
-CREATE INDEX IX_TranscriptRequests_RequestDate 
+CREATE INDEX IF NOT EXISTS IX_TranscriptRequests_RequestDate 
 ON TranscriptRequests(RequestDate);
 
 -- ============================================================================
@@ -346,7 +346,7 @@ ON TranscriptRequests(RequestDate);
 
 -- Courses table
 -- Note: ProfessorUserID is kept for backward compatibility, but CourseProfessors table should be used for new data
-CREATE TABLE Courses (
+CREATE TABLE IF NOT EXISTS Courses (
     CourseID      SERIAL PRIMARY KEY,
     Code          VARCHAR(20) NOT NULL UNIQUE,      -- e.g. 'CS101', 'MATH201'
     Name          VARCHAR(200) NOT NULL,
@@ -369,26 +369,26 @@ CREATE TABLE Courses (
 );
 
 -- Create index on Code for faster lookups
-CREATE INDEX IX_Courses_Code ON Courses(Code);
+CREATE INDEX IF NOT EXISTS IX_Courses_Code ON Courses(Code);
 
 -- Create index on Department for filtering
-CREATE INDEX IX_Courses_Department ON Courses(Department);
+CREATE INDEX IF NOT EXISTS IX_Courses_Department ON Courses(Department);
 
 -- Create index on Semester for filtering
-CREATE INDEX IX_Courses_Semester ON Courses(Semester);
+CREATE INDEX IF NOT EXISTS IX_Courses_Semester ON Courses(Semester);
 
 -- Create index on Type for filtering
-CREATE INDEX IX_Courses_Type ON Courses(Type);
+CREATE INDEX IF NOT EXISTS IX_Courses_Type ON Courses(Type);
 
 -- Create index on IsActive for filtering active courses
-CREATE INDEX IX_Courses_IsActive ON Courses(IsActive);
+CREATE INDEX IF NOT EXISTS IX_Courses_IsActive ON Courses(IsActive);
 
 -- Create index on ProfessorUserID for backward compatibility
-CREATE INDEX IX_Courses_ProfessorUserID ON Courses(ProfessorUserID);
+CREATE INDEX IF NOT EXISTS IX_Courses_ProfessorUserID ON Courses(ProfessorUserID);
 
 -- CourseProfessors table (Many-to-Many: Courses can have multiple professors)
 -- This is the primary method for linking courses to professors
-CREATE TABLE CourseProfessors (
+CREATE TABLE IF NOT EXISTS CourseProfessors (
     CourseProfessorID SERIAL PRIMARY KEY,
     CourseID          INT NOT NULL,
     ProfessorUserID   INT NOT NULL,
@@ -399,14 +399,14 @@ CREATE TABLE CourseProfessors (
 );
 
 -- Create index on CourseID for faster lookups
-CREATE INDEX IX_CourseProfessors_CourseID ON CourseProfessors(CourseID);
+CREATE INDEX IF NOT EXISTS IX_CourseProfessors_CourseID ON CourseProfessors(CourseID);
 
 -- Create index on ProfessorUserID for faster lookups
-CREATE INDEX IX_CourseProfessors_ProfessorUserID ON CourseProfessors(ProfessorUserID);
+CREATE INDEX IF NOT EXISTS IX_CourseProfessors_ProfessorUserID ON CourseProfessors(ProfessorUserID);
 
 -- Prerequisites table (Many-to-Many: Courses can have multiple prerequisites)
 -- Stores which courses are prerequisites for other courses (e.g., CS201 requires CS101)
-CREATE TABLE Prerequisites (
+CREATE TABLE IF NOT EXISTS Prerequisites (
     PrerequisiteID SERIAL PRIMARY KEY,
     CourseID       INT NOT NULL,                    -- Course that requires the prerequisite
     PrerequisiteCourseID INT NOT NULL,              -- Course that must be completed first
@@ -418,14 +418,14 @@ CREATE TABLE Prerequisites (
 );
 
 -- Create index on CourseID for faster lookups
-CREATE INDEX IX_Prerequisites_CourseID ON Prerequisites(CourseID);
+CREATE INDEX IF NOT EXISTS IX_Prerequisites_CourseID ON Prerequisites(CourseID);
 
 -- Create index on PrerequisiteCourseID for faster lookups
-CREATE INDEX IX_Prerequisites_PrerequisiteCourseID ON Prerequisites(PrerequisiteCourseID);
+CREATE INDEX IF NOT EXISTS IX_Prerequisites_PrerequisiteCourseID ON Prerequisites(PrerequisiteCourseID);
 
 -- CourseAttributes table (EAV - Entity-Attribute-Value pattern for flexible attributes)
 -- Allows storing additional course attributes without schema changes
-CREATE TABLE CourseAttributes (
+CREATE TABLE IF NOT EXISTS CourseAttributes (
     AttributeID   SERIAL PRIMARY KEY,
     CourseID      INT NOT NULL,
     AttributeName VARCHAR(100) NOT NULL,            -- e.g. 'LabHours', 'Online', 'PrerequisitesText'
@@ -439,13 +439,13 @@ CREATE TABLE CourseAttributes (
 );
 
 -- Create index on CourseID for faster lookups
-CREATE INDEX IX_CourseAttributes_CourseID ON CourseAttributes(CourseID);
+CREATE INDEX IF NOT EXISTS IX_CourseAttributes_CourseID ON CourseAttributes(CourseID);
 
 -- Create index on AttributeName for filtering
-CREATE INDEX IX_CourseAttributes_AttributeName ON CourseAttributes(AttributeName);
+CREATE INDEX IF NOT EXISTS IX_CourseAttributes_AttributeName ON CourseAttributes(AttributeName);
 
 -- Enrollments table
-CREATE TABLE Enrollments (
+CREATE TABLE IF NOT EXISTS Enrollments (
     EnrollmentID  SERIAL PRIMARY KEY,
     StudentUserID INT NOT NULL,
     CourseID      INT NOT NULL,
@@ -459,24 +459,24 @@ CREATE TABLE Enrollments (
 
 -- Create partial unique index to prevent duplicate active enrollments
 -- This allows re-enrollment after drop but prevents multiple ENROLLED status for same student/course
-CREATE UNIQUE INDEX IX_Enrollments_UniqueActiveEnrollment 
+CREATE UNIQUE INDEX IF NOT EXISTS IX_Enrollments_UniqueActiveEnrollment 
 ON Enrollments(StudentUserID, CourseID) 
 WHERE Status = 'ENROLLED';
 
 -- Create index on StudentUserID for faster student lookups
-CREATE INDEX IX_Enrollments_StudentUserID ON Enrollments(StudentUserID);
+CREATE INDEX IF NOT EXISTS IX_Enrollments_StudentUserID ON Enrollments(StudentUserID);
 
 -- Create index on CourseID for faster course lookups
-CREATE INDEX IX_Enrollments_CourseID ON Enrollments(CourseID);
+CREATE INDEX IF NOT EXISTS IX_Enrollments_CourseID ON Enrollments(CourseID);
 
 -- Create index on Status for filtering
-CREATE INDEX IX_Enrollments_Status ON Enrollments(Status);
+CREATE INDEX IF NOT EXISTS IX_Enrollments_Status ON Enrollments(Status);
 
 -- Create composite index for common queries
-CREATE INDEX IX_Enrollments_Student_Course_Status ON Enrollments(StudentUserID, CourseID, Status);
+CREATE INDEX IF NOT EXISTS IX_Enrollments_Student_Course_Status ON Enrollments(StudentUserID, CourseID, Status);
 
 -- Assignments table (US 2.7 - Create Assignment)
-CREATE TABLE Assignments (
+CREATE TABLE IF NOT EXISTS Assignments (
     AssignmentID SERIAL PRIMARY KEY,
     CourseID INT NOT NULL,
     Title VARCHAR(200) NOT NULL,
@@ -488,11 +488,11 @@ CREATE TABLE Assignments (
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
 );
 
-CREATE INDEX IX_Assignments_CourseID ON Assignments(CourseID);
-CREATE INDEX IX_Assignments_DueDate ON Assignments(DueDate);
+CREATE INDEX IF NOT EXISTS IX_Assignments_CourseID ON Assignments(CourseID);
+CREATE INDEX IF NOT EXISTS IX_Assignments_DueDate ON Assignments(DueDate);
 
 -- AssignmentAttributes table (EAV pattern for assignment metadata)
-CREATE TABLE AssignmentAttributes (
+CREATE TABLE IF NOT EXISTS AssignmentAttributes (
     AttributeID SERIAL PRIMARY KEY,
     AssignmentID INT NOT NULL,
     AttributeName VARCHAR(100) NOT NULL,
@@ -500,10 +500,10 @@ CREATE TABLE AssignmentAttributes (
     FOREIGN KEY (AssignmentID) REFERENCES Assignments(AssignmentID)
 );
 
-CREATE INDEX IX_AssignmentAttributes_AssignmentID ON AssignmentAttributes(AssignmentID);
+CREATE INDEX IF NOT EXISTS IX_AssignmentAttributes_AssignmentID ON AssignmentAttributes(AssignmentID);
 
 -- AssignmentSubmissions table (US 2.8 - Submit Assignment, US 2.9 - Grade)
-CREATE TABLE AssignmentSubmissions (
+CREATE TABLE IF NOT EXISTS AssignmentSubmissions (
     SubmissionID SERIAL PRIMARY KEY,
     AssignmentID INT NOT NULL,
     StudentUserID INT NOT NULL,
@@ -518,13 +518,13 @@ CREATE TABLE AssignmentSubmissions (
     FOREIGN KEY (StudentUserID) REFERENCES Users(UserID)
 );
 
-CREATE INDEX IX_AssignmentSubmissions_AssignmentID ON AssignmentSubmissions(AssignmentID);
-CREATE INDEX IX_AssignmentSubmissions_StudentUserID ON AssignmentSubmissions(StudentUserID);
-CREATE INDEX IX_AssignmentSubmissions_Status ON AssignmentSubmissions(Status);
+CREATE INDEX IF NOT EXISTS IX_AssignmentSubmissions_AssignmentID ON AssignmentSubmissions(AssignmentID);
+CREATE INDEX IF NOT EXISTS IX_AssignmentSubmissions_StudentUserID ON AssignmentSubmissions(StudentUserID);
+CREATE INDEX IF NOT EXISTS IX_AssignmentSubmissions_Status ON AssignmentSubmissions(Status);
 
 -- CourseMaterials table (US 2.5 - Upload Course Materials, US 2.6 - View Course Materials)
 -- Stores course materials uploaded by professors (files and links)
-CREATE TABLE CourseMaterials (
+CREATE TABLE IF NOT EXISTS CourseMaterials (
     MaterialID SERIAL PRIMARY KEY,
     CourseID INT NOT NULL,
     Title VARCHAR(255) NOT NULL,
@@ -541,15 +541,15 @@ CREATE TABLE CourseMaterials (
 );
 
 -- Create index on CourseID for faster queries
-CREATE INDEX IX_CourseMaterials_CourseID 
+CREATE INDEX IF NOT EXISTS IX_CourseMaterials_CourseID 
 ON CourseMaterials(CourseID);
 
 -- Create index on UploadDate for sorting (US 2.6 - organized by upload date)
-CREATE INDEX IX_CourseMaterials_UploadDate 
+CREATE INDEX IF NOT EXISTS IX_CourseMaterials_UploadDate 
 ON CourseMaterials(UploadDate DESC);
 
 -- Create index on UploadedByUserID
-CREATE INDEX IX_CourseMaterials_UploadedBy 
+CREATE INDEX IF NOT EXISTS IX_CourseMaterials_UploadedBy 
 ON CourseMaterials(UploadedByUserID);
 
 -- ============================================================================
@@ -557,7 +557,7 @@ ON CourseMaterials(UploadedByUserID);
 -- ============================================================================
 
 -- Quizzes table (US 2.10 - Create Quiz)
-CREATE TABLE Quizzes (
+CREATE TABLE IF NOT EXISTS Quizzes (
     QuizID SERIAL PRIMARY KEY,
     CourseID INT NOT NULL,
     Title VARCHAR(200) NOT NULL,
@@ -568,11 +568,11 @@ CREATE TABLE Quizzes (
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE
 );
 
-CREATE INDEX IX_Quizzes_CourseID ON Quizzes(CourseID);
-CREATE INDEX IX_Quizzes_DueDate ON Quizzes(DueDate);
+CREATE INDEX IF NOT EXISTS IX_Quizzes_CourseID ON Quizzes(CourseID);
+CREATE INDEX IF NOT EXISTS IX_Quizzes_DueDate ON Quizzes(DueDate);
 
 -- QuizAttributes table (EAV pattern for quiz metadata)
-CREATE TABLE QuizAttributes (
+CREATE TABLE IF NOT EXISTS QuizAttributes (
     AttributeID SERIAL PRIMARY KEY,
     QuizID INT NOT NULL,
     AttributeName VARCHAR(100) NOT NULL,
@@ -580,10 +580,10 @@ CREATE TABLE QuizAttributes (
     FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID) ON DELETE CASCADE
 );
 
-CREATE INDEX IX_QuizAttributes_QuizID ON QuizAttributes(QuizID);
+CREATE INDEX IF NOT EXISTS IX_QuizAttributes_QuizID ON QuizAttributes(QuizID);
 
 -- QuizQuestions table (Questions for quizzes)
-CREATE TABLE QuizQuestions (
+CREATE TABLE IF NOT EXISTS QuizQuestions (
     QuestionID SERIAL PRIMARY KEY,
     QuizID INT NOT NULL,
     QuestionNumber INT NOT NULL,
@@ -594,10 +594,10 @@ CREATE TABLE QuizQuestions (
     UNIQUE(QuizID, QuestionNumber)
 );
 
-CREATE INDEX IX_QuizQuestions_QuizID ON QuizQuestions(QuizID);
+CREATE INDEX IF NOT EXISTS IX_QuizQuestions_QuizID ON QuizQuestions(QuizID);
 
 -- QuizQuestionOptions table (Answer options for MCQ questions)
-CREATE TABLE QuizQuestionOptions (
+CREATE TABLE IF NOT EXISTS QuizQuestionOptions (
     OptionID SERIAL PRIMARY KEY,
     QuestionID INT NOT NULL,
     OptionText TEXT NOT NULL,
@@ -606,10 +606,10 @@ CREATE TABLE QuizQuestionOptions (
     FOREIGN KEY (QuestionID) REFERENCES QuizQuestions(QuestionID) ON DELETE CASCADE
 );
 
-CREATE INDEX IX_QuizQuestionOptions_QuestionID ON QuizQuestionOptions(QuestionID);
+CREATE INDEX IF NOT EXISTS IX_QuizQuestionOptions_QuestionID ON QuizQuestionOptions(QuestionID);
 
 -- QuizAttempts table (US 2.11 - Take Quiz)
-CREATE TABLE QuizAttempts (
+CREATE TABLE IF NOT EXISTS QuizAttempts (
     AttemptID SERIAL PRIMARY KEY,
     QuizID INT NOT NULL,
     StudentUserID INT NOT NULL,
@@ -623,12 +623,12 @@ CREATE TABLE QuizAttempts (
     UNIQUE(QuizID, StudentUserID, AttemptNumber)
 );
 
-CREATE INDEX IX_QuizAttempts_QuizID ON QuizAttempts(QuizID);
-CREATE INDEX IX_QuizAttempts_StudentUserID ON QuizAttempts(StudentUserID);
-CREATE INDEX IX_QuizAttempts_Status ON QuizAttempts(Status);
+CREATE INDEX IF NOT EXISTS IX_QuizAttempts_QuizID ON QuizAttempts(QuizID);
+CREATE INDEX IF NOT EXISTS IX_QuizAttempts_StudentUserID ON QuizAttempts(StudentUserID);
+CREATE INDEX IF NOT EXISTS IX_QuizAttempts_Status ON QuizAttempts(Status);
 
 -- Exams table (US 2.12 - Create Exam)
-CREATE TABLE Exams (
+CREATE TABLE IF NOT EXISTS Exams (
     ExamID SERIAL PRIMARY KEY,
     CourseID INT NOT NULL,
     Title VARCHAR(200) NOT NULL,
@@ -641,11 +641,11 @@ CREATE TABLE Exams (
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE
 );
 
-CREATE INDEX IX_Exams_CourseID ON Exams(CourseID);
-CREATE INDEX IX_Exams_ExamDate ON Exams(ExamDate);
+CREATE INDEX IF NOT EXISTS IX_Exams_CourseID ON Exams(CourseID);
+CREATE INDEX IF NOT EXISTS IX_Exams_ExamDate ON Exams(ExamDate);
 
 -- ExamAttributes table (EAV pattern for exam metadata)
-CREATE TABLE ExamAttributes (
+CREATE TABLE IF NOT EXISTS ExamAttributes (
     AttributeID SERIAL PRIMARY KEY,
     ExamID INT NOT NULL,
     AttributeName VARCHAR(100) NOT NULL,
@@ -653,10 +653,10 @@ CREATE TABLE ExamAttributes (
     FOREIGN KEY (ExamID) REFERENCES Exams(ExamID) ON DELETE CASCADE
 );
 
-CREATE INDEX IX_ExamAttributes_ExamID ON ExamAttributes(ExamID);
+CREATE INDEX IF NOT EXISTS IX_ExamAttributes_ExamID ON ExamAttributes(ExamID);
 
 -- ExamGrades table (US 2.13 - Record Exam Grades)
-CREATE TABLE ExamGrades (
+CREATE TABLE IF NOT EXISTS ExamGrades (
     ExamGradeID SERIAL PRIMARY KEY,
     ExamID INT NOT NULL,
     StudentUserID INT NOT NULL,
@@ -668,15 +668,15 @@ CREATE TABLE ExamGrades (
     UNIQUE(ExamID, StudentUserID)
 );
 
-CREATE INDEX IX_ExamGrades_ExamID ON ExamGrades(ExamID);
-CREATE INDEX IX_ExamGrades_StudentUserID ON ExamGrades(StudentUserID);
+CREATE INDEX IF NOT EXISTS IX_ExamGrades_ExamID ON ExamGrades(ExamID);
+CREATE INDEX IF NOT EXISTS IX_ExamGrades_StudentUserID ON ExamGrades(StudentUserID);
 
 -- ============================================================================
 -- Table for storing grade weight distributions for courses
 -- US: As a professor/system, I want to calculate final grades using weight distributions
 -- ============================================================================
 
-CREATE TABLE CourseGradeWeights (
+CREATE TABLE IF NOT EXISTS CourseGradeWeights (
     CourseID INT PRIMARY KEY,
     AssignmentsWeight DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     QuizzesWeight DECIMAL(5,2) NOT NULL DEFAULT 0.00,
@@ -687,7 +687,7 @@ CREATE TABLE CourseGradeWeights (
     CONSTRAINT CHK_WeightsSum CHECK (AssignmentsWeight + QuizzesWeight + ExamsWeight = 100.00)
 );
 
-CREATE INDEX IX_CourseGradeWeights_CourseID ON CourseGradeWeights(CourseID);
+CREATE INDEX IF NOT EXISTS IX_CourseGradeWeights_CourseID ON CourseGradeWeights(CourseID);
 
 -- ============================================================================
 -- StaffProfiles Table for Sprint 3
@@ -718,7 +718,7 @@ CREATE INDEX IF NOT EXISTS idx_staff_active ON StaffProfiles(IsActive);
 -- ============================================================================
 -- Messages Table
 -- ============================================================================
-CREATE TABLE Messages (
+CREATE TABLE IF NOT EXISTS Messages (
     MessageID SERIAL PRIMARY KEY,
     SenderUserID INT NOT NULL,
     ReceiverUserID INT NOT NULL,
@@ -732,8 +732,8 @@ CREATE TABLE Messages (
     FOREIGN KEY (ParentMessageID) REFERENCES Messages(MessageID)
 );
 
-CREATE INDEX IX_Messages_Receiver ON Messages(ReceiverUserID);
-CREATE INDEX IX_Messages_Sender ON Messages(SenderUserID);
+CREATE INDEX IF NOT EXISTS IX_Messages_Receiver ON Messages(ReceiverUserID);
+CREATE INDEX IF NOT EXISTS IX_Messages_Sender ON Messages(SenderUserID);
 
 -- ============================================================================
 -- Course Staff Assignment Table (US 3.3.1 - Assign Staff to Course)
@@ -867,6 +867,194 @@ CREATE INDEX IF NOT EXISTS IX_BenefitsInformation_BenefitType ON BenefitsInforma
 
 -- Create index on Status for filtering active benefits
 CREATE INDEX IF NOT EXISTS IX_BenefitsInformation_Status ON BenefitsInformation(Status);
+
+-- ============================================================================
+-- Parent Communication & Messaging Tables (US 4.1, 4.2, 4.3, 4.4, 4.5)
+-- ============================================================================
+
+-- Parents table
+CREATE TABLE IF NOT EXISTS Parents (
+    ParentID SERIAL PRIMARY KEY,
+    UserID INT NOT NULL UNIQUE,
+    FirstName VARCHAR(100) NOT NULL,
+    LastName VARCHAR(100) NOT NULL,
+    PhoneNumber VARCHAR(20),
+    Email VARCHAR(100),
+    Address TEXT,
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IX_Parents_UserID ON Parents(UserID);
+
+-- StudentParentRelationship table (Many-to-Many: Students can have multiple parents, Parents can have multiple students)
+CREATE TABLE IF NOT EXISTS StudentParentRelationship (
+    RelationshipID SERIAL PRIMARY KEY,
+    StudentUserID INT NOT NULL,
+    ParentUserID INT NOT NULL,
+    RelationshipType VARCHAR(50) DEFAULT 'PARENT' CHECK (RelationshipType IN ('PARENT', 'GUARDIAN', 'EMERGENCY_CONTACT')),
+    IsPrimary BOOLEAN DEFAULT FALSE,
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (StudentUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (ParentUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    UNIQUE (StudentUserID, ParentUserID)
+);
+
+CREATE INDEX IF NOT EXISTS IX_StudentParentRelationship_Student ON StudentParentRelationship(StudentUserID);
+CREATE INDEX IF NOT EXISTS IX_StudentParentRelationship_Parent ON StudentParentRelationship(ParentUserID);
+
+-- MessageThreads table (for organizing parent-teacher conversations)
+CREATE TABLE IF NOT EXISTS MessageThreads (
+    ThreadID SERIAL PRIMARY KEY,
+    ParentUserID INT NOT NULL,
+    TeacherUserID INT NOT NULL,
+    StudentUserID INT NOT NULL, -- The child/student this conversation is about
+    Subject VARCHAR(200) NOT NULL,
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    LastMessageDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ParentUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (TeacherUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (StudentUserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IX_MessageThreads_Parent ON MessageThreads(ParentUserID);
+CREATE INDEX IF NOT EXISTS IX_MessageThreads_Teacher ON MessageThreads(TeacherUserID);
+CREATE INDEX IF NOT EXISTS IX_MessageThreads_Student ON MessageThreads(StudentUserID);
+
+-- Update Messages table to include ThreadID for parent-teacher conversations
+ALTER TABLE Messages ADD COLUMN IF NOT EXISTS ThreadID INT NULL;
+
+-- Add constraint only if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'FK_Messages_Thread'
+    ) THEN
+        ALTER TABLE Messages ADD CONSTRAINT FK_Messages_Thread 
+        FOREIGN KEY (ThreadID) REFERENCES MessageThreads(ThreadID) ON DELETE SET NULL;
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS IX_Messages_ThreadID ON Messages(ThreadID);
+
+-- Add MessageType to distinguish between different message types
+ALTER TABLE Messages ADD COLUMN IF NOT EXISTS MessageType VARCHAR(20) DEFAULT 'GENERAL' 
+    CHECK (MessageType IN ('GENERAL', 'PARENT_TEACHER', 'STUDENT_STAFF', 'SYSTEM'));
+
+CREATE INDEX IF NOT EXISTS IX_Messages_MessageType ON Messages(MessageType);
+
+-- ============================================================================
+-- Forum & Collaboration Tables (US 4.6, 4.7)
+-- ============================================================================
+
+-- ForumPosts table
+CREATE TABLE IF NOT EXISTS ForumPosts (
+    PostID SERIAL PRIMARY KEY,
+    AuthorUserID INT NOT NULL,
+    CourseID INT NULL, -- NULL for general forum posts, INT for course-specific posts
+    Topic VARCHAR(100) NULL, -- General topic category (e.g., 'General Discussion', 'Academic Support')
+    Title VARCHAR(200) NOT NULL,
+    Content TEXT NOT NULL,
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    LastModifiedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    IsPinned BOOLEAN DEFAULT FALSE,
+    IsLocked BOOLEAN DEFAULT FALSE,
+    ViewCount INT DEFAULT 0,
+    ReplyCount INT DEFAULT 0,
+    FOREIGN KEY (AuthorUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS IX_ForumPosts_Author ON ForumPosts(AuthorUserID);
+CREATE INDEX IF NOT EXISTS IX_ForumPosts_Course ON ForumPosts(CourseID);
+CREATE INDEX IF NOT EXISTS IX_ForumPosts_CreatedDate ON ForumPosts(CreatedDate DESC);
+CREATE INDEX IF NOT EXISTS IX_ForumPosts_Topic ON ForumPosts(Topic);
+
+-- ForumComments table
+CREATE TABLE IF NOT EXISTS ForumComments (
+    CommentID SERIAL PRIMARY KEY,
+    PostID INT NOT NULL,
+    AuthorUserID INT NOT NULL,
+    Content TEXT NOT NULL,
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    IsEdited BOOLEAN DEFAULT FALSE,
+    EditedDate TIMESTAMP NULL,
+    FOREIGN KEY (PostID) REFERENCES ForumPosts(PostID) ON DELETE CASCADE,
+    FOREIGN KEY (AuthorUserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IX_ForumComments_Post ON ForumComments(PostID);
+CREATE INDEX IF NOT EXISTS IX_ForumComments_Author ON ForumComments(AuthorUserID);
+CREATE INDEX IF NOT EXISTS IX_ForumComments_CreatedDate ON ForumComments(CreatedDate);
+
+-- ============================================================================
+-- Events & Calendar Tables (US 4.11, 4.12, 4.13)
+-- ============================================================================
+
+-- Events table
+CREATE TABLE IF NOT EXISTS Events (
+    EventID SERIAL PRIMARY KEY,
+    CreatedByUserID INT NOT NULL,
+    Title VARCHAR(200) NOT NULL,
+    Description TEXT,
+    EventDate DATE NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NULL,
+    Location VARCHAR(200),
+    EventType VARCHAR(50) DEFAULT 'GENERAL' 
+        CHECK (EventType IN ('GENERAL', 'ACADEMIC', 'SOCIAL', 'SPORTS', 'ADMINISTRATIVE', 'HOLIDAY')),
+    IsPublic BOOLEAN DEFAULT TRUE,
+    IsRecurring BOOLEAN DEFAULT FALSE,
+    RecurrencePattern VARCHAR(50) NULL, -- 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'
+    RecurrenceEndDate DATE NULL,
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    LastModifiedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CreatedByUserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IX_Events_EventDate ON Events(EventDate);
+CREATE INDEX IF NOT EXISTS IX_Events_CreatedBy ON Events(CreatedByUserID);
+CREATE INDEX IF NOT EXISTS IX_Events_EventType ON Events(EventType);
+CREATE INDEX IF NOT EXISTS IX_Events_IsPublic ON Events(IsPublic);
+
+-- EventReminders table
+CREATE TABLE IF NOT EXISTS EventReminders (
+    ReminderID SERIAL PRIMARY KEY,
+    EventID INT NOT NULL,
+    UserID INT NOT NULL,
+    ReminderTime TIMESTAMP NOT NULL, -- When to send the reminder
+    IsSent BOOLEAN DEFAULT FALSE,
+    SentDate TIMESTAMP NULL,
+    ReminderType VARCHAR(20) DEFAULT 'EMAIL' 
+        CHECK (ReminderType IN ('EMAIL', 'IN_APP', 'BOTH')),
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (EventID) REFERENCES Events(EventID) ON DELETE CASCADE,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    UNIQUE (EventID, UserID, ReminderTime)
+);
+
+CREATE INDEX IF NOT EXISTS IX_EventReminders_Event ON EventReminders(EventID);
+CREATE INDEX IF NOT EXISTS IX_EventReminders_User ON EventReminders(UserID);
+CREATE INDEX IF NOT EXISTS IX_EventReminders_ReminderTime ON EventReminders(ReminderTime);
+CREATE INDEX IF NOT EXISTS IX_EventReminders_IsSent ON EventReminders(IsSent);
+
+-- EventAttendees table (optional - for tracking who's attending events)
+CREATE TABLE IF NOT EXISTS EventAttendees (
+    AttendeeID SERIAL PRIMARY KEY,
+    EventID INT NOT NULL,
+    UserID INT NOT NULL,
+    RSVPStatus VARCHAR(20) DEFAULT 'PENDING' 
+        CHECK (RSVPStatus IN ('PENDING', 'ATTENDING', 'NOT_ATTENDING', 'MAYBE')),
+    RSVPDate TIMESTAMP NULL,
+    CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (EventID) REFERENCES Events(EventID) ON DELETE CASCADE,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    UNIQUE (EventID, UserID)
+);
+
+CREATE INDEX IF NOT EXISTS IX_EventAttendees_Event ON EventAttendees(EventID);
+CREATE INDEX IF NOT EXISTS IX_EventAttendees_User ON EventAttendees(UserID);
 
 -- ============================================================================
 -- END OF SCHEMA CREATION

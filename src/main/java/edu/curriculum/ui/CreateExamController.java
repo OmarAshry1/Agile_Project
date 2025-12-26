@@ -209,7 +209,8 @@ public class CreateExamController {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/professor_exams.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("Exam Management");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Error", "Unable to return to exams page: " + e.getMessage());

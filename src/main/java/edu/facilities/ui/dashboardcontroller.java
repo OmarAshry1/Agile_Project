@@ -256,6 +256,40 @@ public class dashboardcontroller {
                     viewBenefitsButton.setManaged(false);
                     viewBenefitsButton.setDisable(true);
                 }
+                // Show event management buttons for Admin
+                if (createEventButton != null) {
+                    createEventButton.setVisible(true);
+                    createEventButton.setManaged(true);
+                    createEventButton.setDisable(false);
+                }
+                if (eventsCalendarButton != null) {
+                    eventsCalendarButton.setVisible(true);
+                    eventsCalendarButton.setManaged(true);
+                    eventsCalendarButton.setDisable(false);
+                }
+                // Show forum for Admin
+                if (forumButton != null) {
+                    forumButton.setVisible(true);
+                    forumButton.setManaged(true);
+                    forumButton.setDisable(false);
+                }
+                // Show message thread history for Admin (as teacher)
+                if (messageThreadHistoryButton != null) {
+                    messageThreadHistoryButton.setVisible(true);
+                    messageThreadHistoryButton.setManaged(true);
+                    messageThreadHistoryButton.setDisable(false);
+                }
+                // Show link child button for parents
+                if (linkChildButton != null) {
+                    linkChildButton.setVisible(true);
+                    linkChildButton.setManaged(true);
+                    linkChildButton.setDisable(false);
+                }
+                if (parentSendMessageButton != null) {
+                    parentSendMessageButton.setVisible(true);
+                    parentSendMessageButton.setManaged(true);
+                    parentSendMessageButton.setDisable(false);
+                }
                 // Hide staff-only buttons for Admin
                 if (viewPerformanceButton != null) {
                     viewPerformanceButton.setVisible(false);
@@ -484,6 +518,22 @@ public class dashboardcontroller {
                         courseGradesButton.setManaged(true);
                         courseGradesButton.setDisable(false);
                     }
+                    // Show student messaging and forum buttons
+                    if (studentSendMessageButton != null) {
+                        studentSendMessageButton.setVisible(true);
+                        studentSendMessageButton.setManaged(true);
+                        studentSendMessageButton.setDisable(false);
+                    }
+                    if (forumButton != null) {
+                        forumButton.setVisible(true);
+                        forumButton.setManaged(true);
+                        forumButton.setDisable(false);
+                    }
+                    if (eventsCalendarButton != null) {
+                        eventsCalendarButton.setVisible(true);
+                        eventsCalendarButton.setManaged(true);
+                        eventsCalendarButton.setDisable(false);
+                    }
                 } else {
                     if (myQuizzesButton != null) {
                         myQuizzesButton.setVisible(false);
@@ -661,6 +711,46 @@ public class dashboardcontroller {
                 createAnnouncementButton.setVisible(isAdminOrStaff);
                 createAnnouncementButton.setManaged(isAdminOrStaff);
                 createAnnouncementButton.setDisable(!isAdminOrStaff);
+            }
+            // Show parent-specific buttons for PARENT user type
+            if ("PARENT".equals(userType)) {
+                if (parentSendMessageButton != null) {
+                    parentSendMessageButton.setVisible(true);
+                    parentSendMessageButton.setManaged(true);
+                    parentSendMessageButton.setDisable(false);
+                }
+                if (linkChildButton != null) {
+                    linkChildButton.setVisible(true);
+                    linkChildButton.setManaged(true);
+                    linkChildButton.setDisable(false);
+                }
+                if (messageThreadHistoryButton != null) {
+                    messageThreadHistoryButton.setVisible(true);
+                    messageThreadHistoryButton.setManaged(true);
+                    messageThreadHistoryButton.setDisable(false);
+                }
+                if (forumButton != null) {
+                    forumButton.setVisible(true);
+                    forumButton.setManaged(true);
+                    forumButton.setDisable(false);
+                }
+                if (eventsCalendarButton != null) {
+                    eventsCalendarButton.setVisible(true);
+                    eventsCalendarButton.setManaged(true);
+                    eventsCalendarButton.setDisable(false);
+                }
+            } else if (!"ADMIN".equals(userType)) {
+                // Hide parent buttons for non-parents (Admin already handled above)
+                if (parentSendMessageButton != null && !parentSendMessageButton.isVisible()) {
+                    parentSendMessageButton.setVisible(false);
+                    parentSendMessageButton.setManaged(false);
+                    parentSendMessageButton.setDisable(true);
+                }
+                if (linkChildButton != null && !linkChildButton.isVisible()) {
+                    linkChildButton.setVisible(false);
+                    linkChildButton.setManaged(false);
+                    linkChildButton.setDisable(true);
+                }
             }
         } else {
             userIdLabel.setText("Guest");
@@ -891,6 +981,52 @@ public class dashboardcontroller {
                 viewBenefitsButton.setManaged(false);
                 viewBenefitsButton.setDisable(true);
             }
+            // Hide communication buttons for Guests
+            if (linkChildButton != null) {
+                linkChildButton.setVisible(false);
+                linkChildButton.setManaged(false);
+                linkChildButton.setDisable(true);
+            }
+            if (parentSendMessageButton != null) {
+                parentSendMessageButton.setVisible(false);
+                parentSendMessageButton.setManaged(false);
+                parentSendMessageButton.setDisable(true);
+            }
+            if (messageThreadHistoryButton != null) {
+                messageThreadHistoryButton.setVisible(false);
+                messageThreadHistoryButton.setManaged(false);
+                messageThreadHistoryButton.setDisable(true);
+            }
+            if (studentSendMessageButton != null) {
+                studentSendMessageButton.setVisible(false);
+                studentSendMessageButton.setManaged(false);
+                studentSendMessageButton.setDisable(true);
+            }
+            if (forumButton != null) {
+                forumButton.setVisible(false);
+                forumButton.setManaged(false);
+                forumButton.setDisable(true);
+            }
+            if (createEventButton != null) {
+                createEventButton.setVisible(false);
+                createEventButton.setManaged(false);
+                createEventButton.setDisable(true);
+            }
+            if (eventsCalendarButton != null) {
+                eventsCalendarButton.setVisible(false);
+                eventsCalendarButton.setManaged(false);
+                eventsCalendarButton.setDisable(true);
+            }
+            if (managePayrollButton != null) {
+                managePayrollButton.setVisible(false);
+                managePayrollButton.setManaged(false);
+                managePayrollButton.setDisable(true);
+            }
+            if (manageBenefitsButton != null) {
+                manageBenefitsButton.setVisible(false);
+                manageBenefitsButton.setManaged(false);
+                manageBenefitsButton.setDisable(true);
+            }
 
             // Hide messages button for guest
             if (messagesButton != null) {
@@ -1061,6 +1197,20 @@ public class dashboardcontroller {
     private Button managePayrollButton; // Admin - Manage Payroll Information (US 3.14)
     @FXML
     private Button manageBenefitsButton; // Admin - Manage Benefits Information (US 3.15)
+    @FXML
+    private Button parentSendMessageButton; // Parent - Send Message to Teacher (US 4.1)
+    @FXML
+    private Button linkChildButton; // Parent - Link My Child
+    @FXML
+    private Button messageThreadHistoryButton; // Parent/Teacher - View Thread History (US 4.3)
+    @FXML
+    private Button studentSendMessageButton; // Student - Send Message to Staff (US 4.4)
+    @FXML
+    private Button forumButton; // Student/Staff - Forum (US 4.6, 4.7)
+    @FXML
+    private Button createEventButton; // Admin - Create Event (US 4.11)
+    @FXML
+    private Button eventsCalendarButton; // All - View Events Calendar (US 4.12)
 
     @FXML
     private Button logoutButton;
@@ -1179,7 +1329,7 @@ public class dashboardcontroller {
 
     @FXML
     void handleStaffDirectory(ActionEvent event) {
-        navigateTo("/edu/staff/ui/staff_directory.fxml", event, "Staff Directory");
+        navigateTo("/fxml/staff_directory.fxml", event, "Staff Directory");
     }
 
     @FXML
@@ -1866,9 +2016,19 @@ public class dashboardcontroller {
         try {
             Parent root = FXMLLoader.load(getClass().getResource(fxmlPath));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            // Preserve maximized state
+            boolean wasMaximized = stage.isMaximized();
             stage.setScene(new Scene(root));
             stage.setTitle(title);
+            // Always keep window maximized
+            stage.setMaximized(true);
             stage.show();
+            // Double-check maximized state after showing to prevent resize
+            javafx.application.Platform.runLater(() -> {
+                if (wasMaximized) {
+                    stage.setMaximized(true);
+                }
+            });
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Navigation Error");
@@ -1887,6 +2047,7 @@ public class dashboardcontroller {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Messages");
+            stage.setMaximized(true);
         } catch (IOException e) {
             e.printStackTrace();
             showAlert("Error", "Could not open Messages window.");
@@ -2130,6 +2291,84 @@ public class dashboardcontroller {
             return;
         }
         navigateTo("/fxml/manage_benefits.fxml", event, "Manage Benefits Information");
+    }
+
+    @FXML
+    void handleLinkChild(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            showAlert("Not Logged In", "Please login to link your child.");
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"PARENT".equals(userType)) {
+            showAlert("Access Denied", "Only parents can link students.");
+            return;
+        }
+        navigateTo("/fxml/link_child.fxml", event, "Link My Child");
+    }
+
+    @FXML
+    void handleParentSendMessage(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            showAlert("Not Logged In", "Please login to send messages to teachers.");
+            return;
+        }
+        navigateTo("/fxml/parent_send_message.fxml", event, "Send Message to Teacher");
+    }
+
+    @FXML
+    void handleMessageThreadHistory(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            showAlert("Not Logged In", "Please login to view message history.");
+            return;
+        }
+        navigateTo("/fxml/message_thread_history.fxml", event, "Message Thread History");
+    }
+
+    @FXML
+    void handleStudentSendMessage(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            showAlert("Not Logged In", "Please login to send messages.");
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"STUDENT".equals(userType)) {
+            showAlert("Access Denied", "Only students can use this feature.");
+            return;
+        }
+        navigateTo("/fxml/student_send_message.fxml", event, "Send Message to Staff");
+    }
+
+    @FXML
+    void handleForum(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            showAlert("Not Logged In", "Please login to access the forum.");
+            return;
+        }
+        navigateTo("/fxml/forum.fxml", event, "Forum");
+    }
+
+    @FXML
+    void handleCreateEvent(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            showAlert("Not Logged In", "Please login to create events.");
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            showAlert("Access Denied", "Only administrators can create events.");
+            return;
+        }
+        navigateTo("/fxml/create_event.fxml", event, "Create Event");
+    }
+
+    @FXML
+    void handleEventsCalendar(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            showAlert("Not Logged In", "Please login to view events.");
+            return;
+        }
+        navigateTo("/fxml/events_calendar.fxml", event, "Events Calendar");
     }
 
     private void showAlert(String title, String content) {

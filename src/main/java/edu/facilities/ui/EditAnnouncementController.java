@@ -345,6 +345,7 @@ public class EditAnnouncementController {
             }
             stage.setScene(new Scene(root));
             stage.setTitle("Announcements");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not return to announcements: " + e.getMessage());

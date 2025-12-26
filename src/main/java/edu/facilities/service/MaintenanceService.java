@@ -25,7 +25,7 @@ public class MaintenanceService {
 
     public MaintenanceTicket createTicket(Room room,
                                           User reporter,
-                                          String description) {
+                                          String description) throws SQLException {
 
         if (room == null || reporter == null || description == null || description.isBlank()) {
             throw new IllegalArgumentException("Room, reporter, and description are required");
@@ -41,20 +41,15 @@ public class MaintenanceService {
             throw new IllegalArgumentException("Administrators cannot create maintenance tickets. Only students, staff, and professors can create tickets.");
         }
 
-        String sql = "INSERT INTO MaintenanceTickets " +
-                "(RoomID, ReporterUserID, Description, Status) " +
-                "VALUES (?, ?, ?, 'NEW')";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     sql, Statement.RETURN_GENERATED_KEYS)) {
-
-
+        Connection conn = DatabaseConnection.getConnection();
+        try {
+            // Get StatusTypeID for NEW status
+            int statusTypeId = getStatusTypeId(conn, "TICKET", "NEW");
+            
             int roomId = getRoomIdByCode(conn, room.getId());
             if (roomId == -1) {
                 throw new IllegalArgumentException("Room with code '" + room.getId() + "' not found");
             }
-
 
             int reporterId;
             try {
@@ -63,40 +58,47 @@ public class MaintenanceService {
                 throw new IllegalArgumentException("Invalid user ID: " + reporter.getId());
             }
 
-            stmt.setInt(1, roomId);
-            stmt.setInt(2, reporterId);
-            stmt.setString(3, description);
-
-            int rowsAffected = stmt.executeUpdate();
-            System.out.println("Ticket insert executed, rows affected: " + rowsAffected);
-
-            int ticketId = -1;
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    ticketId = keys.getInt(1);
-                    System.out.println("Generated ticket ID: " + ticketId);
-                } else {
-                    System.err.println("Warning: No generated key returned for ticket");
-                }
-            }
-
-            String id = ticketId > 0 ? String.valueOf(ticketId) : null;
-            LocalDateTime now = LocalDateTime.now();
-
-            MaintenanceTicket ticket = new MaintenanceTicket(
-                    id,
-                    room,
-                    reporter,
-                    null,
-                    description,
-                    TicketStatus.NEW,
-                    now,
-                    null
-            );
+            String sql = "INSERT INTO MaintenanceTickets " +
+                    "(RoomID, ReporterUserID, Description, StatusTypeID, AssignedToUserID) " +
+                    "VALUES (?, ?, ?, ?, 0)";
             
-            System.out.println("Ticket created successfully: ID=" + id + ", Room=" + room.getId() + ", Reporter=" + reporter.getUsername());
-            return ticket;
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    sql, Statement.RETURN_GENERATED_KEYS)) {
+                stmt.setInt(1, roomId);
+                stmt.setInt(2, reporterId);
+                stmt.setString(3, description);
+                stmt.setInt(4, statusTypeId);
 
+                int rowsAffected = stmt.executeUpdate();
+                System.out.println("Ticket insert executed, rows affected: " + rowsAffected);
+
+                int ticketId = -1;
+                try (ResultSet keys = stmt.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        ticketId = keys.getInt(1);
+                        System.out.println("Generated ticket ID: " + ticketId);
+                    } else {
+                        System.err.println("Warning: No generated key returned for ticket");
+                    }
+                }
+
+                String id = ticketId > 0 ? String.valueOf(ticketId) : null;
+                LocalDateTime now = LocalDateTime.now();
+
+                MaintenanceTicket ticket = new MaintenanceTicket(
+                        id,
+                        room,
+                        reporter,
+                        null,
+                        description,
+                        TicketStatus.NEW,
+                        now,
+                        null
+                );
+                
+                System.out.println("Ticket created successfully: ID=" + id + ", Room=" + room.getId() + ", Reporter=" + reporter.getUsername());
+                return ticket;
+            }
         } catch (SQLException e) {
             System.err.println("SQL Error inserting maintenance ticket: " + e.getMessage());
             e.printStackTrace();
@@ -164,7 +166,11 @@ public class MaintenanceService {
                 return null;
             }
 
-            String sql = "SELECT UserType FROM Users WHERE UserID = ?";
+            String sql = "SELECT ut.TypeCode as UserType " +
+                         "FROM Users u " +
+                         "INNER JOIN UserRoles ur ON u.UserID = ur.UserID " +
+                         "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                         "WHERE u.UserID = ? AND ur.IsPrimary = true";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
 
@@ -192,7 +198,11 @@ public class MaintenanceService {
             return null;
         }
 
-        String sql = "SELECT UserType FROM Users WHERE Username = ?";
+        String sql = "SELECT ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.Username = ? AND ur.IsPrimary = true";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
 
@@ -225,10 +235,11 @@ public class MaintenanceService {
         
         String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
                 "t.AssignedToUserID, " +
-                "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
+                "t.Description, st.StatusCode as Status, t.CreatedDate, t.ResolvedDate, " +
                 "r.Code as RoomCode, r.Name as RoomName " +
                 "FROM MaintenanceTickets t " +
                 "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
+                "LEFT JOIN StatusTypes st ON t.StatusTypeID = st.StatusTypeID AND st.EntityType = 'TICKET' " +
                 "WHERE t.TicketID = ?";
 
         Connection conn = DatabaseConnection.getConnection();
@@ -272,10 +283,11 @@ public class MaintenanceService {
         // Check if AssignedToUserID column exists, if not use a simpler query
         String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
                 "t.AssignedToUserID, " +
-                "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
+                "t.Description, st.StatusCode as Status, t.CreatedDate, t.ResolvedDate, " +
                 "r.Code as RoomCode, r.Name as RoomName " +
                 "FROM MaintenanceTickets t " +
                 "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
+                "LEFT JOIN StatusTypes st ON t.StatusTypeID = st.StatusTypeID AND st.EntityType = 'TICKET' " +
                 "ORDER BY t.CreatedDate DESC";
 
         // Get connection - ensure it's valid and stays open
@@ -442,10 +454,11 @@ public class MaintenanceService {
 
         String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
                 "t.AssignedToUserID, " +
-                "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
+                "t.Description, st.StatusCode as Status, t.CreatedDate, t.ResolvedDate, " +
                 "r.Code as RoomCode, r.Name as RoomName " +
                 "FROM MaintenanceTickets t " +
                 "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
+                "LEFT JOIN StatusTypes st ON t.StatusTypeID = st.StatusTypeID AND st.EntityType = 'TICKET' " +
                 "WHERE t.ReporterUserID = ? " +
                 "ORDER BY t.CreatedDate DESC";
 
@@ -531,10 +544,11 @@ public class MaintenanceService {
 
         String sql = "SELECT t.TicketID, t.RoomID, t.ReporterUserID, " +
                 "t.AssignedToUserID, " +
-                "t.Description, t.Status, t.CreatedDate, t.ResolvedDate, " +
+                "t.Description, st.StatusCode as Status, t.CreatedDate, t.ResolvedDate, " +
                 "r.Code as RoomCode, r.Name as RoomName " +
                 "FROM MaintenanceTickets t " +
                 "LEFT JOIN Rooms r ON t.RoomID = r.RoomID " +
+                "LEFT JOIN StatusTypes st ON t.StatusTypeID = st.StatusTypeID AND st.EntityType = 'TICKET' " +
                 "WHERE t.AssignedToUserID = ? " +
                 "ORDER BY t.CreatedDate DESC";
 
@@ -604,12 +618,16 @@ public class MaintenanceService {
             throw new IllegalArgumentException("Invalid ticket ID format");
         }
 
-        String statusStr = newStatus.toString();
-        String sql = "UPDATE MaintenanceTickets SET Status = ?";
+        Connection conn = DatabaseConnection.getConnection();
+        // Convert TicketStatus to status code string
+        String statusCode = ticketStatusToStatusCode(newStatus);
+        int statusTypeId = getStatusTypeId(conn, "TICKET", statusCode);
+        
+        String sql = "UPDATE MaintenanceTickets SET StatusTypeID = ?";
         
         // If status is RESOLVED, also set ResolvedDate
         if (newStatus == TicketStatus.RESOLVED) {
-            sql += ", ResolvedDate = GETDATE()";
+            sql += ", ResolvedDate = CURRENT_TIMESTAMP";
         } else {
             // If changing from RESOLVED to another status, clear ResolvedDate
             sql += ", ResolvedDate = NULL";
@@ -617,10 +635,8 @@ public class MaintenanceService {
         
         sql += " WHERE TicketID = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setString(1, statusStr);
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, statusTypeId);
             pstmt.setInt(2, ticketIdInt);
 
             int rowsAffected = pstmt.executeUpdate();
@@ -677,7 +693,12 @@ public class MaintenanceService {
      */
     public List<User> getStaffUsers() throws SQLException {
         List<User> staffUsers = new ArrayList<>();
-        String sql = "SELECT UserID, Username, Email FROM Users WHERE UserType = 'STAFF' ORDER BY Username";
+        String sql = "SELECT DISTINCT u.UserID, u.Username, u.Email " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE ut.TypeCode = 'STAFF' " +
+                     "ORDER BY u.Username";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -711,12 +732,20 @@ public class MaintenanceService {
             
             if (roomCode != null && !roomCode.isBlank()) {
                 // Query by room code
-                sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE Code = ?";
+                sql = "SELECT r.RoomID, r.Code, r.Name, rt.TypeCode as Type, r.Capacity, r.Location, st.StatusCode as Status " +
+                      "FROM Rooms r " +
+                      "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                      "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM' " +
+                      "WHERE r.Code = ?";
                 pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, roomCode);
             } else {
                 // Query by RoomID
-                sql = "SELECT RoomID, Code, Name, Type, Capacity, Location, Status FROM Rooms WHERE RoomID = ?";
+                sql = "SELECT r.RoomID, r.Code, r.Name, rt.TypeCode as Type, r.Capacity, r.Location, st.StatusCode as Status " +
+                      "FROM Rooms r " +
+                      "LEFT JOIN RoomTypes rt ON r.RoomTypeID = rt.RoomTypeID " +
+                      "LEFT JOIN StatusTypes st ON r.StatusTypeID = st.StatusTypeID AND st.EntityType = 'ROOM' " +
+                      "WHERE r.RoomID = ?";
                 pstmt = conn.prepareStatement(sql);
                 pstmt.setInt(1, roomId);
             }
@@ -826,7 +855,11 @@ public class MaintenanceService {
      * Get user type by user ID
      */
     private String getUserTypeById(int userId) throws SQLException {
-        String sql = "SELECT UserType FROM Users WHERE UserID = ?";
+        String sql = "SELECT ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ? AND ur.IsPrimary = true";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -846,7 +879,11 @@ public class MaintenanceService {
      * @return Staff object if user is Staff, null otherwise
      */
     private Staff getStaffById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT UserID, Username, Email, UserType FROM Users WHERE UserID = ? AND UserType = 'STAFF'";
+        String sql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ? AND ut.TypeCode = 'STAFF' AND ur.IsPrimary = true";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -859,5 +896,35 @@ public class MaintenanceService {
             }
         }
         return null;
+    }
+    
+    /**
+     * Get StatusTypeID from StatusTypes table by EntityType and StatusCode
+     */
+    private int getStatusTypeId(Connection conn, String entityType, String statusCode) throws SQLException {
+        String sql = "SELECT StatusTypeID FROM StatusTypes WHERE EntityType = ? AND StatusCode = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, entityType);
+            pstmt.setString(2, statusCode.toUpperCase());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("StatusTypeID");
+                }
+            }
+        }
+        throw new SQLException("StatusType with EntityType '" + entityType + "' and StatusCode '" + statusCode + "' not found");
+    }
+    
+    /**
+     * Convert TicketStatus enum to status code string for database
+     */
+    private String ticketStatusToStatusCode(TicketStatus status) {
+        if (status == null) return "NEW";
+        switch (status) {
+            case NEW: return "NEW";
+            case IN_PROGRESS: return "IN_PROGRESS";
+            case RESOLVED: return "RESOLVED";
+            default: return "NEW";
+        }
     }
 }

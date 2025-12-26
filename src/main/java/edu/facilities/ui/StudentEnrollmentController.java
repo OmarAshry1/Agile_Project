@@ -39,7 +39,8 @@ public class StudentEnrollmentController {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/dashboard.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("Dashboard");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not return to dashboard: " + e.getMessage());
@@ -56,7 +57,8 @@ public class StudentEnrollmentController {
                 stage = new Stage();
             }
             stage.setScene(new Scene(root));
-            stage.setTitle("Course Catalog - Enroll in Courses");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Could not open course catalog: " + e.getMessage());

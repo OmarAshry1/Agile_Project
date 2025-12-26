@@ -3,86 +3,183 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.GridPane?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.dashboardcontroller">
+<AnchorPane prefHeight="700.0" prefWidth="1400.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.dashboardcontroller">
 
-    <VBox spacing="25" styleClass="padding-large" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-
-        <!-- Welcome Text -->
-        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="card">
-            <padding>
-                <Insets bottom="20" left="20" right="20" top="20" />
-            </padding>
-            <Label styleClass="page-title" text="Welcome," />
-            <Label fx:id="userIdLabel" prefHeight="34.0" prefWidth="284.0" styleClass="page-title" />
-        </HBox>
-
-        <!-- Buttons Row - Using FlowPane for automatic wrapping -->
-        <FlowPane alignment="CENTER_LEFT" hgap="15" vgap="15" styleClass="padding-large">
-            <Button fx:id="roomsButton" onAction="#handleRooms" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Rooms" />
-            <Button fx:id="reportButton" onAction="#handleReport" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Report" />
-            <Button fx:id="bookRoomButton" onAction="#handleBookRoom" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Book Room" />
-            <Button fx:id="viewMyBookingsButton" onAction="#handleViewMyBookings" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Bookings" />
-            <Button fx:id="viewMyTicketsButton" onAction="#handleViewMyTickets" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View My Tickets" />
-            <Button fx:id="viewEquipmentButton" onAction="#handleViewEquipment" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Equipment" />
-            <Button fx:id="myAllocatedEquipmentButton" onAction="#handleMyAllocatedEquipment" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Equipment" />
-            <Button fx:id="allocateEquipmentButton" onAction="#handleAllocateEquipment" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Allocate Equipment" />
-            <Button fx:id="addEquipmentButton" onAction="#handleAddEquipment" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Add Equipment" />
-            <Button fx:id="softwareLicensesButton" onAction="#handleSoftwareLicenses" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Software Licenses" />
-            <Button fx:id="admissionApplicationsButton" onAction="#handleAdmissionApplications" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Admission Applications" />
-            <Button fx:id="studentRecordsButton" onAction="#handleStudentRecords" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Student Records" />
-            <Button fx:id="myTranscriptsButton" onAction="#handleMyTranscripts" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Transcript" visible="false" managed="false" />
-            <Button fx:id="requestTranscriptButton" onAction="#handleRequestTranscript" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Request Transcript" visible="false" managed="false" />
-            <Button fx:id="transcriptRequestsButton" onAction="#handleTranscriptRequests" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Transcript Requests" />
-            <Button fx:id="myAssignmentsButton" onAction="#handleMyAssignments" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Assignments" visible="false" managed="false" />
-            <Button fx:id="manageAssignmentsButton" onAction="#handleManageAssignments" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Assignments" visible="false" managed="false" />
-            <Button fx:id="viewGradebookButton" onAction="#handleViewGradebook" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Gradebook" visible="false" managed="false" />
-            <Button fx:id="calculateFinalGradesButton" onAction="#handleCalculateFinalGrades" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Calculate Final Grades" visible="false" managed="false" />
-            <Button fx:id="viewCourseCatalogButton" onAction="#handleViewCourseCatalog" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Course Catalog" visible="false" managed="false" />
-            <Button fx:id="enrollInCoursesButton" onAction="#handleEnrollInCourses" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Enroll in Courses" visible="false" managed="false" />
-            <Button fx:id="myEnrolledCoursesButton" onAction="#handleMyEnrolledCourses" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Enrolled Courses" visible="false" managed="false" />
-            <Button fx:id="manageCoursesButton" onAction="#handleManageCourses" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Courses" visible="false" managed="false" />
-            <Button fx:id="assignCoursesButton" onAction="#handleAssignCourses" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Assign Courses to Professors" visible="false" managed="false" />
-            <Button fx:id="assignStaffToCourseButton" onAction="#handleAssignStaffToCourse" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Assign Staff to Courses" visible="false" managed="false" />
-            <Button fx:id="viewAssignedCoursesButton" onAction="#handleViewAssignedCourses" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Assigned Courses" visible="false" managed="false" />
-            <Button fx:id="viewAnnouncementsButton" onAction="#handleViewAnnouncements" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Announcements" visible="false" managed="false" />
-            <Button fx:id="createAnnouncementButton" onAction="#handleCreateAnnouncement" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Create Announcement" visible="false" managed="false" />
-            <Button fx:id="myQuizzesButton" onAction="#handleMyQuizzes" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Quizzes" visible="false" managed="false" />
-            <Button fx:id="myExamsButton" onAction="#handleMyExams" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Exams" visible="false" managed="false" />
-            <Button fx:id="courseGradesButton" onAction="#handleCourseGrades" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Course Grades" visible="false" managed="false" />
-            <Button fx:id="manageQuizzesButton" onAction="#handleManageQuizzes" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Quizzes" visible="false" managed="false" />
-            <Button fx:id="manageExamsButton" onAction="#handleManageExams" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Exams" visible="false" managed="false" />
-            <Button fx:id="staffDirectoryButton" onAction="#handleStaffDirectory" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Staff Directory" />
-            <Button fx:id="messagesButton" onAction="#handleMessagesButton" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Messages" visible="false" managed="false" />
-            <Button fx:id="manageStaffButton" onAction="#handleManageStaff" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Staff Profiles" visible="false" managed="false" />
-            <Button fx:id="recordPerformanceButton" onAction="#handleRecordPerformanceEvaluation" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Record Performance" visible="false" managed="false" />
-            <Button fx:id="viewPerformanceButton" onAction="#handleViewPerformanceEvaluation" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Evaluations" visible="false" managed="false" />
-            <Button fx:id="addResearchButton" onAction="#handleAddResearchActivity" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Add Research" visible="false" managed="false" />
-            <Button fx:id="reviewResearchButton" onAction="#handleReviewResearchRecords" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Review Research" visible="false" managed="false" />
-            <Button fx:id="submitLeaveRequestButton" onAction="#handleSubmitLeaveRequest" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Submit Leave Request" visible="false" managed="false" />
-            <Button fx:id="approveLeaveButton" onAction="#handleApproveLeave" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Approve Leave" visible="false" managed="false" />
-            <Button fx:id="viewLeaveHistoryButton" onAction="#handleViewLeaveHistory" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="My Leave History" visible="false" managed="false" />
-            <Button fx:id="viewPayrollButton" onAction="#handleViewPayroll" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Payroll" visible="false" managed="false" />
-            <Button fx:id="viewBenefitsButton" onAction="#handleViewBenefits" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="View Benefits" visible="false" managed="false" />
-            <Button fx:id="managePayrollButton" onAction="#handleManagePayroll" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Payroll" visible="false" managed="false" />
-            <Button fx:id="manageBenefitsButton" onAction="#handleManageBenefits" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Manage Benefits" visible="false" managed="false" />
-            <Button fx:id="logoutButton" onAction="#handleLogout" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-secondary" text="Logout" />
-            <Button fx:id="loginButton" onAction="#handleLogin" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Login" />
-            <Button fx:id="registerButton" onAction="#handleRegister" minHeight="50" minWidth="180" prefHeight="50" prefWidth="180" styleClass="btn-primary" text="Register" />
-        </FlowPane>
-
-        <!-- Empty space for future buttons -->
-        <VBox fx:id="extraButtonsContainer" prefHeight="300" spacing="10" styleClass="card">
-            <padding>
-                <Insets bottom="20" left="20" right="20" top="20" />
-            </padding>
-            <!-- Future buttons can be added dynamically here -->
-        </VBox>
-
-    </VBox>
-
+    <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        
+        <!-- LEFT SIDEBAR -->
+        <left>
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="sidebar-scroll">
+                <VBox styleClass="sidebar" prefWidth="260" spacing="0">
+                    <!-- Sidebar Header -->
+                    <VBox styleClass="sidebar-header" spacing="4">
+                        <Label text="University" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: #FFFFFF;"/>
+                        <Label text="Management System" style="-fx-font-size: 12px; -fx-text-fill: #94A3B8;"/>
+                    </VBox>
+                    
+                    <!-- Navigation Items -->
+                    <VBox spacing="4" styleClass="padding-md">
+                    <!-- Facilities Section -->
+                    <Label text="FACILITIES" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="roomsButton" onAction="#handleRooms" styleClass="sidebar-item" text="Rooms" alignment="CENTER_LEFT" />
+                    <Button fx:id="bookRoomButton" onAction="#handleBookRoom" styleClass="sidebar-item" text="Book Room" alignment="CENTER_LEFT" />
+                    <Button fx:id="viewMyBookingsButton" onAction="#handleViewMyBookings" styleClass="sidebar-item" text="My Bookings" alignment="CENTER_LEFT" />
+                    <Button fx:id="viewMyTicketsButton" onAction="#handleViewMyTickets" styleClass="sidebar-item" text="My Tickets" alignment="CENTER_LEFT" />
+                    <Button fx:id="reportButton" onAction="#handleReport" styleClass="sidebar-item" text="All Tickets" alignment="CENTER_LEFT" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Equipment Section -->
+                    <Label text="EQUIPMENT" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="viewEquipmentButton" onAction="#handleViewEquipment" styleClass="sidebar-item" text="View Equipment" alignment="CENTER_LEFT" />
+                    <Button fx:id="myAllocatedEquipmentButton" onAction="#handleMyAllocatedEquipment" styleClass="sidebar-item" text="My Equipment" alignment="CENTER_LEFT" />
+                    <Button fx:id="allocateEquipmentButton" onAction="#handleAllocateEquipment" styleClass="sidebar-item" text="Allocate Equipment" alignment="CENTER_LEFT" />
+                    <Button fx:id="addEquipmentButton" onAction="#handleAddEquipment" styleClass="sidebar-item" text="Add Equipment" alignment="CENTER_LEFT" />
+                    <Button fx:id="softwareLicensesButton" onAction="#handleSoftwareLicenses" styleClass="sidebar-item" text="Software Licenses" alignment="CENTER_LEFT" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Academic Section -->
+                    <Label text="ACADEMIC" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="studentRecordsButton" onAction="#handleStudentRecords" styleClass="sidebar-item" text="Student Records" alignment="CENTER_LEFT" />
+                    <Button fx:id="admissionApplicationsButton" onAction="#handleAdmissionApplications" styleClass="sidebar-item" text="Admissions" alignment="CENTER_LEFT" />
+                    <Button fx:id="transcriptRequestsButton" onAction="#handleTranscriptRequests" styleClass="sidebar-item" text="Transcript Requests" alignment="CENTER_LEFT" />
+                    <Button fx:id="myTranscriptsButton" onAction="#handleMyTranscripts" styleClass="sidebar-item" text="My Transcript" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="requestTranscriptButton" onAction="#handleRequestTranscript" styleClass="sidebar-item" text="Request Transcript" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Courses Section -->
+                    <Label text="COURSES" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="viewCourseCatalogButton" onAction="#handleViewCourseCatalog" styleClass="sidebar-item" text="Course Catalog" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="enrollInCoursesButton" onAction="#handleEnrollInCourses" styleClass="sidebar-item" text="Enroll in Courses" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="myEnrolledCoursesButton" onAction="#handleMyEnrolledCourses" styleClass="sidebar-item" text="My Courses" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="manageCoursesButton" onAction="#handleManageCourses" styleClass="sidebar-item" text="Manage Courses" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="assignCoursesButton" onAction="#handleAssignCourses" styleClass="sidebar-item" text="Assign Courses" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="assignStaffToCourseButton" onAction="#handleAssignStaffToCourse" styleClass="sidebar-item" text="Assign Staff" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="viewAssignedCoursesButton" onAction="#handleViewAssignedCourses" styleClass="sidebar-item" text="My Assigned Courses" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Assignments Section -->
+                    <Label text="ASSIGNMENTS" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="myAssignmentsButton" onAction="#handleMyAssignments" styleClass="sidebar-item" text="My Assignments" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="manageAssignmentsButton" onAction="#handleManageAssignments" styleClass="sidebar-item" text="Manage Assignments" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="viewGradebookButton" onAction="#handleViewGradebook" styleClass="sidebar-item" text="Gradebook" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="calculateFinalGradesButton" onAction="#handleCalculateFinalGrades" styleClass="sidebar-item" text="Calculate Grades" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Exams & Quizzes Section -->
+                    <Label text="EXAMS &amp; QUIZZES" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="myQuizzesButton" onAction="#handleMyQuizzes" styleClass="sidebar-item" text="My Quizzes" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="myExamsButton" onAction="#handleMyExams" styleClass="sidebar-item" text="My Exams" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="courseGradesButton" onAction="#handleCourseGrades" styleClass="sidebar-item" text="Course Grades" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="manageQuizzesButton" onAction="#handleManageQuizzes" styleClass="sidebar-item" text="Manage Quizzes" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="manageExamsButton" onAction="#handleManageExams" styleClass="sidebar-item" text="Manage Exams" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Announcements Section -->
+                    <Label text="ANNOUNCEMENTS" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="viewAnnouncementsButton" onAction="#handleViewAnnouncements" styleClass="sidebar-item" text="View Announcements" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="createAnnouncementButton" onAction="#handleCreateAnnouncement" styleClass="sidebar-item" text="Create Announcement" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Staff Section -->
+                    <Label text="STAFF" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="staffDirectoryButton" onAction="#handleStaffDirectory" styleClass="sidebar-item" text="Staff Directory" alignment="CENTER_LEFT" />
+                    <Button fx:id="manageStaffButton" onAction="#handleManageStaff" styleClass="sidebar-item" text="Manage Staff" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="recordPerformanceButton" onAction="#handleRecordPerformanceEvaluation" styleClass="sidebar-item" text="Record Performance" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="viewPerformanceButton" onAction="#handleViewPerformanceEvaluation" styleClass="sidebar-item" text="My Evaluations" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="addResearchButton" onAction="#handleAddResearchActivity" styleClass="sidebar-item" text="Add Research" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="reviewResearchButton" onAction="#handleReviewResearchRecords" styleClass="sidebar-item" text="Review Research" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="submitLeaveRequestButton" onAction="#handleSubmitLeaveRequest" styleClass="sidebar-item" text="Submit Leave" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="approveLeaveButton" onAction="#handleApproveLeave" styleClass="sidebar-item" text="Approve Leave" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="viewLeaveHistoryButton" onAction="#handleViewLeaveHistory" styleClass="sidebar-item" text="Leave History" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="viewPayrollButton" onAction="#handleViewPayroll" styleClass="sidebar-item" text="View Payroll" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="viewBenefitsButton" onAction="#handleViewBenefits" styleClass="sidebar-item" text="View Benefits" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="managePayrollButton" onAction="#handleManagePayroll" styleClass="sidebar-item" text="Manage Payroll" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="manageBenefitsButton" onAction="#handleManageBenefits" styleClass="sidebar-item" text="Manage Benefits" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    
+                    <Separator style="-fx-padding: 8px 0;"/>
+                    
+                    <!-- Community Section -->
+                    <Label text="COMMUNITY" style="-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-padding: 16px 20px 8px 20px;"/>
+                    <Button fx:id="messagesButton" onAction="#handleMessagesButton" styleClass="sidebar-item" text="Messages" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="studentSendMessageButton" onAction="#handleStudentSendMessage" styleClass="sidebar-item" text="Message Staff" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="parentSendMessageButton" onAction="#handleParentSendMessage" styleClass="sidebar-item" text="Message Teacher" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="messageThreadHistoryButton" onAction="#handleMessageThreadHistory" styleClass="sidebar-item" text="Message History" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="forumButton" onAction="#handleForum" styleClass="sidebar-item" text="Forum" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="createEventButton" onAction="#handleCreateEvent" styleClass="sidebar-item" text="Create Event" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="eventsCalendarButton" onAction="#handleEventsCalendar" styleClass="sidebar-item" text="Events Calendar" alignment="CENTER_LEFT" visible="false" managed="false" />
+                    <Button fx:id="linkChildButton" onAction="#handleLinkChild" styleClass="sidebar-item" text="Link My Child" alignment="CENTER_LEFT" visible="false" managed="false" />
+                </VBox>
+                
+                    <!-- Sidebar Footer -->
+                    <VBox styleClass="padding-md">
+                        <Separator style="-fx-padding: 8px 0;"/>
+                        <Button fx:id="logoutButton" onAction="#handleLogout" styleClass="sidebar-item" text="Logout" alignment="CENTER_LEFT" />
+                        <Button fx:id="loginButton" onAction="#handleLogin" styleClass="sidebar-item" text="Login" alignment="CENTER_LEFT" />
+                        <Button fx:id="registerButton" onAction="#handleRegister" styleClass="sidebar-item" text="Register" alignment="CENTER_LEFT" />
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </left>
+        
+        <!-- CENTER CONTENT AREA -->
+        <center>
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+                <VBox spacing="0" styleClass="content-area">
+                    <!-- Top Bar -->
+                    <HBox styleClass="top-bar" spacing="16" alignment="CENTER_LEFT">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label styleClass="top-bar-title" text="Dashboard" />
+                            <Label fx:id="userIdLabel" styleClass="top-bar-subtitle" text="Welcome" />
+                        </VBox>
+                    </HBox>
+                    
+                    <!-- Main Content -->
+                    <VBox spacing="24" styleClass="padding-lg">
+                        <!-- Welcome Card -->
+                        <HBox styleClass="card" spacing="16" alignment="CENTER_LEFT">
+                            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                <Label styleClass="page-title" text="Welcome Back!" />
+                                <Label styleClass="text-muted" text="Manage your university operations from one central dashboard" />
+                            </VBox>
+                        </HBox>
+                        
+                        <!-- Dashboard Overview Cards -->
+                        <GridPane hgap="16" vgap="16">
+                            <!-- Quick Access Card -->
+                            <VBox styleClass="card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.hgrow="ALWAYS">
+                                <Label styleClass="section-header" text="Quick Access" />
+                                <Label styleClass="text-muted" text="Use the sidebar navigation to access all features. Your most common actions are organized by category." wrapText="true" />
+                            </VBox>
+                            
+                            <!-- System Status Card -->
+                            <VBox styleClass="card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.hgrow="ALWAYS">
+                                <Label styleClass="section-header" text="System Status" />
+                                <Label styleClass="text-muted" text="All systems operational" />
+                            </VBox>
+                        </GridPane>
+                        
+                        <!-- Additional Buttons Container (for dynamically added role-based buttons) -->
+                        <VBox fx:id="extraButtonsContainer" spacing="16">
+                            <!-- Future buttons can be added dynamically here by the controller -->
+                        </VBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
 </AnchorPane>

@@ -33,11 +33,15 @@ public class Main extends Application {
                 }
             }
 
-            Scene scene = new Scene(root, 800, 600);
+            // Set appropriate window size based on content
+            int width = 1400;
+            int height = 800;
+            Scene scene = new Scene(root, width, height);
             primaryStage.setScene(scene);
-            primaryStage.setMinWidth(800);
-            primaryStage.setMinHeight(600);
-            primaryStage.setResizable(false);
+            primaryStage.setMinWidth(1000);
+            primaryStage.setMinHeight(700);
+            primaryStage.setResizable(true);
+            primaryStage.setMaximized(true);
             primaryStage.show();
         } catch (Exception e) {
             e.printStackTrace();

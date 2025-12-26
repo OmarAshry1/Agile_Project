@@ -261,6 +261,7 @@ public class SoftwareLicensesController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Dashboard");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Unable to return to dashboard: " + e.getMessage());

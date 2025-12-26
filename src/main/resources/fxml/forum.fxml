@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.community.ui.ForumController"
+            prefHeight="800.0" prefWidth="1200.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Forum" styleClass="page-title"/>
+            <Button fx:id="createPostButton" text="Create Post" onAction="#handleCreatePost" 
+                    styleClass="button-primary" prefWidth="120"/>
+        </HBox>
+
+        <HBox spacing="10">
+            <Label text="Filter by Topic:" styleClass="form-label"/>
+            <ComboBox fx:id="topicFilterComboBox" prefWidth="200" prefHeight="35"/>
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+            <Button fx:id="backButton" text="Back" onAction="#handleBack" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <SplitPane dividerPositions="0.5" VBox.vgrow="ALWAYS">
+            <VBox spacing="10">
+                <Label text="Posts" styleClass="form-label"/>
+                <TableView fx:id="postsTable" prefHeight="300.0">
+                    <columns>
+                        <TableColumn fx:id="titleColumn" text="Title" prefWidth="200"/>
+                        <TableColumn fx:id="authorColumn" text="Author" prefWidth="150"/>
+                        <TableColumn fx:id="topicColumn" text="Topic" prefWidth="150"/>
+                        <TableColumn fx:id="dateColumn" text="Date" prefWidth="150"/>
+                        <TableColumn fx:id="viewsColumn" text="Views" prefWidth="80"/>
+                        <TableColumn fx:id="repliesColumn" text="Replies" prefWidth="80"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <VBox spacing="10">
+                <Label text="Post Details" styleClass="form-label"/>
+                <TextArea fx:id="postContentArea" prefRowCount="5" wrapText="true" editable="false"/>
+
+                <Label text="Comments" styleClass="form-label"/>
+                <ListView fx:id="commentsList" prefHeight="150.0"/>
+
+                <VBox spacing="5">
+                    <Label text="Add Comment" styleClass="form-label"/>
+                    <TextArea fx:id="commentArea" prefRowCount="3" wrapText="true"/>
+                    <Button fx:id="addCommentButton" text="Add Comment" onAction="#handleAddComment" 
+                            styleClass="button-primary" prefWidth="120"/>
+                </VBox>
+            </VBox>
+        </SplitPane>
+    </VBox>
+</AnchorPane>
+

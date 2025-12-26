@@ -100,6 +100,7 @@
                            <children>
                               <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#handleDelete" style="-fx-background-color: #e74c3c; -fx-text-fill: white;" text="Delete User" />
                               <Label maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                              <Button mnemonicParsing="false" onAction="#handleBack" text="Back" />
                               <Button mnemonicParsing="false" onAction="#handleCancel" text="Cancel" />
                               <Button fx:id="saveButton" defaultButton="true" mnemonicParsing="false" onAction="#handleSave" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;" text="Save Changes" />
                            </children>

@@ -23,11 +23,16 @@ public class StudentRecordService {
      */
     public List<StudentRecord> getAllStudentRecords() throws SQLException {
         List<StudentRecord> records = new ArrayList<>();
-        String sql = "SELECT u.UserID, u.USERNAME, u.Email, u.UserType, " +
-                    "s.StudentNumber, s.Major, s.Department, " +
-                    "s.EnrollmentDate, s.GPA, s.Status, s.AdmissionDate, s.YearLevel, s.Notes " +
+        String sql = "SELECT u.UserID, u.USERNAME, u.Email, ut.TypeCode as UserType, " +
+                    "s.StudentNumber, s.Major, d.Name as Department, " +
+                    "s.EnrollmentDate, s.GPA, st.StatusCode as Status, s.AdmissionDate, yl.LevelName as YearLevel, s.Notes " +
                     "FROM Users u " +
+                    "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                    "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                     "INNER JOIN Students s ON u.UserID = s.UserID " +
+                    "LEFT JOIN Departments d ON s.DepartmentID = d.DepartmentID " +
+                    "LEFT JOIN StatusTypes st ON s.StatusTypeID = st.StatusTypeID AND st.EntityType = 'STUDENT' " +
+                    "LEFT JOIN YearLevels yl ON s.YearLevelID = yl.YearLevelID " +
                     "ORDER BY u.USERNAME";
 
         try (Connection conn = DatabaseConnection.getConnection();

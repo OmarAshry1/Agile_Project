@@ -23,12 +23,14 @@ public class AdmissionService {
      */
     public List<AdmissionApplication> getAllApplications() throws SQLException {
         List<AdmissionApplication> applications = new ArrayList<>();
-        String sql = "SELECT ApplicationID, FirstName, LastName, Email, PhoneNumber, " +
-                    "DateOfBirth, Address, City, State, ZipCode, Country, Program, " +
-                    "PreviousEducation, Documents, Status, SubmittedDate, ReviewedDate, " +
-                    "ReviewedByUserID, Notes " +
-                    "FROM AdmissionApplications " +
-                    "ORDER BY SubmittedDate DESC";
+        String sql = "SELECT aa.ApplicationID, aa.FirstName, aa.LastName, aa.Email, aa.PhoneNumber, " +
+                    "aa.DateOfBirth, aa.Address, aa.City, aa.State, aa.ZipCode, aa.Country, aa.Program, " +
+                    "aa.PreviousEducation, aa.Documents, st.StatusCode as Status, aa.SubmittedDate, aa.ReviewedDate, " +
+                    "aa.ReviewedByUserID, aa.Notes " +
+                    "FROM AdmissionApplications aa " +
+                    "INNER JOIN StatusTypes st ON aa.StatusTypeID = st.StatusTypeID " +
+                    "WHERE st.EntityType = 'ADMISSION' " +
+                    "ORDER BY aa.SubmittedDate DESC";
 
         Connection conn = DatabaseConnection.getConnection();
         if (conn == null || conn.isClosed()) {
@@ -175,13 +177,16 @@ public class AdmissionService {
             throw new IllegalArgumentException("Invalid application ID or reviewer ID format");
         }
 
-        String sql = "UPDATE AdmissionApplications SET Status = ?, ReviewedDate = GETDATE(), " +
+        // Get StatusTypeID for the new status
+        int statusTypeId = getStatusTypeId(statusToString(newStatus), "ADMISSION");
+        
+        String sql = "UPDATE AdmissionApplications SET StatusTypeID = ?, ReviewedDate = CURRENT_TIMESTAMP, " +
                     "ReviewedByUserID = ?, Notes = ? WHERE ApplicationID = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, statusToString(newStatus));
+            pstmt.setInt(1, statusTypeId);
             if (reviewerId > 0) {
                 pstmt.setInt(2, reviewerId);
             } else {
@@ -280,7 +285,11 @@ public class AdmissionService {
     }
 
     private User getUserById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT UserID, Username, Email, UserType FROM Users WHERE UserID = ?";
+        String sql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -348,6 +357,24 @@ public class AdmissionService {
         LocalDateTime reviewedDate;
         Integer reviewedByUserId;
         String notes;
+    }
+    
+    /**
+     * Get StatusTypeID from StatusTypes table
+     */
+    private int getStatusTypeId(String statusCode, String entityType) throws SQLException {
+        String sql = "SELECT StatusTypeID FROM StatusTypes WHERE StatusCode = ? AND EntityType = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, statusCode);
+            pstmt.setString(2, entityType);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("StatusTypeID");
+                }
+            }
+        }
+        throw new SQLException("Status type not found: " + statusCode + " for entity: " + entityType);
     }
 }
 

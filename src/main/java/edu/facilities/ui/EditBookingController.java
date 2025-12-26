@@ -322,7 +322,8 @@ public class EditBookingController {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/my_bookings.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("My Bookings");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Navigation Error", "Unable to return to bookings: " + e.getMessage());

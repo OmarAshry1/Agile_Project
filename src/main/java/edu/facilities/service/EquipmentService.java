@@ -28,10 +28,11 @@ public class EquipmentService {
         List<Equipment> equipmentList = new ArrayList<>();
         
         String sql = "SELECT e.EquipmentID, e.EquipmentTypeID, et.Name as EquipmentTypeName, " +
-                    "e.SerialNumber, e.Status, e.Location, e.Notes, e.CreatedDate " +
+                    "e.SerialNumber, st.StatusCode as Status, e.Location, e.Notes, e.CreatedDate " +
                     "FROM Equipment e " +
                     "INNER JOIN EquipmentType et ON e.EquipmentTypeID = et.EquipmentTypeID " +
-                    "WHERE e.Status = 'AVAILABLE' " +
+                    "INNER JOIN StatusTypes st ON e.StatusTypeID = st.StatusTypeID AND st.EntityType = 'EQUIPMENT' " +
+                    "WHERE st.StatusCode = 'AVAILABLE' " +
                     "AND (? IS NULL OR et.Name LIKE ?)";
         
         // If department is specified, only show equipment not allocated to other departments
@@ -81,14 +82,17 @@ public class EquipmentService {
         }
         
         String sql = "SELECT ea.AllocationID, ea.EquipmentID, ea.AllocatedToUserID, " +
-                    "ea.Department, ea.AllocatedByUserID, ea.AllocationDate, " +
-                    "ea.ReturnDate, ea.Notes, ea.Status, " +
+                    "d.Name as Department, ea.AllocatedByUserID, ea.AllocationDate, " +
+                    "ea.ReturnDate, ea.Notes, ast.StatusCode as Status, " +
                     "e.EquipmentTypeID, et.Name as EquipmentTypeName, " +
-                    "e.SerialNumber, e.Status as EquipmentStatus, e.Location " +
-                    "FROM EquipmentAllocation ea " +
+                    "e.SerialNumber, est.StatusCode as EquipmentStatus, e.Location " +
+                    "FROM EquipmentUserAllocations ea " +
                     "INNER JOIN Equipment e ON ea.EquipmentID = e.EquipmentID " +
                     "INNER JOIN EquipmentType et ON e.EquipmentTypeID = et.EquipmentTypeID " +
-                    "WHERE ea.AllocatedToUserID = ? AND ea.Status = 'ACTIVE' " +
+                    "INNER JOIN StatusTypes est ON e.StatusTypeID = est.StatusTypeID AND est.EntityType = 'EQUIPMENT' " +
+                    "INNER JOIN StatusTypes ast ON ea.StatusTypeID = ast.StatusTypeID AND ast.EntityType = 'ALLOCATION' " +
+                    "LEFT JOIN Departments d ON ea.DepartmentID = d.DepartmentID " +
+                    "WHERE ea.AllocatedToUserID = ? AND ast.StatusCode = 'ACTIVE' " +
                     "ORDER BY ea.AllocationDate DESC";
         
         Connection conn = DatabaseConnection.getConnection();
@@ -118,14 +122,17 @@ public class EquipmentService {
         List<EquipmentAllocation> allocations = new ArrayList<>();
         
         String sql = "SELECT ea.AllocationID, ea.EquipmentID, ea.AllocatedToUserID, " +
-                    "ea.Department, ea.AllocatedByUserID, ea.AllocationDate, " +
-                    "ea.ReturnDate, ea.Notes, ea.Status, " +
+                    "d.Name as Department, ea.AllocatedByUserID, ea.AllocationDate, " +
+                    "ea.ReturnDate, ea.Notes, ast.StatusCode as Status, " +
                     "e.EquipmentTypeID, et.Name as EquipmentTypeName, " +
-                    "e.SerialNumber, e.Status as EquipmentStatus, e.Location " +
-                    "FROM EquipmentAllocation ea " +
+                    "e.SerialNumber, est.StatusCode as EquipmentStatus, e.Location " +
+                    "FROM EquipmentDepartmentAllocations ea " +
                     "INNER JOIN Equipment e ON ea.EquipmentID = e.EquipmentID " +
                     "INNER JOIN EquipmentType et ON e.EquipmentTypeID = et.EquipmentTypeID " +
-                    "WHERE ea.Department = ? AND ea.Status = 'ACTIVE' " +
+                    "INNER JOIN StatusTypes est ON e.StatusTypeID = est.StatusTypeID AND est.EntityType = 'EQUIPMENT' " +
+                    "INNER JOIN StatusTypes ast ON ea.StatusTypeID = ast.StatusTypeID AND ast.EntityType = 'ALLOCATION' " +
+                    "INNER JOIN Departments d ON ea.DepartmentID = d.DepartmentID " +
+                    "WHERE d.Name = ? AND ast.StatusCode = 'ACTIVE' " +
                     "ORDER BY ea.AllocationDate DESC";
         
         Connection conn = DatabaseConnection.getConnection();
@@ -177,7 +184,10 @@ public class EquipmentService {
         }
         
         // Check if equipment is available
-        String checkSql = "SELECT Status FROM Equipment WHERE EquipmentID = ?";
+        String checkSql = "SELECT st.StatusCode as Status " +
+                          "FROM Equipment e " +
+                          "INNER JOIN StatusTypes st ON e.StatusTypeID = st.StatusTypeID AND st.EntityType = 'EQUIPMENT' " +
+                          "WHERE e.EquipmentID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
             
@@ -193,13 +203,28 @@ public class EquipmentService {
             }
         }
         
-        // Insert allocation
-        String sql = "INSERT INTO EquipmentAllocation " +
-                    "(EquipmentID, AllocatedToUserID, Department, AllocatedByUserID, Notes, Status) " +
-                    "VALUES (?, ?, ?, ?, ?, 'ACTIVE')";
+        // Get status type IDs
+        int activeStatusId = getStatusTypeId("ACTIVE", "ALLOCATION");
+        int allocatedStatusId = getStatusTypeId("ALLOCATED", "EQUIPMENT");
+        
+        // Determine allocation type and insert accordingly
+        String sql;
+        boolean isDepartmentAllocation = (department != null && !department.isBlank());
+        
+        if (isDepartmentAllocation) {
+            // Department allocation
+            sql = "INSERT INTO EquipmentDepartmentAllocations " +
+                  "(EquipmentID, DepartmentID, AllocatedByUserID, Notes, StatusTypeID) " +
+                  "VALUES (?, ?, ?, ?, ?)";
+        } else {
+            // User allocation
+            sql = "INSERT INTO EquipmentUserAllocations " +
+                  "(EquipmentID, AllocatedToUserID, AllocatedByUserID, Notes, StatusTypeID) " +
+                  "VALUES (?, ?, ?, ?, ?)";
+        }
         
         // Update equipment status
-        String updateSql = "UPDATE Equipment SET Status = 'ALLOCATED' WHERE EquipmentID = ?";
+        String updateSql = "UPDATE Equipment SET StatusTypeID = ? WHERE EquipmentID = ?";
         
         Connection conn = DatabaseConnection.getConnection();
         boolean originalAutoCommit = conn.getAutoCommit();
@@ -209,20 +234,21 @@ public class EquipmentService {
             try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                  PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                 
-                Integer allocatedToUserIdInt = null;
-                if (allocatedToUserId != null && !allocatedToUserId.isBlank()) {
-                    allocatedToUserIdInt = Integer.parseInt(allocatedToUserId);
-                }
-                
                 pstmt.setInt(1, equipmentIdInt);
-                if (allocatedToUserIdInt != null) {
-                    pstmt.setInt(2, allocatedToUserIdInt);
+                
+                if (isDepartmentAllocation) {
+                    int departmentId = getDepartmentIdByName(department);
+                    pstmt.setInt(2, departmentId);
+                    pstmt.setInt(3, allocatedByUserIdInt);
+                    pstmt.setString(4, notes != null ? notes : "");
+                    pstmt.setInt(5, activeStatusId);
                 } else {
-                    pstmt.setNull(2, Types.INTEGER);
+                    Integer allocatedToUserIdInt = Integer.parseInt(allocatedToUserId);
+                    pstmt.setInt(2, allocatedToUserIdInt);
+                    pstmt.setInt(3, allocatedByUserIdInt);
+                    pstmt.setString(4, notes != null ? notes : "");
+                    pstmt.setInt(5, activeStatusId);
                 }
-                pstmt.setString(3, department);
-                pstmt.setInt(4, allocatedByUserIdInt);
-                pstmt.setString(5, notes);
                 
                 pstmt.executeUpdate();
                 
@@ -235,7 +261,8 @@ public class EquipmentService {
                 }
                 
                 // Update equipment status
-                updateStmt.setInt(1, equipmentIdInt);
+                updateStmt.setInt(1, allocatedStatusId);
+                updateStmt.setInt(2, equipmentIdInt);
                 updateStmt.executeUpdate();
                 
                 conn.commit();
@@ -286,10 +313,36 @@ public class EquipmentService {
             throw new IllegalArgumentException("Equipment has already been returned");
         }
         
-        String sql = "UPDATE EquipmentAllocation SET Status = 'RETURNED', ReturnDate = GETDATE() " +
-                    "WHERE AllocationID = ?";
+        // Get status type IDs
+        int returnedStatusId = getStatusTypeId("RETURNED", "ALLOCATION");
+        int availableStatusId = getStatusTypeId("AVAILABLE", "EQUIPMENT");
         
-        String updateEquipmentSql = "UPDATE Equipment SET Status = 'AVAILABLE' WHERE EquipmentID = ?";
+        // Determine which table to update (try user allocations first, then department)
+        String checkSql = "SELECT 'USER' as AllocationType FROM EquipmentUserAllocations WHERE AllocationID = ? " +
+                         "UNION ALL " +
+                         "SELECT 'DEPARTMENT' as AllocationType FROM EquipmentDepartmentAllocations WHERE AllocationID = ?";
+        
+        String allocationType = null;
+        try (Connection checkConn = DatabaseConnection.getConnection();
+             PreparedStatement checkStmt = checkConn.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, allocationIdInt);
+            checkStmt.setInt(2, allocationIdInt);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next()) {
+                    allocationType = rs.getString("AllocationType");
+                }
+            }
+        }
+        
+        if (allocationType == null) {
+            throw new IllegalArgumentException("Allocation not found");
+        }
+        
+        String sql = allocationType.equals("USER") ?
+                    "UPDATE EquipmentUserAllocations SET StatusTypeID = ?, ReturnDate = CURRENT_TIMESTAMP WHERE AllocationID = ?" :
+                    "UPDATE EquipmentDepartmentAllocations SET StatusTypeID = ?, ReturnDate = CURRENT_TIMESTAMP WHERE AllocationID = ?";
+        
+        String updateEquipmentSql = "UPDATE Equipment SET StatusTypeID = ? WHERE EquipmentID = ?";
         
         Connection conn = DatabaseConnection.getConnection();
         boolean originalAutoCommit = conn.getAutoCommit();
@@ -302,10 +355,12 @@ public class EquipmentService {
                 // Get equipment ID from allocation
                 int equipmentIdInt = Integer.parseInt(allocation.getEquipment().getId());
                 
-                pstmt.setInt(1, allocationIdInt);
+                pstmt.setInt(1, returnedStatusId);
+                pstmt.setInt(2, allocationIdInt);
                 pstmt.executeUpdate();
                 
-                updateStmt.setInt(1, equipmentIdInt);
+                updateStmt.setInt(1, availableStatusId);
+                updateStmt.setInt(2, equipmentIdInt);
                 updateStmt.executeUpdate();
                 
                 conn.commit();
@@ -334,11 +389,12 @@ public class EquipmentService {
     public List<SoftwareLicense> getAllSoftwareLicenses() throws SQLException {
         List<SoftwareLicense> licenses = new ArrayList<>();
         
-        String sql = "SELECT LicenseID, SoftwareName, LicenseKey, Vendor, PurchaseDate, " +
-                    "ExpiryDate, Cost, Quantity, UsedQuantity, Status, Notes, " +
-                    "CreatedDate, UpdatedDate " +
-                    "FROM SoftwareLicenses " +
-                    "ORDER BY ExpiryDate ASC, SoftwareName";
+        String sql = "SELECT sl.LicenseID, sl.SoftwareName, sl.LicenseKey, sl.Vendor, sl.PurchaseDate, " +
+                    "sl.ExpiryDate, sl.Cost, sl.Quantity, sl.UsedQuantity, st.StatusCode as Status, sl.Notes, " +
+                    "sl.CreatedDate, sl.UpdatedDate " +
+                    "FROM SoftwareLicenses sl " +
+                    "INNER JOIN StatusTypes st ON sl.StatusTypeID = st.StatusTypeID AND st.EntityType = 'LICENSE' " +
+                    "ORDER BY sl.ExpiryDate ASC, sl.SoftwareName";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -382,15 +438,16 @@ public class EquipmentService {
     public List<SoftwareLicense> getLicensesNearExpiry() throws SQLException {
         List<SoftwareLicense> licenses = new ArrayList<>();
         
-        String sql = "SELECT LicenseID, SoftwareName, LicenseKey, Vendor, PurchaseDate, " +
-                    "ExpiryDate, Cost, Quantity, UsedQuantity, Status, Notes, " +
-                    "CreatedDate, UpdatedDate " +
-                    "FROM SoftwareLicenses " +
-                    "WHERE Status = 'ACTIVE' " +
-                    "AND ExpiryDate IS NOT NULL " +
-                    "AND ExpiryDate >= GETDATE() " +
-                    "AND ExpiryDate <= DATEADD(day, 30, GETDATE()) " +
-                    "ORDER BY ExpiryDate ASC";
+        String sql = "SELECT sl.LicenseID, sl.SoftwareName, sl.LicenseKey, sl.Vendor, sl.PurchaseDate, " +
+                    "sl.ExpiryDate, sl.Cost, sl.Quantity, sl.UsedQuantity, st.StatusCode as Status, sl.Notes, " +
+                    "sl.CreatedDate, sl.UpdatedDate " +
+                    "FROM SoftwareLicenses sl " +
+                    "INNER JOIN StatusTypes st ON sl.StatusTypeID = st.StatusTypeID AND st.EntityType = 'LICENSE' " +
+                    "WHERE st.StatusCode = 'ACTIVE' " +
+                    "AND sl.ExpiryDate IS NOT NULL " +
+                    "AND sl.ExpiryDate >= CURRENT_DATE " +
+                    "AND sl.ExpiryDate <= CURRENT_DATE + INTERVAL '30 days' " +
+                    "ORDER BY sl.ExpiryDate ASC";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -427,16 +484,20 @@ public class EquipmentService {
             throw new IllegalArgumentException("Invalid equipment type ID format");
         }
         
-        String sql = "INSERT INTO Equipment (EquipmentTypeID, SerialNumber, Status, Location, Notes) " +
-                    "VALUES (?, ?, 'AVAILABLE', ?, ?)";
+        // Get available status type ID
+        int availableStatusId = getStatusTypeId("AVAILABLE", "EQUIPMENT");
+        
+        String sql = "INSERT INTO Equipment (EquipmentTypeID, SerialNumber, StatusTypeID, Location, Notes) " +
+                    "VALUES (?, ?, ?, ?, ?)";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setInt(1, equipmentTypeIdInt);
-            pstmt.setString(2, serialNumber);
-            pstmt.setString(3, location);
-            pstmt.setString(4, notes);
+            pstmt.setString(2, serialNumber != null ? serialNumber : "");
+            pstmt.setInt(3, availableStatusId);
+            pstmt.setString(4, location != null ? location : "");
+            pstmt.setString(5, notes != null ? notes : "");
             
             pstmt.executeUpdate();
             
@@ -477,16 +538,19 @@ public class EquipmentService {
             throw new IllegalArgumentException("Quantity must be at least 1");
         }
         
+        // Get active status type ID
+        int activeStatusId = getStatusTypeId("ACTIVE", "LICENSE");
+        
         String sql = "INSERT INTO SoftwareLicenses " +
-                    "(SoftwareName, LicenseKey, Vendor, PurchaseDate, ExpiryDate, Cost, Quantity, UsedQuantity, Status, Notes, CreatedDate, UpdatedDate) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'ACTIVE', ?, GETDATE(), GETDATE())";
+                    "(SoftwareName, LicenseKey, Vendor, PurchaseDate, ExpiryDate, Cost, Quantity, UsedQuantity, StatusTypeID, Notes, CreatedDate, UpdatedDate) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setString(1, softwareName);
-            pstmt.setString(2, licenseKey);
-            pstmt.setString(3, vendor);
+            pstmt.setString(2, licenseKey != null ? licenseKey : "");
+            pstmt.setString(3, vendor != null ? vendor : "");
             if (purchaseDate != null) {
                 pstmt.setDate(4, Date.valueOf(purchaseDate));
             } else {
@@ -503,7 +567,8 @@ public class EquipmentService {
                 pstmt.setNull(6, Types.DECIMAL);
             }
             pstmt.setInt(7, quantity);
-            pstmt.setString(8, notes);
+            pstmt.setInt(8, activeStatusId);
+            pstmt.setString(9, notes != null ? notes : "");
             
             pstmt.executeUpdate();
             
@@ -528,11 +593,12 @@ public class EquipmentService {
     private SoftwareLicense getSoftwareLicenseById(String licenseId) throws SQLException {
         int licenseIdInt = Integer.parseInt(licenseId);
         
-        String sql = "SELECT LicenseID, SoftwareName, LicenseKey, Vendor, PurchaseDate, " +
-                    "ExpiryDate, Cost, Quantity, UsedQuantity, Status, Notes, " +
-                    "CreatedDate, UpdatedDate " +
-                    "FROM SoftwareLicenses " +
-                    "WHERE LicenseID = ?";
+        String sql = "SELECT sl.LicenseID, sl.SoftwareName, sl.LicenseKey, sl.Vendor, sl.PurchaseDate, " +
+                    "sl.ExpiryDate, sl.Cost, sl.Quantity, sl.UsedQuantity, st.StatusCode as Status, sl.Notes, " +
+                    "sl.CreatedDate, sl.UpdatedDate " +
+                    "FROM SoftwareLicenses sl " +
+                    "INNER JOIN StatusTypes st ON sl.StatusTypeID = st.StatusTypeID AND st.EntityType = 'LICENSE' " +
+                    "WHERE sl.LicenseID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -652,9 +718,10 @@ public class EquipmentService {
         int equipmentIdInt = Integer.parseInt(equipmentId);
         
         String sql = "SELECT e.EquipmentID, e.EquipmentTypeID, et.Name as EquipmentTypeName, " +
-                    "e.SerialNumber, e.Status, e.Location, e.Notes, e.CreatedDate " +
+                    "e.SerialNumber, st.StatusCode as Status, e.Location, e.Notes, e.CreatedDate " +
                     "FROM Equipment e " +
                     "INNER JOIN EquipmentType et ON e.EquipmentTypeID = et.EquipmentTypeID " +
+                    "INNER JOIN StatusTypes st ON e.StatusTypeID = st.StatusTypeID AND st.EntityType = 'EQUIPMENT' " +
                     "WHERE e.EquipmentID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -675,19 +742,36 @@ public class EquipmentService {
     private EquipmentAllocation getAllocationById(String allocationId) throws SQLException {
         int allocationIdInt = Integer.parseInt(allocationId);
         
+        // Try to find allocation in user allocations first
         String sql = "SELECT ea.AllocationID, ea.EquipmentID, ea.AllocatedToUserID, " +
-                    "ea.Department, ea.AllocatedByUserID, ea.AllocationDate, " +
-                    "ea.ReturnDate, ea.Notes, ea.Status, " +
+                    "NULL as Department, NULL as DepartmentID, ea.AllocatedByUserID, ea.AllocationDate, " +
+                    "ea.ReturnDate, ea.Notes, ast.StatusCode as Status, " +
                     "e.EquipmentTypeID, et.Name as EquipmentTypeName, " +
-                    "e.SerialNumber, e.Status as EquipmentStatus, e.Location " +
-                    "FROM EquipmentAllocation ea " +
+                    "e.SerialNumber, est.StatusCode as EquipmentStatus, e.Location " +
+                    "FROM EquipmentUserAllocations ea " +
                     "INNER JOIN Equipment e ON ea.EquipmentID = e.EquipmentID " +
                     "INNER JOIN EquipmentType et ON e.EquipmentTypeID = et.EquipmentTypeID " +
+                    "INNER JOIN StatusTypes est ON e.StatusTypeID = est.StatusTypeID AND est.EntityType = 'EQUIPMENT' " +
+                    "INNER JOIN StatusTypes ast ON ea.StatusTypeID = ast.StatusTypeID AND ast.EntityType = 'ALLOCATION' " +
+                    "WHERE ea.AllocationID = ? " +
+                    "UNION ALL " +
+                    "SELECT ea.AllocationID, ea.EquipmentID, NULL as AllocatedToUserID, " +
+                    "d.Name as Department, ea.DepartmentID, ea.AllocatedByUserID, ea.AllocationDate, " +
+                    "ea.ReturnDate, ea.Notes, ast.StatusCode as Status, " +
+                    "e.EquipmentTypeID, et.Name as EquipmentTypeName, " +
+                    "e.SerialNumber, est.StatusCode as EquipmentStatus, e.Location " +
+                    "FROM EquipmentDepartmentAllocations ea " +
+                    "INNER JOIN Equipment e ON ea.EquipmentID = e.EquipmentID " +
+                    "INNER JOIN EquipmentType et ON e.EquipmentTypeID = et.EquipmentTypeID " +
+                    "INNER JOIN StatusTypes est ON e.StatusTypeID = est.StatusTypeID AND est.EntityType = 'EQUIPMENT' " +
+                    "INNER JOIN StatusTypes ast ON ea.StatusTypeID = ast.StatusTypeID AND ast.EntityType = 'ALLOCATION' " +
+                    "INNER JOIN Departments d ON ea.DepartmentID = d.DepartmentID " +
                     "WHERE ea.AllocationID = ?";
         
         Connection conn = DatabaseConnection.getConnection();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, allocationIdInt);
+            pstmt.setInt(2, allocationIdInt);
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -743,7 +827,11 @@ public class EquipmentService {
     }
 
     private User getUserById(Connection conn, int userId) throws SQLException {
-        String sql = "SELECT UserID, Username, Email, UserType FROM Users WHERE UserID = ?";
+        String sql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType " +
+                     "FROM Users u " +
+                     "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                     "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
+                     "WHERE u.UserID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -811,6 +899,56 @@ public class EquipmentService {
         
         return new SoftwareLicense(id, softwareName, licenseKey, vendor, purchase, expiry, 
                                   cost, quantity, usedQuantity, status, notes, created, updated);
+    }
+
+    /**
+     * Get status type ID by status code and entity type
+     * @param statusCode The status code (e.g., "ACTIVE", "AVAILABLE")
+     * @param entityType The entity type (e.g., "EQUIPMENT", "LICENSE", "ALLOCATION")
+     * @return Status type ID
+     * @throws SQLException if status not found or database error occurs
+     */
+    private int getStatusTypeId(String statusCode, String entityType) throws SQLException {
+        String sql = "SELECT StatusTypeID FROM StatusTypes WHERE StatusCode = ? AND EntityType = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, statusCode);
+            pstmt.setString(2, entityType);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("StatusTypeID");
+                }
+            }
+        }
+        
+        throw new SQLException("Status type not found: " + statusCode + " for entity: " + entityType);
+    }
+
+    /**
+     * Get department ID by department name
+     * @param departmentName The department name
+     * @return Department ID
+     * @throws SQLException if department not found or database error occurs
+     */
+    private int getDepartmentIdByName(String departmentName) throws SQLException {
+        String sql = "SELECT DepartmentID FROM Departments WHERE Name = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, departmentName);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("DepartmentID");
+                }
+            }
+        }
+        
+        throw new SQLException("Department not found: " + departmentName);
     }
 }
 

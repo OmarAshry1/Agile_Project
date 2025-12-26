@@ -104,6 +104,7 @@ public class LoginController {
                     Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                     stage.setScene(new Scene(root));
                     stage.setTitle("University Management System - Dashboard");
+                    stage.setMaximized(true);
                     stage.show();
                 } catch (IOException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -146,10 +147,20 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(edu.facilities.Main.class.getResource("/fxml/register.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            // Preserve maximized state
+            boolean wasMaximized = stage.isMaximized();
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.setTitle("University Management System - Register");
+            // Always keep window maximized
+            stage.setMaximized(true);
             stage.show();
+            // Double-check maximized state after showing to prevent resize
+            javafx.application.Platform.runLater(() -> {
+                if (wasMaximized) {
+                    stage.setMaximized(true);
+                }
+            });
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Navigation Error");

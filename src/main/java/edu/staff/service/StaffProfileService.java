@@ -11,7 +11,12 @@ public class StaffProfileService {
 
     public List<StaffProfile> getAllStaff() throws SQLException {
         List<StaffProfile> profiles = new ArrayList<>();
-        String sql = "SELECT * FROM StaffProfiles ORDER BY Name";
+        String sql = "SELECT sp.StaffID, sp.UserID, sp.Name, sp.Role, d.Name as Department, " +
+                    "sp.Email, sp.OfficeHours, sp.OfficeLocation, sp.Phone, sp.HireDate, " +
+                    "sp.Bio, sp.IsActive, sp.CreatedDate, sp.UpdatedDate " +
+                    "FROM StaffProfiles sp " +
+                    "INNER JOIN Departments d ON sp.DepartmentID = d.DepartmentID " +
+                    "ORDER BY sp.Name";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -26,11 +31,17 @@ public class StaffProfileService {
 
     public List<StaffProfile> searchStaff(String query, String department) throws SQLException {
         List<StaffProfile> profiles = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM StaffProfiles WHERE 1=1");
+        StringBuilder sql = new StringBuilder(
+            "SELECT sp.StaffID, sp.UserID, sp.Name, sp.Role, d.Name as Department, " +
+            "sp.Email, sp.OfficeHours, sp.OfficeLocation, sp.Phone, sp.HireDate, " +
+            "sp.Bio, sp.IsActive, sp.CreatedDate, sp.UpdatedDate " +
+            "FROM StaffProfiles sp " +
+            "INNER JOIN Departments d ON sp.DepartmentID = d.DepartmentID " +
+            "WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         if (query != null && !query.isEmpty()) {
-            sql.append(" AND (Name LIKE ? OR Role LIKE ? OR Email LIKE ?)");
+            sql.append(" AND (sp.Name LIKE ? OR sp.Role LIKE ? OR sp.Email LIKE ?)");
             String searchPattern = "%" + query + "%";
             params.add(searchPattern);
             params.add(searchPattern);
@@ -38,11 +49,11 @@ public class StaffProfileService {
         }
 
         if (department != null && !department.equals("All Departments") && !department.isEmpty()) {
-            sql.append(" AND Department = ?");
+            sql.append(" AND d.Name = ?");
             params.add(department);
         }
 
-        sql.append(" ORDER BY Name");
+        sql.append(" ORDER BY sp.Name");
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
@@ -61,14 +72,16 @@ public class StaffProfileService {
     }
 
     public void addStaff(StaffProfile profile) throws SQLException {
-        String sql = "INSERT INTO StaffProfiles (Name, Role, Department, Email, OfficeHours, OfficeLocation, Phone, HireDate, Bio, IsActive) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO StaffProfiles (Name, Role, DepartmentID, Email, OfficeHours, OfficeLocation, Phone, HireDate, Bio, IsActive) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
+            int departmentId = getDepartmentIdByName(profile.getDepartment());
+
             pstmt.setString(1, profile.getName());
             pstmt.setString(2, profile.getRole());
-            pstmt.setString(3, profile.getDepartment());
+            pstmt.setInt(3, departmentId);
             pstmt.setString(4, profile.getEmail());
             pstmt.setString(5, profile.getOfficeHours());
             pstmt.setString(6, profile.getOfficeLocation());
@@ -82,14 +95,16 @@ public class StaffProfileService {
     }
 
     public void updateStaff(StaffProfile profile) throws SQLException {
-        String sql = "UPDATE StaffProfiles SET Name=?, Role=?, Department=?, Email=?, OfficeHours=?, OfficeLocation=?, Phone=?, HireDate=?, Bio=?, IsActive=? WHERE StaffID=?";
+        String sql = "UPDATE StaffProfiles SET Name=?, Role=?, DepartmentID=?, Email=?, OfficeHours=?, OfficeLocation=?, Phone=?, HireDate=?, Bio=?, IsActive=? WHERE StaffID=?";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
+            int departmentId = getDepartmentIdByName(profile.getDepartment());
+
             pstmt.setString(1, profile.getName());
             pstmt.setString(2, profile.getRole());
-            pstmt.setString(3, profile.getDepartment());
+            pstmt.setInt(3, departmentId);
             pstmt.setString(4, profile.getEmail());
             pstmt.setString(5, profile.getOfficeHours());
             pstmt.setString(6, profile.getOfficeLocation());
@@ -116,14 +131,14 @@ public class StaffProfileService {
 
     public List<String> getAllDepartments() throws SQLException {
         List<String> departments = new ArrayList<>();
-        String sql = "SELECT DISTINCT Department FROM StaffProfiles ORDER BY Department";
+        String sql = "SELECT Name FROM Departments WHERE IsActive = TRUE ORDER BY Name";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
-                departments.add(rs.getString("Department"));
+                departments.add(rs.getString("Name"));
             }
         }
         return departments;
@@ -146,5 +161,29 @@ public class StaffProfileService {
         profile.setBio(rs.getString("Bio"));
         profile.setActive(rs.getBoolean("IsActive"));
         return profile;
+    }
+
+    /**
+     * Get department ID by name
+     * @param departmentName The department name
+     * @return Department ID
+     * @throws SQLException if department not found or database error occurs
+     */
+    private int getDepartmentIdByName(String departmentName) throws SQLException {
+        String sql = "SELECT DepartmentID FROM Departments WHERE Name = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, departmentName);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("DepartmentID");
+                }
+            }
+        }
+        
+        throw new SQLException("Department not found: " + departmentName);
     }
 }

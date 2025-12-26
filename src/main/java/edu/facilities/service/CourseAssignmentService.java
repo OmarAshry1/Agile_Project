@@ -202,10 +202,13 @@ public class CourseAssignmentService {
      * Get all professors (for selection in UI)
      */
     public List<User> getAllProfessors() throws SQLException {
-        String sql = "SELECT u.UserID, u.Username, u.Email, u.UserType, p.Department " +
+        String sql = "SELECT u.UserID, u.Username, u.Email, ut.TypeCode as UserType, d.Name as Department " +
                     "FROM Users u " +
+                    "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                    "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                     "INNER JOIN Professors p ON u.UserID = p.UserID " +
-                    "WHERE u.UserType = 'PROFESSOR' " +
+                    "LEFT JOIN Departments d ON p.DepartmentID = d.DepartmentID " +
+                    "WHERE ut.TypeCode = 'PROFESSOR' " +
                     "ORDER BY u.Username";
         
         List<User> professors = new ArrayList<>();
@@ -234,8 +237,10 @@ public class CourseAssignmentService {
     private boolean isProfessor(String userId) throws SQLException {
         String sql = "SELECT COUNT(*) AS ProfCount " +
                     "FROM Users u " +
+                    "INNER JOIN UserRoles ur ON u.UserID = ur.UserID AND ur.IsPrimary = true " +
+                    "INNER JOIN UserTypes ut ON ur.UserTypeID = ut.UserTypeID " +
                     "INNER JOIN Professors p ON u.UserID = p.UserID " +
-                    "WHERE u.UserID = ? AND u.UserType = 'PROFESSOR'";
+                    "WHERE u.UserID = ? AND ut.TypeCode = 'PROFESSOR'";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

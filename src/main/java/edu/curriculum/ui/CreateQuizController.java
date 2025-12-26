@@ -417,7 +417,8 @@ public class CreateQuizController {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/professor_quizzes.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("Quiz Management");
+            stage.setTitle("");
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             showError("Error", "Unable to return to quizzes page: " + e.getMessage());
