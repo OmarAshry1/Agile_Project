@@ -11,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Authentication service for user login and registration
@@ -23,7 +22,7 @@ public class AuthService {
     // DEMO MODE - Set to true to bypass database connection
     // Set to false to use normal database authentication
     // ============================================================================
-    private static final boolean DEMO_MODE = true;  // TEMPORARY: Enabled for testing without DB
+    private static final boolean DEMO_MODE = false;  // Set to true to bypass database for testing
     // ============================================================================
 
     private static AuthService instance;
@@ -108,7 +107,7 @@ public class AuthService {
         // Normal database authentication
         String hashedPassword = hashPassword(password);
 
-        String sql = "SELECT UserID, USERNAME, Email, UserType FROM Users WHERE USERNAME = ? AND [Password] = ?";
+        String sql = "SELECT UserID, USERNAME, Email, UserType FROM Users WHERE USERNAME = ? AND Password = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -186,7 +185,7 @@ public class AuthService {
 
         // Insert new user
         String hashedPassword = hashPassword(password);
-        String insertSql = "INSERT INTO Users (USERNAME, [Password], Email, UserType) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO Users (USERNAME, Password, Email, UserType) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(insertSql)) {
@@ -277,7 +276,8 @@ public class AuthService {
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = md.digest(password.getBytes());
+            // Use UTF-8 encoding explicitly to ensure consistent hashing
+            byte[] hashBytes = md.digest(password.getBytes("UTF-8"));
 
             // Convert bytes to hexadecimal string
             StringBuilder sb = new StringBuilder();
@@ -285,9 +285,9 @@ public class AuthService {
                 sb.append(String.format("%02x", b));
             }
             return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             // Fallback to plain text if hashing fails (not recommended for production)
-            System.err.println("Warning: Password hashing failed, using plain text");
+            System.err.println("Warning: Password hashing failed: " + e.getMessage());
             return password;
         }
     }

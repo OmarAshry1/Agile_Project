@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="700.0" prefWidth="1200.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.AssignCoursesController">
+<AnchorPane prefHeight="700.0" prefWidth="1200.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.facilities.ui.AssignStaffToCourseController">
    <children>
       <VBox alignment="TOP_CENTER" spacing="20" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="20">
          <padding>
@@ -20,22 +20,24 @@
          
          <!-- Header -->
          <VBox alignment="CENTER" spacing="10">
-            <Label styleClass="page-title" text="Assign Courses to Professors" />
-            <Label styleClass="form-label" text="Select a professor and assign courses. Enable conflict checking to prevent schedule conflicts." textAlignment="CENTER" />
+            <Label styleClass="page-title" text="Assign Staff to Courses" />
+            <Label styleClass="form-label" text="Select a staff member and assign courses. Enable conflict checking to prevent double-booking." textAlignment="CENTER" />
          </VBox>
 
-         <!-- Professor Selection -->
+         <!-- Staff Selection -->
          <VBox spacing="10" styleClass="card">
             <padding>
                <Insets bottom="15" left="15" right="15" top="15" />
             </padding>
             <HBox spacing="10" alignment="CENTER_LEFT">
-               <Label text="Select Professor:" styleClass="form-label" minWidth="120"/>
-               <ComboBox fx:id="professorComboBox" prefWidth="300.0" promptText="Choose a professor..." />
-               <Button fx:id="viewProfessorCoursesButton" onAction="#handleViewProfessorCourses" styleClass="btn-secondary" text="View Professor's Courses" />
+               <Label text="Select Staff:" styleClass="form-label" minWidth="120"/>
+               <ComboBox fx:id="staffComboBox" prefWidth="300.0" promptText="Choose a staff member..." />
+               <Label text="Role:" styleClass="form-label" minWidth="60"/>
+               <ComboBox fx:id="roleComboBox" prefWidth="150.0" />
+               <Button fx:id="viewStaffCoursesButton" onAction="#handleViewStaffCourses" styleClass="btn-secondary" text="View Staff's Courses" />
             </HBox>
             <HBox spacing="10" alignment="CENTER_LEFT">
-               <CheckBox fx:id="checkConflictsCheckBox" selected="true" text="Check for schedule conflicts (same semester)" />
+               <CheckBox fx:id="checkConflictsCheckBox" selected="true" text="Check for schedule conflicts (prevent double-booking)" />
             </HBox>
          </VBox>
 
@@ -49,7 +51,7 @@
                   <TableColumn fx:id="departmentColumn" minWidth="120.0" prefWidth="150.0" text="Department" sortable="true" />
                   <TableColumn fx:id="semesterColumn" minWidth="120.0" prefWidth="150.0" text="Semester" sortable="true" />
                   <TableColumn fx:id="creditsColumn" minWidth="80.0" prefWidth="100.0" text="Credits" sortable="true" />
-                  <TableColumn fx:id="professorsColumn" minWidth="200.0" prefWidth="250.0" text="Current Professors" sortable="false" />
+                  <TableColumn fx:id="staffColumn" minWidth="120.0" prefWidth="150.0" text="Assigned Staff" sortable="false" />
                </columns>
                <columnResizePolicy>
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

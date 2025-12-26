@@ -128,6 +128,12 @@ public class dashboardcontroller {
                     assignCoursesButton.setManaged(true);
                     assignCoursesButton.setDisable(false);
                 }
+                // Show assign staff to courses button for admins (US 3.3.1)
+                if (assignStaffToCourseButton != null) {
+                    assignStaffToCourseButton.setVisible(true);
+                    assignStaffToCourseButton.setManaged(true);
+                    assignStaffToCourseButton.setDisable(false);
+                }
                 // Show announcements button for admins
                 if (viewAnnouncementsButton != null) {
                     viewAnnouncementsButton.setVisible(true);
@@ -497,6 +503,20 @@ public class dashboardcontroller {
                     staffDirectoryButton.setManaged(true);
                     staffDirectoryButton.setDisable(false);
                 }
+                // Show view assigned courses button for staff (US 3.3.2)
+                if ("STAFF".equals(userType)) {
+                    if (viewAssignedCoursesButton != null) {
+                        viewAssignedCoursesButton.setVisible(true);
+                        viewAssignedCoursesButton.setManaged(true);
+                        viewAssignedCoursesButton.setDisable(false);
+                    }
+                } else {
+                    if (viewAssignedCoursesButton != null) {
+                        viewAssignedCoursesButton.setVisible(false);
+                        viewAssignedCoursesButton.setManaged(false);
+                        viewAssignedCoursesButton.setDisable(true);
+                    }
+                }
                 // Hide Staff Management for non-admins
                 if (manageStaffButton != null) {
                     manageStaffButton.setVisible(false);
@@ -537,6 +557,12 @@ public class dashboardcontroller {
                     reviewResearchButton.setVisible(false);
                     reviewResearchButton.setManaged(false);
                     reviewResearchButton.setDisable(true);
+                }
+                // Hide assign staff button for non-admins
+                if (assignStaffToCourseButton != null) {
+                    assignStaffToCourseButton.setVisible(false);
+                    assignStaffToCourseButton.setManaged(false);
+                    assignStaffToCourseButton.setDisable(true);
                 }
             }
 
@@ -658,6 +684,16 @@ public class dashboardcontroller {
                 createAnnouncementButton.setVisible(false);
                 createAnnouncementButton.setManaged(false);
                 createAnnouncementButton.setDisable(true);
+            }
+            if (assignStaffToCourseButton != null) {
+                assignStaffToCourseButton.setVisible(false);
+                assignStaffToCourseButton.setManaged(false);
+                assignStaffToCourseButton.setDisable(true);
+            }
+            if (viewAssignedCoursesButton != null) {
+                viewAssignedCoursesButton.setVisible(false);
+                viewAssignedCoursesButton.setManaged(false);
+                viewAssignedCoursesButton.setDisable(true);
             }
             if (viewCourseCatalogButton != null) {
                 viewCourseCatalogButton.setVisible(false);
@@ -820,6 +856,12 @@ public class dashboardcontroller {
 
     @FXML
     private Button createAnnouncementButton;
+
+    @FXML
+    private Button assignStaffToCourseButton;
+
+    @FXML
+    private Button viewAssignedCoursesButton;
 
     @FXML
     private Button viewMyTicketsButton;
@@ -1532,6 +1574,54 @@ public class dashboardcontroller {
         }
 
         navigateTo("/fxml/create_announcement.fxml", event, "Create Announcement");
+    }
+
+    @FXML
+    void handleAssignStaffToCourse(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to assign staff to courses.");
+            alert.showAndWait();
+            return;
+        }
+
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only academic administrators can assign staff to courses.");
+            alert.showAndWait();
+            return;
+        }
+
+        navigateTo("/fxml/assign_staff_to_course.fxml", event, "Assign Staff to Courses");
+    }
+
+    @FXML
+    void handleViewAssignedCourses(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view your assigned courses.");
+            alert.showAndWait();
+            return;
+        }
+
+        String userType = authService.getCurrentUserType();
+        if (!"STAFF".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only staff members can view assigned courses.");
+            alert.showAndWait();
+            return;
+        }
+
+        navigateTo("/fxml/view_assigned_courses.fxml", event, "My Assigned Courses");
     }
 
     @FXML

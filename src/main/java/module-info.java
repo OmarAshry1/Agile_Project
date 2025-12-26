@@ -1,8 +1,10 @@
 module edu.facilities {
     requires javafx.controls;
     requires javafx.fxml;
-    requires java.sql;
-    requires com.microsoft.sqlserver.jdbc;
+    requires transitive javafx.graphics;
+    requires transitive java.sql;
+    requires org.postgresql.jdbc;
+    requires com.zaxxer.hikari;
     requires org.apache.pdfbox;
 
     opens edu.facilities.ui to javafx.fxml, javafx.graphics;

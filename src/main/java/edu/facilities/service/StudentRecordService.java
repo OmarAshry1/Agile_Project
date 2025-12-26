@@ -131,7 +131,7 @@ public class StudentRecordService {
             conn.setAutoCommit(false);
 
             // Insert into Users table
-            String userSql = "INSERT INTO Users (USERNAME, [Password], Email, UserType) VALUES (?, ?, ?, 'STUDENT')";
+            String userSql = "INSERT INTO Users (USERNAME, Password, Email, UserType) VALUES (?, ?, ?, 'STUDENT')";
             int userId = -1;
             
             try (PreparedStatement userStmt = conn.prepareStatement(userSql, Statement.RETURN_GENERATED_KEYS)) {

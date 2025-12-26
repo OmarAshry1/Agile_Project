@@ -47,3 +47,5 @@ GO
 CREATE INDEX IX_AnnouncementReadStatus_AnnouncementID ON AnnouncementReadStatus(AnnouncementID);
 GO
 
+
+

@@ -31,11 +31,18 @@
             <version>${javafx.version}</version>
         </dependency>
         
-        <!-- SQL Server JDBC Driver -->
+        <!-- PostgreSQL JDBC Driver for Supabase -->
         <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>12.4.2.jre11</version>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.1</version>
+        </dependency>
+
+        <!-- HikariCP Connection Pool -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
         </dependency>
 
         <!-- Apache PDFBox for PDF generation -->

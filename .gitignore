@@ -10,3 +10,9 @@ target/
 !README.md
 
 *.sh
+
+# Database configuration (contains sensitive data)
+database.local.properties
+*.local.properties
+src/main/resources/database.local.properties
+src/main/resources/database.properties
