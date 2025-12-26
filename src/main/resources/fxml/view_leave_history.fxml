@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.ViewLeaveHistoryController"
+            prefHeight="700.0" prefWidth="1000.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="5">
+            <Label text="My Leave History" styleClass="page-title"/>
+            <Label text="View and manage your leave requests" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Filter -->
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Label text="Filter by Status:" styleClass="form-label"/>
+            <ComboBox fx:id="statusFilterComboBox" prefWidth="150" prefHeight="35"/>
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <!-- Table -->
+        <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <TableView fx:id="leaveHistoryTable" prefHeight="300.0">
+                <columns>
+                    <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="typeColumn" text="Type" prefWidth="100"/>
+                    <TableColumn fx:id="startDateColumn" text="Start Date" prefWidth="100"/>
+                    <TableColumn fx:id="endDateColumn" text="End Date" prefWidth="100"/>
+                    <TableColumn fx:id="daysColumn" text="Days" prefWidth="60"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                    <TableColumn fx:id="submittedDateColumn" text="Submitted" prefWidth="150"/>
+                    <TableColumn fx:id="reviewedDateColumn" text="Reviewed" prefWidth="150"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Details Panel -->
+        <VBox spacing="10" styleClass="card">
+            <HBox spacing="10">
+                <Label fx:id="statusLabel" text="Status: -" styleClass="form-label"/>
+            </HBox>
+            <VBox spacing="10">
+                <VBox spacing="5">
+                    <Label text="Reason:" styleClass="form-label"/>
+                    <TextArea fx:id="reasonTextArea" prefRowCount="3" wrapText="true" editable="false"/>
+                </VBox>
+                <VBox spacing="5">
+                    <Label text="Rejection Reason:" styleClass="form-label"/>
+                    <TextArea fx:id="rejectionReasonTextArea" prefRowCount="2" wrapText="true" editable="false"/>
+                </VBox>
+            </VBox>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="cancelButton" text="Cancel Request" onAction="#handleCancel" 
+                    styleClass="button-danger" prefWidth="150"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+

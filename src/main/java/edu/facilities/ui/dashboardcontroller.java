@@ -228,6 +228,34 @@ public class dashboardcontroller {
                     reviewResearchButton.setManaged(true);
                     reviewResearchButton.setDisable(false);
                 }
+                // Show leave approval button for Admin
+                if (approveLeaveButton != null) {
+                    approveLeaveButton.setVisible(true);
+                    approveLeaveButton.setManaged(true);
+                    approveLeaveButton.setDisable(false);
+                }
+                // Show payroll and benefits management buttons for Admin
+                if (managePayrollButton != null) {
+                    managePayrollButton.setVisible(true);
+                    managePayrollButton.setManaged(true);
+                    managePayrollButton.setDisable(false);
+                }
+                if (manageBenefitsButton != null) {
+                    manageBenefitsButton.setVisible(true);
+                    manageBenefitsButton.setManaged(true);
+                    manageBenefitsButton.setDisable(false);
+                }
+                // Hide staff-only view buttons for Admin
+                if (viewPayrollButton != null) {
+                    viewPayrollButton.setVisible(false);
+                    viewPayrollButton.setManaged(false);
+                    viewPayrollButton.setDisable(true);
+                }
+                if (viewBenefitsButton != null) {
+                    viewBenefitsButton.setVisible(false);
+                    viewBenefitsButton.setManaged(false);
+                    viewBenefitsButton.setDisable(true);
+                }
                 // Hide staff-only buttons for Admin
                 if (viewPerformanceButton != null) {
                     viewPerformanceButton.setVisible(false);
@@ -535,6 +563,28 @@ public class dashboardcontroller {
                         addResearchButton.setManaged(true);
                         addResearchButton.setDisable(false);
                     }
+                    // Show leave management buttons for STAFF
+                    if (submitLeaveRequestButton != null) {
+                        submitLeaveRequestButton.setVisible(true);
+                        submitLeaveRequestButton.setManaged(true);
+                        submitLeaveRequestButton.setDisable(false);
+                    }
+                    if (viewLeaveHistoryButton != null) {
+                        viewLeaveHistoryButton.setVisible(true);
+                        viewLeaveHistoryButton.setManaged(true);
+                        viewLeaveHistoryButton.setDisable(false);
+                    }
+                    // Show payroll and benefits buttons for STAFF
+                    if (viewPayrollButton != null) {
+                        viewPayrollButton.setVisible(true);
+                        viewPayrollButton.setManaged(true);
+                        viewPayrollButton.setDisable(false);
+                    }
+                    if (viewBenefitsButton != null) {
+                        viewBenefitsButton.setVisible(true);
+                        viewBenefitsButton.setManaged(true);
+                        viewBenefitsButton.setDisable(false);
+                    }
                 } else {
                     if (viewPerformanceButton != null) {
                         viewPerformanceButton.setVisible(false);
@@ -545,6 +595,28 @@ public class dashboardcontroller {
                         addResearchButton.setVisible(false);
                         addResearchButton.setManaged(false);
                         addResearchButton.setDisable(true);
+                    }
+                    // Hide leave management buttons for non-staff
+                    if (submitLeaveRequestButton != null) {
+                        submitLeaveRequestButton.setVisible(false);
+                        submitLeaveRequestButton.setManaged(false);
+                        submitLeaveRequestButton.setDisable(true);
+                    }
+                    if (viewLeaveHistoryButton != null) {
+                        viewLeaveHistoryButton.setVisible(false);
+                        viewLeaveHistoryButton.setManaged(false);
+                        viewLeaveHistoryButton.setDisable(true);
+                    }
+                    // Hide payroll and benefits buttons for non-staff
+                    if (viewPayrollButton != null) {
+                        viewPayrollButton.setVisible(false);
+                        viewPayrollButton.setManaged(false);
+                        viewPayrollButton.setDisable(true);
+                    }
+                    if (viewBenefitsButton != null) {
+                        viewBenefitsButton.setVisible(false);
+                        viewBenefitsButton.setManaged(false);
+                        viewBenefitsButton.setDisable(true);
                     }
                 }
                 // Hide admin-only buttons for non-admins
@@ -557,6 +629,11 @@ public class dashboardcontroller {
                     reviewResearchButton.setVisible(false);
                     reviewResearchButton.setManaged(false);
                     reviewResearchButton.setDisable(true);
+                }
+                if (approveLeaveButton != null) {
+                    approveLeaveButton.setVisible(false);
+                    approveLeaveButton.setManaged(false);
+                    approveLeaveButton.setDisable(true);
                 }
                 // Hide assign staff button for non-admins
                 if (assignStaffToCourseButton != null) {
@@ -787,6 +864,33 @@ public class dashboardcontroller {
                 reviewResearchButton.setManaged(false);
                 reviewResearchButton.setDisable(true);
             }
+            // Hide leave management buttons for Guests
+            if (submitLeaveRequestButton != null) {
+                submitLeaveRequestButton.setVisible(false);
+                submitLeaveRequestButton.setManaged(false);
+                submitLeaveRequestButton.setDisable(true);
+            }
+            if (approveLeaveButton != null) {
+                approveLeaveButton.setVisible(false);
+                approveLeaveButton.setManaged(false);
+                approveLeaveButton.setDisable(true);
+            }
+            if (viewLeaveHistoryButton != null) {
+                viewLeaveHistoryButton.setVisible(false);
+                viewLeaveHistoryButton.setManaged(false);
+                viewLeaveHistoryButton.setDisable(true);
+            }
+            // Hide payroll and benefits buttons for Guests
+            if (viewPayrollButton != null) {
+                viewPayrollButton.setVisible(false);
+                viewPayrollButton.setManaged(false);
+                viewPayrollButton.setDisable(true);
+            }
+            if (viewBenefitsButton != null) {
+                viewBenefitsButton.setVisible(false);
+                viewBenefitsButton.setManaged(false);
+                viewBenefitsButton.setDisable(true);
+            }
 
             // Hide messages button for guest
             if (messagesButton != null) {
@@ -943,6 +1047,20 @@ public class dashboardcontroller {
     private Button addResearchButton; // Staff - Add Research Activity (US 3.9)
     @FXML
     private Button reviewResearchButton; // Admin - Review Research Records (US 3.10)
+    @FXML
+    private Button submitLeaveRequestButton; // Staff - Submit Leave Request (US 3.11)
+    @FXML
+    private Button approveLeaveButton; // Admin - Approve/Reject Leave (US 3.12)
+    @FXML
+    private Button viewLeaveHistoryButton; // Staff - View Leave History (US 3.13)
+    @FXML
+    private Button viewPayrollButton; // Staff - View Payroll Information (US 3.16)
+    @FXML
+    private Button viewBenefitsButton; // Staff - View Benefits Information (US 3.17)
+    @FXML
+    private Button managePayrollButton; // Admin - Manage Payroll Information (US 3.14)
+    @FXML
+    private Button manageBenefitsButton; // Admin - Manage Benefits Information (US 3.15)
 
     @FXML
     private Button logoutButton;
@@ -1859,6 +1977,159 @@ public class dashboardcontroller {
             return;
         }
         navigateTo("/fxml/review_research_records.fxml", event, "Review Research Records");
+    }
+
+    @FXML
+    void handleSubmitLeaveRequest(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to submit leave requests.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"STAFF".equals(userType) && !"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only staff members can submit leave requests.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/submit_leave_request.fxml", event, "Submit Leave Request");
+    }
+
+    @FXML
+    void handleApproveLeave(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage leave requests.");
+            alert.showAndWait();
+            return;
+        }
+        if (!"ADMIN".equals(authService.getCurrentUserType())) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only HR administrators can approve/reject leave requests.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/approve_leave.fxml", event, "Approve/Reject Leave Requests");
+    }
+
+    @FXML
+    void handleViewLeaveHistory(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view leave history.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"STAFF".equals(userType) && !"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only staff members can view their leave history.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/view_leave_history.fxml", event, "My Leave History");
+    }
+
+    @FXML
+    void handleViewPayroll(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view payroll information.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"STAFF".equals(userType) && !"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only staff members can view payroll information.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/view_payroll.fxml", event, "My Payroll Information");
+    }
+
+    @FXML
+    void handleViewBenefits(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to view benefits information.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"STAFF".equals(userType) && !"PROFESSOR".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only staff members can view benefits information.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/view_benefits.fxml", event, "My Benefits Information");
+    }
+
+    @FXML
+    void handleManagePayroll(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage payroll information.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only HR administrators can manage payroll information.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/manage_payroll.fxml", event, "Manage Payroll Information");
+    }
+
+    @FXML
+    void handleManageBenefits(ActionEvent event) {
+        if (!authService.isLoggedIn()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Not Logged In");
+            alert.setHeaderText(null);
+            alert.setContentText("Please login to manage benefits information.");
+            alert.showAndWait();
+            return;
+        }
+        String userType = authService.getCurrentUserType();
+        if (!"ADMIN".equals(userType)) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText(null);
+            alert.setContentText("Only HR administrators can manage benefits information.");
+            alert.showAndWait();
+            return;
+        }
+        navigateTo("/fxml/manage_benefits.fxml", event, "Manage Benefits Information");
     }
 
     private void showAlert(String title, String content) {

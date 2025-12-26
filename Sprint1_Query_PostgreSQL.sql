@@ -752,6 +752,123 @@ CREATE INDEX IF NOT EXISTS IX_CourseStaff_CourseID ON CourseStaff(CourseID);
 CREATE INDEX IF NOT EXISTS IX_CourseStaff_StaffUserID ON CourseStaff(StaffUserID);
 
 -- ============================================================================
+-- Leave Management Tables (US 3.11, 3.12, 3.13)
+-- ============================================================================
+
+-- LeaveRequests table (US 3.11 - Submit Leave Request, US 3.12 - Approve/Reject Leave, US 3.13 - View Leave History)
+CREATE TABLE IF NOT EXISTS LeaveRequests (
+    LeaveRequestID SERIAL PRIMARY KEY,
+    StaffUserID INT NOT NULL,
+    LeaveType VARCHAR(50) NOT NULL
+        CHECK (LeaveType IN ('SICK', 'VACATION', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'BEREAVEMENT', 'OTHER')),
+    StartDate DATE NOT NULL,
+    EndDate DATE NOT NULL,
+    NumberOfDays INT NOT NULL,
+    Reason TEXT,
+    Status VARCHAR(20) DEFAULT 'PENDING'
+        CHECK (Status IN ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED')),
+    SubmittedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ReviewedByUserID INT NULL,  -- HR Admin who reviewed
+    ReviewedDate TIMESTAMP NULL,
+    RejectionReason TEXT NULL,  -- Required if rejected
+    FOREIGN KEY (StaffUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (ReviewedByUserID) REFERENCES Users(UserID),
+    CHECK (EndDate >= StartDate),
+    CHECK (NumberOfDays > 0)
+);
+
+-- Create index on StaffUserID for faster lookups
+CREATE INDEX IF NOT EXISTS IX_LeaveRequests_StaffUserID ON LeaveRequests(StaffUserID);
+
+-- Create index on Status for filtering
+CREATE INDEX IF NOT EXISTS IX_LeaveRequests_Status ON LeaveRequests(Status);
+
+-- Create index on StartDate for sorting
+CREATE INDEX IF NOT EXISTS IX_LeaveRequests_StartDate ON LeaveRequests(StartDate);
+
+-- Create index on ReviewedByUserID for HR admin queries
+CREATE INDEX IF NOT EXISTS IX_LeaveRequests_ReviewedByUserID ON LeaveRequests(ReviewedByUserID);
+
+-- ============================================================================
+-- Payroll & Benefits Tables (US 3.14, 3.15)
+-- ============================================================================
+
+-- PayrollInformation table (US 3.14 - Add/Update Payroll Information, US 3.16 - View Payroll Information)
+CREATE TABLE IF NOT EXISTS PayrollInformation (
+    PayrollID SERIAL PRIMARY KEY,
+    StaffUserID INT NOT NULL,
+    PayPeriodStart DATE NOT NULL,
+    PayPeriodEnd DATE NOT NULL,
+    PayDate DATE NOT NULL,
+    PayFrequency VARCHAR(20) NOT NULL DEFAULT 'MONTHLY'
+        CHECK (PayFrequency IN ('WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'ANNUAL')),
+    EffectiveDate DATE NOT NULL,  -- When this payroll record becomes effective
+    BaseSalary DECIMAL(10,2) NOT NULL,
+    OvertimePay DECIMAL(10,2) DEFAULT 0.00,
+    Bonuses DECIMAL(10,2) DEFAULT 0.00,
+    GrossPay DECIMAL(10,2) NOT NULL,
+    TaxDeduction DECIMAL(10,2) DEFAULT 0.00,
+    InsuranceDeduction DECIMAL(10,2) DEFAULT 0.00,
+    OtherDeductions DECIMAL(10,2) DEFAULT 0.00,
+    TotalDeductions DECIMAL(10,2) DEFAULT 0.00,
+    NetPay DECIMAL(10,2) NOT NULL,
+    PaymentMethod VARCHAR(50) DEFAULT 'DIRECT_DEPOSIT'
+        CHECK (PaymentMethod IN ('DIRECT_DEPOSIT', 'CHECK', 'WIRE_TRANSFER')),
+    Notes TEXT NULL,
+    CreatedByUserID INT NULL,  -- HR Admin who created/updated
+    CreatedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (StaffUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (CreatedByUserID) REFERENCES Users(UserID),
+    CHECK (PayPeriodEnd >= PayPeriodStart),
+    CHECK (GrossPay >= 0),
+    CHECK (NetPay >= 0),
+    CHECK (TotalDeductions >= 0)
+);
+
+-- Create index on StaffUserID for faster lookups
+CREATE INDEX IF NOT EXISTS IX_PayrollInformation_StaffUserID ON PayrollInformation(StaffUserID);
+
+-- Create index on PayDate for sorting
+CREATE INDEX IF NOT EXISTS IX_PayrollInformation_PayDate ON PayrollInformation(PayDate DESC);
+
+-- Create index on PayPeriodStart for filtering
+CREATE INDEX IF NOT EXISTS IX_PayrollInformation_PayPeriodStart ON PayrollInformation(PayPeriodStart);
+
+-- BenefitsInformation table (US 3.15 - Add/Update Benefits Information, US 3.17 - View Benefits Information)
+CREATE TABLE IF NOT EXISTS BenefitsInformation (
+    BenefitID SERIAL PRIMARY KEY,
+    StaffUserID INT NOT NULL,
+    BenefitType VARCHAR(50) NOT NULL
+        CHECK (BenefitType IN ('HEALTH_INSURANCE', 'DENTAL_INSURANCE', 'VISION_INSURANCE', 'LIFE_INSURANCE', 'RETIREMENT', 'VACATION_DAYS', 'SICK_DAYS', 'OTHER')),
+    BenefitName VARCHAR(200) NOT NULL,
+    CoverageAmount DECIMAL(10,2) NULL,  -- For insurance benefits
+    CoverageDetails TEXT NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE NULL,  -- NULL for ongoing benefits
+    Status VARCHAR(20) DEFAULT 'ACTIVE'
+        CHECK (Status IN ('ACTIVE', 'INACTIVE', 'EXPIRED', 'CANCELLED')),
+    Provider VARCHAR(200) NULL,  -- Insurance provider, etc.
+    PolicyNumber VARCHAR(100) NULL,
+    Notes TEXT NULL,
+    CreatedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedByUserID INT NULL,  -- HR Admin who updated
+    FOREIGN KEY (StaffUserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (UpdatedByUserID) REFERENCES Users(UserID),
+    CHECK (EndDate IS NULL OR EndDate >= StartDate)
+);
+
+-- Create index on StaffUserID for faster lookups
+CREATE INDEX IF NOT EXISTS IX_BenefitsInformation_StaffUserID ON BenefitsInformation(StaffUserID);
+
+-- Create index on BenefitType for filtering
+CREATE INDEX IF NOT EXISTS IX_BenefitsInformation_BenefitType ON BenefitsInformation(BenefitType);
+
+-- Create index on Status for filtering active benefits
+CREATE INDEX IF NOT EXISTS IX_BenefitsInformation_Status ON BenefitsInformation(Status);
+
+-- ============================================================================
 -- END OF SCHEMA CREATION
 -- ============================================================================
 -- Note: Test data insertion scripts should be run separately

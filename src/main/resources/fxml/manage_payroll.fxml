@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.ManagePayrollController"
+            prefHeight="800.0" prefWidth="1200.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="5">
+            <Label text="Manage Payroll Information" styleClass="page-title"/>
+            <Label text="Add and update payroll records for staff members" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Staff Selection -->
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Label text="Select Staff Member:" styleClass="form-label"/>
+            <ComboBox fx:id="staffComboBox" prefWidth="300" prefHeight="35"/>
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <!-- Table -->
+        <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <Label text="Payroll Records" styleClass="form-label"/>
+            <TableView fx:id="payrollTable" prefHeight="200.0">
+                <columns>
+                    <TableColumn fx:id="payPeriodColumn" text="Pay Period" prefWidth="200"/>
+                    <TableColumn fx:id="payDateColumn" text="Pay Date" prefWidth="100"/>
+                    <TableColumn fx:id="grossPayColumn" text="Gross Pay" prefWidth="120"/>
+                    <TableColumn fx:id="netPayColumn" text="Net Pay" prefWidth="120"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Form -->
+        <VBox spacing="15" styleClass="card">
+            <Label text="Payroll Information" styleClass="form-label"/>
+            
+            <!-- Dates and Frequency -->
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Pay Period Start *" styleClass="form-label"/>
+                    <DatePicker fx:id="payPeriodStartPicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Pay Period End *" styleClass="form-label"/>
+                    <DatePicker fx:id="payPeriodEndPicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Pay Date *" styleClass="form-label"/>
+                    <DatePicker fx:id="payDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Effective Date *" styleClass="form-label"/>
+                    <DatePicker fx:id="effectiveDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Pay Frequency *" styleClass="form-label"/>
+                    <ComboBox fx:id="payFrequencyComboBox" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Payment Method" styleClass="form-label"/>
+                    <ComboBox fx:id="paymentMethodComboBox" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+
+            <!-- Salary and Earnings -->
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Base Salary *" styleClass="form-label"/>
+                    <TextField fx:id="baseSalaryField" prefHeight="35"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Overtime Pay" styleClass="form-label"/>
+                    <TextField fx:id="overtimePayField" prefHeight="35"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Bonuses" styleClass="form-label"/>
+                    <TextField fx:id="bonusesField" prefHeight="35"/>
+                </VBox>
+            </HBox>
+
+            <!-- Deductions -->
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Tax Deduction" styleClass="form-label"/>
+                    <TextField fx:id="taxDeductionField" prefHeight="35"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Insurance Deduction" styleClass="form-label"/>
+                    <TextField fx:id="insuranceDeductionField" prefHeight="35"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Other Deductions" styleClass="form-label"/>
+                    <TextField fx:id="otherDeductionsField" prefHeight="35"/>
+                </VBox>
+            </HBox>
+
+            <!-- Calculated Totals -->
+            <HBox spacing="15">
+                <Label fx:id="grossPayLabel" text="Gross Pay: -" styleClass="form-label"/>
+                <Label fx:id="totalDeductionsLabel" text="Total Deductions: -" styleClass="form-label"/>
+                <Label fx:id="netPayLabel" text="Net Pay: -" styleClass="form-label"/>
+            </HBox>
+
+            <!-- Notes -->
+            <VBox spacing="5">
+                <Label text="Notes" styleClass="form-label"/>
+                <TextArea fx:id="notesTextArea" prefRowCount="3" wrapText="true"/>
+            </VBox>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="addButton" text="Add Payroll" onAction="#handleAdd" 
+                    styleClass="button-primary" prefWidth="150"/>
+            <Button fx:id="updateButton" text="Update" onAction="#handleUpdate" 
+                    styleClass="button-primary" prefWidth="150" disable="true"/>
+            <Button fx:id="deleteButton" text="Delete" onAction="#handleDelete" 
+                    styleClass="button-danger" prefWidth="150" disable="true"/>
+            <Button fx:id="clearButton" text="Clear" onAction="#handleClear" 
+                    styleClass="button-secondary" prefWidth="150"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+

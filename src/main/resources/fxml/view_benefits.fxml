@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.ViewBenefitsController"
+            prefHeight="700.0" prefWidth="1000.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="5">
+            <Label text="My Benefits Information" styleClass="page-title"/>
+            <Label text="View your benefits and coverage details" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Filters -->
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Label text="Filter by Type:" styleClass="form-label"/>
+            <ComboBox fx:id="typeFilterComboBox" prefWidth="180" prefHeight="35"/>
+            <Label text="Filter by Status:" styleClass="form-label"/>
+            <ComboBox fx:id="statusFilterComboBox" prefWidth="150" prefHeight="35"/>
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <!-- Table -->
+        <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <TableView fx:id="benefitsTable" prefHeight="300.0">
+                <columns>
+                    <TableColumn fx:id="typeColumn" text="Type" prefWidth="150"/>
+                    <TableColumn fx:id="nameColumn" text="Name" prefWidth="200"/>
+                    <TableColumn fx:id="coverageColumn" text="Coverage" prefWidth="120"/>
+                    <TableColumn fx:id="startDateColumn" text="Start Date" prefWidth="100"/>
+                    <TableColumn fx:id="endDateColumn" text="End Date" prefWidth="100"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                    <TableColumn fx:id="providerColumn" text="Provider" prefWidth="150"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Details Panel -->
+        <VBox spacing="10" styleClass="card">
+            <Label text="Benefit Details" styleClass="form-label"/>
+            <GridPane hgap="15" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints prefWidth="200"/>
+                    <ColumnConstraints prefWidth="200"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                </rowConstraints>
+                
+                <Label fx:id="benefitTypeLabel" text="Type: -" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label fx:id="benefitNameLabel" text="Name: -" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label fx:id="coverageAmountLabel" text="Coverage Amount: -" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label fx:id="providerLabel" text="Provider: -" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label fx:id="policyNumberLabel" text="Policy Number: -" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label fx:id="statusLabel" text="Status: -" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label fx:id="startDateLabel" text="Start Date: -" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Label fx:id="endDateLabel" text="End Date: -" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            </GridPane>
+            <VBox spacing="5">
+                <Label text="Coverage Details:" styleClass="form-label"/>
+                <TextArea fx:id="coverageDetailsTextArea" prefRowCount="3" wrapText="true" editable="false"/>
+            </VBox>
+            <VBox spacing="5">
+                <Label text="Notes:" styleClass="form-label"/>
+                <TextArea fx:id="notesTextArea" prefRowCount="2" wrapText="true" editable="false"/>
+            </VBox>
+        </VBox>
+    </VBox>
+</AnchorPane>
+

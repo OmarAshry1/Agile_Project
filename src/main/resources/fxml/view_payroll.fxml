@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.ViewPayrollController"
+            prefHeight="700.0" prefWidth="1000.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="5">
+            <Label text="My Payroll Information" styleClass="page-title"/>
+            <Label text="View your payroll details and payment history" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Refresh Button -->
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <!-- Table -->
+        <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <TableView fx:id="payrollTable" prefHeight="300.0">
+                <columns>
+                    <TableColumn fx:id="payPeriodColumn" text="Pay Period" prefWidth="200"/>
+                    <TableColumn fx:id="payDateColumn" text="Pay Date" prefWidth="100"/>
+                    <TableColumn fx:id="grossPayColumn" text="Gross Pay" prefWidth="120"/>
+                    <TableColumn fx:id="deductionsColumn" text="Deductions" prefWidth="120"/>
+                    <TableColumn fx:id="netPayColumn" text="Net Pay" prefWidth="120"/>
+                    <TableColumn fx:id="paymentMethodColumn" text="Payment Method" prefWidth="150"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Details Panel -->
+        <VBox spacing="10" styleClass="card">
+            <Label text="Payroll Details" styleClass="form-label"/>
+            <GridPane hgap="15" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints prefWidth="200"/>
+                    <ColumnConstraints prefWidth="200"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="30"/>
+                </rowConstraints>
+                
+                <Label fx:id="baseSalaryLabel" text="Base Salary: -" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label fx:id="overtimePayLabel" text="Overtime Pay: -" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label fx:id="bonusesLabel" text="Bonuses: -" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label fx:id="grossPayLabel" text="Gross Pay: -" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label fx:id="taxDeductionLabel" text="Tax Deduction: -" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label fx:id="insuranceDeductionLabel" text="Insurance Deduction: -" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label fx:id="otherDeductionsLabel" text="Other Deductions: -" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Label fx:id="totalDeductionsLabel" text="Total Deductions: -" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <Label fx:id="netPayLabel" text="Net Pay: -" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <Label fx:id="paymentMethodLabel" text="Payment Method: -" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            </GridPane>
+            <VBox spacing="5">
+                <Label text="Notes:" styleClass="form-label"/>
+                <TextArea fx:id="notesTextArea" prefRowCount="3" wrapText="true" editable="false"/>
+            </VBox>
+        </VBox>
+    </VBox>
+</AnchorPane>
+

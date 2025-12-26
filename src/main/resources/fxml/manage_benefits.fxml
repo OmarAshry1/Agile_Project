@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.ManageBenefitsController"
+            prefHeight="800.0" prefWidth="1200.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="5">
+            <Label text="Manage Benefits Information" styleClass="page-title"/>
+            <Label text="Add and update benefits for staff members" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Staff Selection -->
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Label text="Select Staff Member:" styleClass="form-label"/>
+            <ComboBox fx:id="staffComboBox" prefWidth="300" prefHeight="35"/>
+            <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" 
+                    styleClass="button-secondary" prefWidth="100"/>
+        </HBox>
+
+        <!-- Table -->
+        <VBox spacing="10" VBox.vgrow="ALWAYS">
+            <Label text="Benefits Records" styleClass="form-label"/>
+            <TableView fx:id="benefitsTable" prefHeight="200.0">
+                <columns>
+                    <TableColumn fx:id="typeColumn" text="Type" prefWidth="150"/>
+                    <TableColumn fx:id="nameColumn" text="Name" prefWidth="200"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                    <TableColumn fx:id="startDateColumn" text="Start Date" prefWidth="100"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Form -->
+        <VBox spacing="15" styleClass="card">
+            <Label text="Benefit Information" styleClass="form-label"/>
+            
+            <!-- Basic Info -->
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Benefit Type *" styleClass="form-label"/>
+                    <ComboBox fx:id="benefitTypeComboBox" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Benefit Name *" styleClass="form-label"/>
+                    <TextField fx:id="benefitNameField" prefHeight="35"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Status" styleClass="form-label"/>
+                    <ComboBox fx:id="statusComboBox" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+
+            <!-- Coverage and Provider -->
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Coverage Amount" styleClass="form-label"/>
+                    <TextField fx:id="coverageAmountField" prefHeight="35"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Provider" styleClass="form-label"/>
+                    <TextField fx:id="providerField" prefHeight="35"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Policy Number" styleClass="form-label"/>
+                    <TextField fx:id="policyNumberField" prefHeight="35"/>
+                </VBox>
+            </HBox>
+
+            <!-- Dates -->
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Start Date *" styleClass="form-label"/>
+                    <DatePicker fx:id="startDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="End Date (Optional)" styleClass="form-label"/>
+                    <DatePicker fx:id="endDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+
+            <!-- Details -->
+            <VBox spacing="5">
+                <Label text="Coverage Details" styleClass="form-label"/>
+                <TextArea fx:id="coverageDetailsTextArea" prefRowCount="3" wrapText="true"/>
+            </VBox>
+
+            <!-- Notes -->
+            <VBox spacing="5">
+                <Label text="Notes" styleClass="form-label"/>
+                <TextArea fx:id="notesTextArea" prefRowCount="2" wrapText="true"/>
+            </VBox>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="addButton" text="Add Benefit" onAction="#handleAdd" 
+                    styleClass="button-primary" prefWidth="150"/>
+            <Button fx:id="updateButton" text="Update" onAction="#handleUpdate" 
+                    styleClass="button-primary" prefWidth="150" disable="true"/>
+            <Button fx:id="deleteButton" text="Delete" onAction="#handleDelete" 
+                    styleClass="button-danger" prefWidth="150" disable="true"/>
+            <Button fx:id="clearButton" text="Clear" onAction="#handleClear" 
+                    styleClass="button-secondary" prefWidth="150"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+

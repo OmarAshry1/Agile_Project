@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.staff.ui.SubmitLeaveRequestController"
+            prefHeight="600.0" prefWidth="800.0"
+            stylesheets="@../css/style.css">
+
+    <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="5">
+            <Label text="Submit Leave Request" styleClass="page-title"/>
+            <Label text="Request time off from work" styleClass="form-label"/>
+        </VBox>
+
+        <!-- Form -->
+        <VBox spacing="15" styleClass="card">
+            <!-- Leave Type -->
+            <VBox spacing="5">
+                <Label text="Leave Type *" styleClass="form-label"/>
+                <ComboBox fx:id="leaveTypeComboBox" prefHeight="35" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Dates -->
+            <HBox spacing="15">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Start Date *" styleClass="form-label"/>
+                    <DatePicker fx:id="startDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="End Date *" styleClass="form-label"/>
+                    <DatePicker fx:id="endDatePicker" prefHeight="35" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+
+            <!-- Number of Days -->
+            <VBox spacing="5">
+                <Label fx:id="numberOfDaysLabel" text="Number of Days: -" styleClass="form-label"/>
+            </VBox>
+
+            <!-- Reason -->
+            <VBox spacing="5">
+                <Label text="Reason *" styleClass="form-label"/>
+                <TextArea fx:id="reasonTextArea" prefRowCount="5" wrapText="true"/>
+            </VBox>
+        </VBox>
+
+        <!-- Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="submitButton" text="Submit Request" onAction="#handleSubmit" 
+                    styleClass="button-primary" prefWidth="150"/>
+            <Button fx:id="cancelButton" text="Clear" onAction="#handleCancel" 
+                    styleClass="button-secondary" prefWidth="150"/>
+        </HBox>
+    </VBox>
+</AnchorPane>
+
