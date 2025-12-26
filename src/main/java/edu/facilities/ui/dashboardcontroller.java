@@ -2014,7 +2014,12 @@ public class dashboardcontroller {
 
     private void navigateTo(String fxmlPath, ActionEvent event, String title) {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource(fxmlPath));
+            // Use Main.class.getResource() for consistent resource loading from classpath root
+            java.net.URL resource = edu.facilities.Main.class.getResource(fxmlPath);
+            if (resource == null) {
+                throw new IOException("Resource not found: " + fxmlPath);
+            }
+            Parent root = FXMLLoader.load(resource);
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             // Preserve maximized state
             boolean wasMaximized = stage.isMaximized();
@@ -2033,25 +2038,22 @@ public class dashboardcontroller {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Navigation Error");
             alert.setHeaderText("Unable to open view");
-            alert.setContentText(e.getMessage());
+            alert.setContentText("Failed to load: " + fxmlPath + "\n\nError: " + e.getMessage());
             alert.showAndWait();
+            e.printStackTrace();
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Unable to open view");
+            alert.setContentText("Unexpected error loading: " + fxmlPath + "\n\nError: " + e.getMessage());
+            alert.showAndWait();
+            e.printStackTrace();
         }
     }
 
     @FXML
     private void handleMessagesButton(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/messages-inbox.fxml"));
-            Parent root = loader.load();
-
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Messages");
-            stage.setMaximized(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Could not open Messages window.");
-        }
+        navigateTo("/fxml/messages-inbox.fxml", event, "Messages");
     }
 
     @FXML

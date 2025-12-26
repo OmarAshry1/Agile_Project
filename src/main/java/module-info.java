@@ -3,9 +3,13 @@ module edu.facilities {
     requires javafx.fxml;
     requires transitive javafx.graphics;
     requires transitive java.sql;
-    requires org.postgresql.jdbc;
-    requires com.zaxxer.hikari;
-    requires org.apache.pdfbox;
+    // Non-modularized libraries use automatic module names
+    // Try JAR filename-based names first (most common)
+    // HikariCP JAR: HikariCP-5.1.0.jar -> automatic module name: "hikaricp" (lowercase, no version)
+    requires hikaricp;
+    // PostgreSQL JAR: postgresql-42.7.1.jar -> automatic module name: "postgresql" (lowercase, no version)  
+    requires postgresql;
+    // PDFBox is loaded via reflection, so no module requirement needed
 
     opens edu.facilities.ui to javafx.fxml, javafx.graphics;
     opens edu.facilities to javafx.fxml, javafx.graphics;
