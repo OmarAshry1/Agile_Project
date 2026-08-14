@@ -1,0 +1,3 @@
+package edu.facilities.ui;
+import edu.facilities.service.CourseRoomAssignmentService; import javafx.fxml.FXML; import javafx.scene.control.*;
+public class CourseRoomAssignmentController { @FXML private TextField courseIdField,roomIdField,dayField,startField,endField; @FXML private Label messageLabel; @FXML private void assign(){try{new CourseRoomAssignmentService().assign(Long.parseLong(courseIdField.getText()),Long.parseLong(roomIdField.getText()),dayField.getText(),startField.getText(),endField.getText());messageLabel.setText("Course-room assignment saved.");}catch(Exception e){messageLabel.setText(e.getMessage());}}}
