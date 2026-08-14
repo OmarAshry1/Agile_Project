@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8"?><VBox xmlns:fx="http://javafx.com/fxml" spacing="8"><Label text="Core subject registration"/><fx:include source="student_course_catalog.fxml"/></VBox>
