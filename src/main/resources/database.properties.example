@@ -1,0 +1,6 @@
+db.host=YOUR_SUPABASE_DB_HOST
+db.port=5432
+db.name=postgres
+db.user=YOUR_SUPABASE_DB_USER
+db.password=YOUR_SUPABASE_DB_PASSWORD
+db.ssl=true
