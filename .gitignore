@@ -1,0 +1,11 @@
+target/
+.idea/
+.vscode/
+*.iml
+database.properties
+database.local.properties
+.env
+*.log
+*.class
+announcement_attachments/
+submission_files/
